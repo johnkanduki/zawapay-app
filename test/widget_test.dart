@@ -4,15 +4,33 @@ import 'package:zawapay_app/app.dart';
 import 'package:zawapay_app/features/auth/widgets/password_strength.dart';
 
 void main() {
-  testWidgets('Onboarding shows both entry buttons in French', (tester) async {
+  testWidgets('First screen: pick country and language, then sign-in choice', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     tester.platformDispatcher.localesTestValue = const [Locale('fr')];
+
     await tester.pumpWidget(const ZawapayApp());
     await tester.pumpAndSettle();
-    expect(find.text('Se connecter'), findsOneWidget);
-    expect(find.text('Créer un compte'), findsOneWidget);
+    expect(find.text('Bienvenue'), findsOneWidget);
+
+    // Switching to English translates the page at once.
+    await tester.tap(find.text('English'));
+    await tester.pumpAndSettle();
+    expect(find.text('Welcome'), findsOneWidget);
+
+    // Continue stays disabled until a country is chosen.
+    await tester.tap(find.text('Choose your country'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kenya'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sign in'), findsOneWidget);
+    expect(find.text('Create an account'), findsOneWidget);
   });
 
   test('Password strength levels', () {

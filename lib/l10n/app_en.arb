@@ -3,6 +3,12 @@
   "appName": "Zawapay App",
 
 
+  "welcomeTitle": "Welcome",
+  "welcomeSubtitle": "Choose your country and the app language.",
+  "countryLabel": "Country",
+  "countryHint": "Choose your country",
+  "languageLabel": "Language",
+
   "signIn": "Sign in",
   "signUp": "Sign up",
   "createAccount": "Create an account",

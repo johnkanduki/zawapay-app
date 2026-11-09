@@ -13,6 +13,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'Zawapay App';
 
   @override
+  String get welcomeTitle => 'Welcome';
+
+  @override
+  String get welcomeSubtitle => 'Choose your country and the app language.';
+
+  @override
+  String get countryLabel => 'Country';
+
+  @override
+  String get countryHint => 'Choose your country';
+
+  @override
+  String get languageLabel => 'Language';
+
+  @override
   String get signIn => 'Sign in';
 
   @override

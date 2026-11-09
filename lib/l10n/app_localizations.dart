@@ -104,6 +104,36 @@ abstract class AppLocalizations {
   /// **'Zawapay App'**
   String get appName;
 
+  /// No description provided for @welcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get welcomeTitle;
+
+  /// No description provided for @welcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your country and the app language.'**
+  String get welcomeSubtitle;
+
+  /// No description provided for @countryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get countryLabel;
+
+  /// No description provided for @countryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your country'**
+  String get countryHint;
+
+  /// No description provided for @languageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get languageLabel;
+
   /// No description provided for @signIn.
   ///
   /// In en, this message translates to:
