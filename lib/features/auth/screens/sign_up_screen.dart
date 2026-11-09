@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_buttons.dart';
+import '../../../core/widgets/app_checkbox.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/auth_card_scaffold.dart';
 import '../../../core/widgets/underlined_link.dart';
@@ -74,11 +74,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
           textCapitalization: TextCapitalization.characters,
         ),
         const SizedBox(height: 18),
-        PasswordField(label: l10n.passwordLabel, hint: l10n.passwordMinHint),
-        const SizedBox(height: 18),
         PasswordField(
-          label: l10n.confirmPasswordLabel,
-          hint: l10n.confirmPasswordHint,
+          label: l10n.passwordLabel,
+          hint: l10n.passwordMinHint,
           textInputAction: TextInputAction.done,
         ),
         const SizedBox(height: 22),
@@ -128,42 +126,18 @@ class _TermsCheckbox extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return Row(
-      children: [
-        GestureDetector(
-          onTap: () => onChanged(!accepted),
-          child: Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(
-              color: accepted ? AppColors.red : AppColors.white,
-              borderRadius: BorderRadius.circular(7),
-              border: accepted
-                  ? null
-                  : Border.all(color: AppColors.grey, width: 1.8),
-            ),
-            child: accepted
-                ? const Icon(
-                    Icons.check_rounded,
-                    size: 18,
-                    color: AppColors.white,
-                  )
-                : null,
-          ),
+    return AppCheckbox(
+      value: accepted,
+      onChanged: onChanged,
+      label: Text.rich(
+        TextSpan(
+          style: AppText.body,
+          children: [
+            TextSpan(text: l10n.acceptPrefix),
+            linkSpan(l10n.acceptTerms, () {}),
+          ],
         ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Text.rich(
-            TextSpan(
-              style: AppText.body,
-              children: [
-                TextSpan(text: l10n.acceptPrefix),
-                linkSpan(l10n.acceptTerms, () {}),
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

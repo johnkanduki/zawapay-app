@@ -112,11 +112,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get alreadyHaveAccount => 'Vous avez déjà un compte ? ';
 
   @override
-  String get numbersTitle => 'Vos numéros';
+  String get numbersTitle => 'Votre numéro';
 
   @override
   String get numbersSubtitle =>
-      'Vos numéros Mobile Money pour payer et pour retirer.';
+      'Votre numéro Mobile Money pour payer et pour retirer.';
 
   @override
   String get paymentNumberLabel => 'Numéro de paiement';
@@ -124,6 +124,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get paymentNumberHelp =>
       'Ce numéro reçoit les demandes de confirmation de paiement (USSD).';
+
+  @override
+  String get sameNumberForWithdrawals =>
+      'Recevoir mes retraits sur ce même numéro';
 
   @override
   String get receivingNumberLabel => 'Numéro de réception';

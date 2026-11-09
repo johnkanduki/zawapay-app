@@ -2,24 +2,31 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_buttons.dart';
+import '../../../core/widgets/app_checkbox.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/auth_card_scaffold.dart';
-import '../../../core/widgets/code_input.dart';
 import '../../../core/widgets/phone_number_field.dart';
 import '../../../l10n/app_localizations.dart';
 import 'verify_code_screen.dart';
 
-/// Sign-up, step 2: Mobile Money numbers and withdrawal PIN.
+/// Sign-up, step 2: the Mobile Money number.
 ///
 /// - Payment number: receives the USSD payment confirmation requests.
-/// - Receiving number: receives the money when the user withdraws.
-/// - PIN (4 digits): confirms withdrawals, only inside the app.
-class SignUpNumbersScreen extends StatelessWidget {
+/// - Receiving number: where withdrawals are sent. Same as the payment
+///   number by default; a second field appears only if the box is unchecked.
+///
+/// The withdrawal PIN is not asked here: it will be set at the first withdrawal.
+class SignUpNumbersScreen extends StatefulWidget {
   const SignUpNumbersScreen({super.key, required this.email});
 
   final String email;
 
-  static const pinLength = 4;
+  @override
+  State<SignUpNumbersScreen> createState() => _SignUpNumbersScreenState();
+}
+
+class _SignUpNumbersScreenState extends State<SignUpNumbersScreen> {
+  bool _sameNumberForWithdrawals = true;
 
   @override
   Widget build(BuildContext context) {
@@ -32,24 +39,26 @@ class SignUpNumbersScreen extends StatelessWidget {
         FieldLabel(l10n.paymentNumberLabel),
         const PhoneNumberField(),
         _HelpText(l10n.paymentNumberHelp),
-        const SizedBox(height: 18),
-        FieldLabel(l10n.receivingNumberLabel),
-        const PhoneNumberField(),
-        _HelpText(l10n.receivingNumberHelp),
-        const SizedBox(height: 18),
-        FieldLabel(l10n.pinLabel),
-        const CodeInput(length: pinLength, obscure: true),
-        _HelpText(l10n.pinHelp),
-        const SizedBox(height: 18),
-        FieldLabel(l10n.confirmPinLabel),
-        const CodeInput(length: pinLength, obscure: true),
+        const SizedBox(height: 22),
+        AppCheckbox(
+          value: _sameNumberForWithdrawals,
+          onChanged: (value) =>
+              setState(() => _sameNumberForWithdrawals = value),
+          label: Text(l10n.sameNumberForWithdrawals, style: AppText.body),
+        ),
+        if (!_sameNumberForWithdrawals) ...[
+          const SizedBox(height: 22),
+          FieldLabel(l10n.receivingNumberLabel),
+          const PhoneNumberField(),
+          _HelpText(l10n.receivingNumberHelp),
+        ],
         const SizedBox(height: 28),
         PrimaryButton(
           label: l10n.createMyAccount,
           onPressed: () => Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => VerifyCodeScreen(
-                email: email,
+                email: widget.email,
                 onVerified: (codeContext) =>
                     Navigator.of(codeContext)
                         .popUntil((route) => route.isFirst),

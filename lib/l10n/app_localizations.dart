@@ -305,13 +305,13 @@ abstract class AppLocalizations {
   /// No description provided for @numbersTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your numbers'**
+  /// **'Your number'**
   String get numbersTitle;
 
   /// No description provided for @numbersSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your Mobile Money numbers to pay and to withdraw.'**
+  /// **'Your Mobile Money number to pay and to withdraw.'**
   String get numbersSubtitle;
 
   /// No description provided for @paymentNumberLabel.
@@ -325,6 +325,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This number receives the payment confirmation requests (USSD).'**
   String get paymentNumberHelp;
+
+  /// No description provided for @sameNumberForWithdrawals.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive my withdrawals on this same number'**
+  String get sameNumberForWithdrawals;
 
   /// No description provided for @receivingNumberLabel.
   ///

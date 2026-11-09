@@ -39,10 +39,11 @@
   "continueButton": "Continue",
   "alreadyHaveAccount": "Already have an account? ",
 
-  "numbersTitle": "Your numbers",
-  "numbersSubtitle": "Your Mobile Money numbers to pay and to withdraw.",
+  "numbersTitle": "Your number",
+  "numbersSubtitle": "Your Mobile Money number to pay and to withdraw.",
   "paymentNumberLabel": "Payment number",
   "paymentNumberHelp": "This number receives the payment confirmation requests (USSD).",
+  "sameNumberForWithdrawals": "Receive my withdrawals on this same number",
   "receivingNumberLabel": "Receiving number",
   "receivingNumberHelp": "Your withdrawals are sent to this number.",
   "phoneNumberHint": "Number",
