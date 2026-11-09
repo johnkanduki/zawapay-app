@@ -73,16 +73,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get google => 'Google';
 
   @override
+  String get firstNameLabel => 'First name';
+
+  @override
+  String get firstNameHint => 'First name';
+
+  @override
   String get lastNameLabel => 'Last name';
 
   @override
-  String get lastNameHint => 'Enter your last name';
-
-  @override
-  String get middleNameLabel => 'Middle name';
-
-  @override
-  String get middleNameHint => 'Enter your middle name';
+  String get lastNameHint => 'Last name';
 
   @override
   String get referralCodeLabel => 'Referral code';

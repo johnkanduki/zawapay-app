@@ -73,16 +73,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get google => 'Google';
 
   @override
+  String get firstNameLabel => 'Prénom';
+
+  @override
+  String get firstNameHint => 'Prénom';
+
+  @override
   String get lastNameLabel => 'Nom';
 
   @override
-  String get lastNameHint => 'Entrez votre nom';
-
-  @override
-  String get middleNameLabel => 'Post-nom';
-
-  @override
-  String get middleNameHint => 'Entrez votre post-nom';
+  String get lastNameHint => 'Nom';
 
   @override
   String get referralCodeLabel => 'Code de parrainage';

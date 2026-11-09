@@ -36,18 +36,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
       title: l10n.signUp,
       subtitle: l10n.authSubtitle,
       children: [
-        AppTextField(
-          label: l10n.lastNameLabel,
-          hint: l10n.lastNameHint,
-          textCapitalization: TextCapitalization.words,
-          autofillHints: const [AutofillHints.familyName],
-        ),
-        const SizedBox(height: 18),
-        AppTextField(
-          label: l10n.middleNameLabel,
-          hint: l10n.middleNameHint,
-          textCapitalization: TextCapitalization.words,
-          autofillHints: const [AutofillHints.middleName],
+        // First name on the left, last name on the right, to keep the page short.
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: AppTextField(
+                label: l10n.firstNameLabel,
+                hint: l10n.firstNameHint,
+                textCapitalization: TextCapitalization.words,
+                autofillHints: const [AutofillHints.givenName],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: AppTextField(
+                label: l10n.lastNameLabel,
+                hint: l10n.lastNameHint,
+                textCapitalization: TextCapitalization.words,
+                autofillHints: const [AutofillHints.familyName],
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 18),
         AppTextField(

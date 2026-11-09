@@ -25,10 +25,10 @@
   "apple": "Apple",
   "google": "Google",
 
+  "firstNameLabel": "First name",
+  "firstNameHint": "First name",
   "lastNameLabel": "Last name",
-  "lastNameHint": "Enter your last name",
-  "middleNameLabel": "Middle name",
-  "middleNameHint": "Enter your middle name",
+  "lastNameHint": "Last name",
   "referralCodeLabel": "Referral code",
   "referralCodeHint": "Your sponsor’s code",
   "passwordMinHint": "8 characters minimum",

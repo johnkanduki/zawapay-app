@@ -224,6 +224,18 @@ abstract class AppLocalizations {
   /// **'Google'**
   String get google;
 
+  /// No description provided for @firstNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get firstNameLabel;
+
+  /// No description provided for @firstNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get firstNameHint;
+
   /// No description provided for @lastNameLabel.
   ///
   /// In en, this message translates to:
@@ -233,20 +245,8 @@ abstract class AppLocalizations {
   /// No description provided for @lastNameHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter your last name'**
+  /// **'Last name'**
   String get lastNameHint;
-
-  /// No description provided for @middleNameLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Middle name'**
-  String get middleNameLabel;
-
-  /// No description provided for @middleNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter your middle name'**
-  String get middleNameHint;
 
   /// No description provided for @referralCodeLabel.
   ///

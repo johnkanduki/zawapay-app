@@ -25,10 +25,10 @@
   "apple": "Apple",
   "google": "Google",
 
+  "firstNameLabel": "Prénom",
+  "firstNameHint": "Prénom",
   "lastNameLabel": "Nom",
-  "lastNameHint": "Entrez votre nom",
-  "middleNameLabel": "Post-nom",
-  "middleNameHint": "Entrez votre post-nom",
+  "lastNameHint": "Nom",
   "referralCodeLabel": "Code de parrainage",
   "referralCodeHint": "Code de votre parrain",
   "passwordMinHint": "8 caractères minimum",
