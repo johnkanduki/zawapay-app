@@ -104,24 +104,6 @@ abstract class AppLocalizations {
   /// **'Zawapay App'**
   String get appName;
 
-  /// No description provided for @onboardingTitle1.
-  ///
-  /// In en, this message translates to:
-  /// **'Send money\nTo 12 countries'**
-  String get onboardingTitle1;
-
-  /// No description provided for @onboardingTitle2.
-  ///
-  /// In en, this message translates to:
-  /// **'Mobile Money\nFully secure'**
-  String get onboardingTitle2;
-
-  /// No description provided for @onboardingTitle3.
-  ///
-  /// In en, this message translates to:
-  /// **'Refer your loved ones\nEarn with them'**
-  String get onboardingTitle3;
-
   /// No description provided for @signIn.
   ///
   /// In en, this message translates to:

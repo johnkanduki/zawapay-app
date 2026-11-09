@@ -2,9 +2,6 @@
   "@@locale": "fr",
   "appName": "Zawapay App",
 
-  "onboardingTitle1": "Envoie de l’argent\nDans 12 pays",
-  "onboardingTitle2": "Mobile Money\nEn toute sécurité",
-  "onboardingTitle3": "Parraine tes proches\nGagne avec eux",
 
   "signIn": "Se connecter",
   "signUp": "S’inscrire",

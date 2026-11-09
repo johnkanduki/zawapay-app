@@ -13,15 +13,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'Zawapay App';
 
   @override
-  String get onboardingTitle1 => 'Send money\nTo 12 countries';
-
-  @override
-  String get onboardingTitle2 => 'Mobile Money\nFully secure';
-
-  @override
-  String get onboardingTitle3 => 'Refer your loved ones\nEarn with them';
-
-  @override
   String get signIn => 'Sign in';
 
   @override
