@@ -24,6 +24,14 @@ void main() {
     // Continue stays disabled until a country is chosen.
     await tester.tap(find.text('Choose your country'));
     await tester.pumpAndSettle();
+
+    // A country that is not available shows the "coming soon" message.
+    await tester.enterText(find.byType(TextField), 'France');
+    await tester.pump();
+    expect(find.text('Not in this country yet'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'ken');
+    await tester.pump();
     await tester.tap(find.text('Kenya'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Continue'));

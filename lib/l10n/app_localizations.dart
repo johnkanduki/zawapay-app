@@ -386,6 +386,30 @@ abstract class AppLocalizations {
   /// **'Create my account'**
   String get createMyAccount;
 
+  /// No description provided for @searchCountryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a country'**
+  String get searchCountryHint;
+
+  /// No description provided for @allCountries.
+  ///
+  /// In en, this message translates to:
+  /// **'All countries'**
+  String get allCountries;
+
+  /// No description provided for @countryNotAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in this country yet'**
+  String get countryNotAvailableTitle;
+
+  /// No description provided for @countryNotAvailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Zawapay App is coming to you soon. Meanwhile, choose one of the countries in the list.'**
+  String get countryNotAvailableBody;
+
   /// No description provided for @chooseCountry.
   ///
   /// In en, this message translates to:

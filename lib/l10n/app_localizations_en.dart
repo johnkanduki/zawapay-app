@@ -158,6 +158,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createMyAccount => 'Create my account';
 
   @override
+  String get searchCountryHint => 'Search for a country';
+
+  @override
+  String get allCountries => 'All countries';
+
+  @override
+  String get countryNotAvailableTitle => 'Not in this country yet';
+
+  @override
+  String get countryNotAvailableBody =>
+      'Zawapay App is coming to you soon. Meanwhile, choose one of the countries in the list.';
+
+  @override
   String get chooseCountry => 'Choose a country';
 
   @override

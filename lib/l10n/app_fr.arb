@@ -54,6 +54,10 @@
   "pinHelp": "4 chiffres pour confirmer vos retraits, uniquement dans l’application.",
   "confirmPinLabel": "Confirmer le code PIN",
   "createMyAccount": "Créer mon compte",
+  "searchCountryHint": "Rechercher un pays",
+  "allCountries": "Tous les pays",
+  "countryNotAvailableTitle": "Pas encore dans ce pays",
+  "countryNotAvailableBody": "Zawapay App arrive bientôt chez vous. En attendant, choisissez un des pays de la liste.",
   "chooseCountry": "Choisir un pays",
 
   "forgotPasswordTitle": "Mot de passe oublié",
