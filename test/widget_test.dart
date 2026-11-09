@@ -16,6 +16,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Bienvenue'), findsOneWidget);
 
+    // Nothing is chosen yet: Continue is disabled.
+    FilledButton continueButton() =>
+        tester.widget<FilledButton>(find.byType(FilledButton));
+    expect(continueButton().onPressed, isNull);
+
     // Switching to English translates the page at once.
     await tester.tap(find.text('English'));
     await tester.pumpAndSettle();
@@ -34,6 +39,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Kenya'));
     await tester.pumpAndSettle();
+    expect(continueButton().onPressed, isNotNull);
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
 

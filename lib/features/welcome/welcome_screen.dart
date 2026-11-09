@@ -24,7 +24,8 @@ class WelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final settings = AppSettingsScope.of(context);
-    final currentLanguage = Localizations.localeOf(context).languageCode;
+    // No language is ticked until the user picks one (no default).
+    final chosenLanguage = settings.locale?.languageCode;
     final country = settings.country;
 
     return AuthCardScaffold(
@@ -57,19 +58,17 @@ class WelcomeScreen extends StatelessWidget {
           _SelectorTile(
             onTap: () => settings.setLocale(locale),
             text: name,
-            selected: currentLanguage == locale.languageCode,
+            selected: chosenLanguage == locale.languageCode,
           ),
           const SizedBox(height: 10),
         ],
         const SizedBox(height: 18),
         PrimaryButton(
           label: l10n.continueButton,
-          onPressed: country == null
+          onPressed: country == null || chosenLanguage == null
               ? null
               : () {
-                  settings
-                    ..setLocale(Localizations.localeOf(context))
-                    ..completeSetup();
+                  settings.completeSetup();
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(builder: (_) => const OnboardingScreen()),
                   );
