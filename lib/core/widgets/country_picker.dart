@@ -1,3 +1,4 @@
+import 'package:circle_flags/circle_flags.dart';
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -19,7 +20,7 @@ Future<Country?> showCountryPicker(BuildContext context, {Country? selected}) {
   );
 }
 
-/// Country flag cropped into a circle.
+/// Flat round country flag (circle_flags SVG set).
 class RoundFlag extends StatelessWidget {
   const RoundFlag({super.key, required this.country, this.size = 34});
 
@@ -28,20 +29,7 @@ class RoundFlag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipOval(
-      child: SizedBox.square(
-        dimension: size,
-        // The emoji is drawn larger than the circle so the flag fills it.
-        child: OverflowBox(
-          maxWidth: size * 3,
-          maxHeight: size * 3,
-          child: Text(
-            country.flag,
-            style: TextStyle(fontSize: size * 1.55, height: 1),
-          ),
-        ),
-      ),
-    );
+    return CircleFlag(country.isoCode, size: size);
   }
 }
 

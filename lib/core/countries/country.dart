@@ -10,11 +10,6 @@ class Country {
   /// International dialling code, e.g. "+243".
   final String dialCode;
 
-  /// Flag emoji built from the ISO code.
-  String get flag => String.fromCharCodes(
-    isoCode.codeUnits.map((unit) => 0x1F1E6 + unit - 0x41),
-  );
-
   String name(AppLocalizations l10n) => switch (isoCode) {
     'CD' => l10n.countryCD,
     'BJ' => l10n.countryBJ,
