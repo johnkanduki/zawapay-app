@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import '../countries/country.dart';
 
@@ -10,6 +10,7 @@ class AppSettings extends ChangeNotifier {
   Country? _country;
   Locale? _locale;
   bool _setupDone = false;
+  ThemeMode _themeMode = ThemeMode.system;
 
   Country? get country => _country;
 
@@ -29,6 +30,15 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Light, dark, or (by default, for every new account) the phone's own
+  /// setting.
+  ThemeMode get themeMode => _themeMode;
+
+  void setThemeMode(ThemeMode mode) {
+    _themeMode = mode;
+    notifyListeners();
+  }
+
   void completeSetup() {
     _setupDone = true;
     notifyListeners();
@@ -42,6 +52,10 @@ class AppSettingsScope extends InheritedNotifier<AppSettings> {
     required AppSettings settings,
     required super.child,
   }) : super(notifier: settings);
+
+  /// Same as [of], but null when there is no scope (previews, tests).
+  static AppSettings? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<AppSettingsScope>()?.notifier;
 
   static AppSettings of(BuildContext context) {
     final scope = context

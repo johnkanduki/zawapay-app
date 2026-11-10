@@ -7,10 +7,17 @@ import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/auth_card_scaffold.dart';
 import '../../../core/widgets/underlined_link.dart';
 import '../../../l10n/app_localizations.dart';
+import '../widgets/password_strength.dart';
+import '../widgets/sponsor_invitation_field.dart';
 import 'sign_in_screen.dart';
 import 'sign_up_numbers_screen.dart';
 
-/// Sign-up, step 1: identity, mandatory referral code and password.
+/// Sign-up, step 1: identity, mandatory sponsor invitation
+/// ("Invitation parrain ou marraine") and password.
+///
+/// "Continue" stays grey until every point is filled in: first name, last
+/// name, a valid email, a confirmed sponsor, a password that meets the five
+/// rules, and the terms box ticked.
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
@@ -19,14 +26,42 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  final _firstName = TextEditingController();
+  final _lastName = TextEditingController();
   final _email = TextEditingController();
+  final _password = TextEditingController();
+  Sponsor? _sponsor;
   bool _termsAccepted = false;
+
+  static final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]{2,}$');
+
+  @override
+  void initState() {
+    super.initState();
+    // Re-check the Continue button on every keystroke.
+    for (final controller in [_firstName, _lastName, _email, _password]) {
+      controller.addListener(_refresh);
+    }
+  }
+
+  void _refresh() => setState(() {});
 
   @override
   void dispose() {
+    _firstName.dispose();
+    _lastName.dispose();
     _email.dispose();
+    _password.dispose();
     super.dispose();
   }
+
+  bool get _canContinue =>
+      _firstName.text.trim().isNotEmpty &&
+      _lastName.text.trim().isNotEmpty &&
+      _emailPattern.hasMatch(_email.text.trim()) &&
+      _sponsor != null &&
+      PasswordRules(_password.text).passed == 5 &&
+      _termsAccepted;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +79,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               child: AppTextField(
                 label: l10n.firstNameLabel,
                 hint: l10n.firstNameHint,
+                controller: _firstName,
                 textCapitalization: TextCapitalization.words,
                 autofillHints: const [AutofillHints.givenName],
               ),
@@ -53,6 +89,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               child: AppTextField(
                 label: l10n.lastNameLabel,
                 hint: l10n.lastNameHint,
+                controller: _lastName,
                 textCapitalization: TextCapitalization.words,
                 autofillHints: const [AutofillHints.familyName],
               ),
@@ -68,16 +105,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
           autofillHints: const [AutofillHints.email],
         ),
         const SizedBox(height: 18),
-        AppTextField(
-          label: l10n.referralCodeLabel,
-          hint: l10n.referralCodeHint,
-          textCapitalization: TextCapitalization.characters,
+        SponsorInvitationField(
+          onConfirmed: (sponsor) => setState(() => _sponsor = sponsor),
         ),
         const SizedBox(height: 18),
         PasswordField(
           label: l10n.passwordLabel,
           hint: l10n.passwordMinHint,
+          controller: _password,
           textInputAction: TextInputAction.done,
+        ),
+        // The five rules appear as soon as the user starts typing.
+        AnimatedSize(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+          alignment: Alignment.topCenter,
+          child: _password.text.isEmpty
+              ? const SizedBox(width: double.infinity)
+              : Padding(
+                  padding: const EdgeInsets.only(top: 18),
+                  child: PasswordStrength(password: _password.text),
+                ),
         ),
         const SizedBox(height: 22),
         _TermsCheckbox(
@@ -87,11 +135,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
         const SizedBox(height: 22),
         PrimaryButton(
           label: l10n.continueButton,
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => SignUpNumbersScreen(email: _email.text.trim()),
-            ),
-          ),
+          onPressed: !_canContinue
+              ? null
+              : () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => SignUpNumbersScreen(
+                      email: _email.text.trim(),
+                      firstName: _firstName.text.trim(),
+                      lastName: _lastName.text.trim(),
+                    ),
+                  ),
+                ),
         ),
         const SizedBox(height: 22),
         Center(

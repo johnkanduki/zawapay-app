@@ -6,15 +6,15 @@ import 'app_colors.dart';
 /// Text styles shared by every screen.
 abstract final class AppText {
   static const TextStyle screenTitle = TextStyle(
-    fontSize: 31,
+    fontSize: 26,
     height: 1.1,
     fontWeight: FontWeight.w700,
-    letterSpacing: -1.2,
+    letterSpacing: -0.6,
     color: AppColors.black,
   );
 
   static const TextStyle heroTitle = TextStyle(
-    fontSize: 34,
+    fontSize: 28,
     height: 1.15,
     fontWeight: FontWeight.w700,
     letterSpacing: -1,
@@ -22,7 +22,7 @@ abstract final class AppText {
   );
 
   static const TextStyle body = TextStyle(
-    fontSize: 16,
+    fontSize: 15,
     height: 1.45,
     color: AppColors.grey,
   );
@@ -30,9 +30,9 @@ abstract final class AppText {
   static const TextStyle label = TextStyle(fontSize: 14, color: AppColors.grey);
 
   static const TextStyle button = TextStyle(
-    fontSize: 17,
-    fontWeight: FontWeight.w700,
-    letterSpacing: -0.3,
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.2,
   );
 }
 
@@ -48,6 +48,8 @@ abstract final class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      // One professional font everywhere, on iPhone and Android alike.
+      fontFamily: 'Inter',
       scaffoldBackgroundColor: AppColors.white,
       colorScheme: const ColorScheme.light(
         primary: AppColors.red,
@@ -62,6 +64,22 @@ abstract final class AppTheme {
       pageTransitionsTheme: pageTransitions,
       splashFactory: NoSplash.splashFactory,
       highlightColor: Colors.transparent,
+    );
+  }
+
+  /// Dark version, used when the user (or the phone, in Automatic) is in
+  /// dark mode.
+  static ThemeData dark() {
+    final light = AppTheme.light();
+    return light.copyWith(
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: AppColors.black,
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.red,
+        onPrimary: AppColors.white,
+        surface: AppColors.black,
+        onSurface: AppColors.white,
+      ),
     );
   }
 }

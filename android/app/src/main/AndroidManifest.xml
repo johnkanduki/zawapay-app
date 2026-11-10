@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Recent photos under the scanner, to read a QR code from a picture. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
+
     <application
         android:label="Zawapay App"
         android:name="${applicationName}"

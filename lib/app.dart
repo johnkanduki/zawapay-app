@@ -32,6 +32,8 @@ class _ZawapayAppState extends State<ZawapayApp> {
           onGenerateTitle: (context) => AppLocalizations.of(context).appName,
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: _settings.themeMode,
           locale: _settings.locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

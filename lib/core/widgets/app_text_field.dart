@@ -48,6 +48,8 @@ class AppTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final field = TextField(
+      // Tapping anywhere outside the field closes the keyboard.
+      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
       controller: controller,
       keyboardType: keyboardType,
       textInputAction: textInputAction,

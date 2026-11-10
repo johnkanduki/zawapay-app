@@ -130,6 +130,8 @@ class _SearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      // Tapping anywhere outside the field closes the keyboard.
+      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
       onChanged: onChanged,
       textInputAction: TextInputAction.search,
       style: const TextStyle(fontSize: 16, color: AppColors.black),
