@@ -7,6 +7,8 @@ import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/auth_card_scaffold.dart';
 import '../../../core/widgets/underlined_link.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../home/home_screen.dart';
+import '../../support/contact_sheet.dart';
 import '../widgets/forgot_password_sheet.dart';
 import '../widgets/social_logos.dart';
 import 'sign_up_screen.dart';
@@ -35,7 +37,14 @@ class SignInScreen extends StatelessWidget {
           textInputAction: TextInputAction.done,
         ),
         const SizedBox(height: 26),
-        PrimaryButton(label: l10n.signIn, onPressed: () {}),
+        // No server yet: "Sign in" goes straight to the home page.
+        PrimaryButton(
+          label: l10n.signIn,
+          onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+            (_) => false,
+          ),
+        ),
         const SizedBox(height: 20),
         Row(
           children: [
@@ -93,7 +102,7 @@ class SignInScreen extends StatelessWidget {
             UnderlinedLink(
               text: l10n.contactSupportLink,
               textAlign: TextAlign.end,
-              onTap: () {},
+              onTap: () => showContactSheet(context),
             ),
           ],
         ),

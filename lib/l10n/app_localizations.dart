@@ -113,7 +113,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose your country and the app language.'**
+  /// **'Your country and language.'**
   String get welcomeSubtitle;
 
   /// No description provided for @countryLabel.
@@ -260,17 +260,41 @@ abstract class AppLocalizations {
   /// **'Last name'**
   String get lastNameHint;
 
-  /// No description provided for @referralCodeLabel.
+  /// No description provided for @sponsorInvitationLabel.
   ///
   /// In en, this message translates to:
-  /// **'Referral code'**
-  String get referralCodeLabel;
+  /// **'Sponsor invitation'**
+  String get sponsorInvitationLabel;
 
-  /// No description provided for @referralCodeHint.
+  /// No description provided for @sponsorInvitationHint.
   ///
   /// In en, this message translates to:
-  /// **'Your sponsor’s code'**
-  String get referralCodeHint;
+  /// **'your sponsor’s username'**
+  String get sponsorInvitationHint;
+
+  /// No description provided for @sponsorQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Is this the person who invited you?'**
+  String get sponsorQuestion;
+
+  /// No description provided for @sponsorConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get sponsorConfirm;
+
+  /// No description provided for @sponsorConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation confirmed: {name}'**
+  String sponsorConfirmed(String name);
+
+  /// No description provided for @sponsorChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get sponsorChange;
 
   /// No description provided for @passwordMinHint.
   ///
@@ -323,7 +347,7 @@ abstract class AppLocalizations {
   /// No description provided for @numbersSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your Mobile Money number to pay and to withdraw.'**
+  /// **'To pay and to withdraw.'**
   String get numbersSubtitle;
 
   /// No description provided for @paymentNumberLabel.
@@ -335,13 +359,13 @@ abstract class AppLocalizations {
   /// No description provided for @paymentNumberHelp.
   ///
   /// In en, this message translates to:
-  /// **'This number receives the payment confirmation requests (USSD).'**
+  /// **'Gets the payment requests (USSD).'**
   String get paymentNumberHelp;
 
   /// No description provided for @sameNumberForWithdrawals.
   ///
   /// In en, this message translates to:
-  /// **'Receive my withdrawals on this same number'**
+  /// **'Withdraw to this same number'**
   String get sameNumberForWithdrawals;
 
   /// No description provided for @receivingNumberLabel.
@@ -353,7 +377,7 @@ abstract class AppLocalizations {
   /// No description provided for @receivingNumberHelp.
   ///
   /// In en, this message translates to:
-  /// **'Your withdrawals are sent to this number.'**
+  /// **'Your withdrawals arrive here.'**
   String get receivingNumberHelp;
 
   /// No description provided for @phoneNumberHint.
@@ -371,7 +395,7 @@ abstract class AppLocalizations {
   /// No description provided for @pinHelp.
   ///
   /// In en, this message translates to:
-  /// **'4 digits to confirm your withdrawals, only in the app.'**
+  /// **'4 digits to confirm your withdrawals.'**
   String get pinHelp;
 
   /// No description provided for @confirmPinLabel.
@@ -407,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @countryNotAvailableBody.
   ///
   /// In en, this message translates to:
-  /// **'Zawapay App is coming to you soon. Meanwhile, choose one of the countries in the list.'**
+  /// **'Coming soon. Pick a country from the list.'**
   String get countryNotAvailableBody;
 
   /// No description provided for @chooseCountry.
@@ -425,7 +449,7 @@ abstract class AppLocalizations {
   /// No description provided for @forgotPasswordBody.
   ///
   /// In en, this message translates to:
-  /// **'Enter your account email: we will send you a 6-digit code to choose a new password.'**
+  /// **'We send a 6-digit code to your email.'**
   String get forgotPasswordBody;
 
   /// No description provided for @sendCode.
@@ -455,7 +479,7 @@ abstract class AppLocalizations {
   /// No description provided for @codeSentTo.
   ///
   /// In en, this message translates to:
-  /// **'We sent a 6-digit code to'**
+  /// **'Code sent to'**
   String get codeSentTo;
 
   /// No description provided for @verify.
@@ -473,7 +497,7 @@ abstract class AppLocalizations {
   /// No description provided for @newPasswordBody.
   ///
   /// In en, this message translates to:
-  /// **'Choose a password you don’t use anywhere else.'**
+  /// **'A password you use nowhere else.'**
   String get newPasswordBody;
 
   /// No description provided for @newPasswordLabel.
@@ -536,6 +560,1188 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get save;
 
+  /// No description provided for @profilePhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile photo'**
+  String get profilePhotoTitle;
+
+  /// No description provided for @profilePhotoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A real photo, taken with the front camera.'**
+  String get profilePhotoSubtitle;
+
+  /// No description provided for @profilePhotoTapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the circle'**
+  String get profilePhotoTapHint;
+
+  /// No description provided for @profilePhotoRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake the photo'**
+  String get profilePhotoRetake;
+
+  /// No description provided for @finish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get finish;
+
+  /// No description provided for @faceCaptureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Take your photo'**
+  String get faceCaptureTitle;
+
+  /// No description provided for @faceCaptureButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Take the photo'**
+  String get faceCaptureButton;
+
+  /// No description provided for @faceHintNoFace.
+  ///
+  /// In en, this message translates to:
+  /// **'Place your face in the circle'**
+  String get faceHintNoFace;
+
+  /// No description provided for @faceHintTooFar.
+  ///
+  /// In en, this message translates to:
+  /// **'Come a little closer'**
+  String get faceHintTooFar;
+
+  /// No description provided for @faceHintSeveral.
+  ///
+  /// In en, this message translates to:
+  /// **'One person at a time'**
+  String get faceHintSeveral;
+
+  /// No description provided for @faceHintReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect, take the photo'**
+  String get faceHintReady;
+
+  /// No description provided for @cameraNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No front camera on this device.'**
+  String get cameraNotAvailable;
+
+  /// No description provided for @cameraAccessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow the camera in Settings.'**
+  String get cameraAccessDenied;
+
+  /// No description provided for @cameraFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera could not open.'**
+  String get cameraFailed;
+
+  /// No description provided for @homeHello.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello'**
+  String get homeHello;
+
+  /// No description provided for @balanceUpdatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated at {time}'**
+  String balanceUpdatedAt(String time);
+
+  /// No description provided for @balanceHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide balance'**
+  String get balanceHide;
+
+  /// No description provided for @balanceShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show balance'**
+  String get balanceShow;
+
+  /// No description provided for @homeSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get homeSend;
+
+  /// No description provided for @homeWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get homeWithdraw;
+
+  /// No description provided for @homeActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get homeActivity;
+
+  /// No description provided for @homeHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get homeHide;
+
+  /// No description provided for @homeShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get homeShow;
+
+  /// No description provided for @homeNoTransfers.
+  ///
+  /// In en, this message translates to:
+  /// **'No transfers yet.'**
+  String get homeNoTransfers;
+
+  /// No description provided for @homeSeeAllTransfers.
+  ///
+  /// In en, this message translates to:
+  /// **'See all history'**
+  String get homeSeeAllTransfers;
+
+  /// No description provided for @statusSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Successful'**
+  String get statusSuccess;
+
+  /// No description provided for @statusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get statusPending;
+
+  /// No description provided for @statusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get statusFailed;
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{today} =1{1 day ago} other{{count} days ago}}'**
+  String daysAgo(int count);
+
+  /// No description provided for @monthsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 month ago} other{{count} months ago}}'**
+  String monthsAgo(int count);
+
+  /// No description provided for @tabHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get tabHome;
+
+  /// No description provided for @tabScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get tabScan;
+
+  /// No description provided for @tabSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get tabSettings;
+
+  /// No description provided for @kycTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Certify your username'**
+  String get kycTitle;
+
+  /// No description provided for @kycSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The blue badge proves this account is yours.'**
+  String get kycSubtitle;
+
+  /// No description provided for @kycStepIdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ID document'**
+  String get kycStepIdTitle;
+
+  /// No description provided for @kycStepIdBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Voter card, passport or licence.'**
+  String get kycStepIdBody;
+
+  /// No description provided for @kycStepSelfieTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Selfie'**
+  String get kycStepSelfieTitle;
+
+  /// No description provided for @kycStepSelfieBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your face, with the front camera.'**
+  String get kycStepSelfieBody;
+
+  /// No description provided for @kycStepReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get kycStepReviewTitle;
+
+  /// No description provided for @kycStepReviewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The badge shows once approved.'**
+  String get kycStepReviewBody;
+
+  /// No description provided for @kycPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Your documents are only used to verify you.'**
+  String get kycPrivacy;
+
+  /// No description provided for @kycStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the check'**
+  String get kycStart;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get settingsEdit;
+
+  /// No description provided for @settingsNotCertified.
+  ///
+  /// In en, this message translates to:
+  /// **'Username not certified'**
+  String get settingsNotCertified;
+
+  /// No description provided for @settingsCertify.
+  ///
+  /// In en, this message translates to:
+  /// **'Certify'**
+  String get settingsCertify;
+
+  /// No description provided for @settingsCertified.
+  ///
+  /// In en, this message translates to:
+  /// **'Certified username'**
+  String get settingsCertified;
+
+  /// No description provided for @settingsInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite friends'**
+  String get settingsInvite;
+
+  /// No description provided for @settingsInviteSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'3 levels above, 3 below'**
+  String get settingsInviteSubtitle;
+
+  /// No description provided for @settingsPhones.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone numbers'**
+  String get settingsPhones;
+
+  /// No description provided for @settingsPhonesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments and withdrawals'**
+  String get settingsPhonesHint;
+
+  /// No description provided for @settingsDailyLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily limit'**
+  String get settingsDailyLimit;
+
+  /// No description provided for @settingsDailyLimitValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} of {limit}'**
+  String settingsDailyLimitValue(String used, String limit);
+
+  /// No description provided for @settingsPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get settingsPreferences;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsAppearance;
+
+  /// No description provided for @settingsAppearanceAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get settingsAppearanceAuto;
+
+  /// No description provided for @settingsNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get settingsNotifications;
+
+  /// No description provided for @settingsNotificationsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get settingsNotificationsOn;
+
+  /// No description provided for @settingsSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get settingsSecurity;
+
+  /// No description provided for @settingsPin.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get settingsPin;
+
+  /// No description provided for @settingsDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected devices'**
+  String get settingsDevices;
+
+  /// No description provided for @settingsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get settingsHelp;
+
+  /// No description provided for @settingsSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support'**
+  String get settingsSupport;
+
+  /// No description provided for @settingsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About Zawapay App'**
+  String get settingsAbout;
+
+  /// No description provided for @settingsSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get settingsSignOut;
+
+  /// No description provided for @inviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite, earn together'**
+  String get inviteTitle;
+
+  /// No description provided for @inviteSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn on the transfers of 3 levels above and 3 below.'**
+  String get inviteSubtitle;
+
+  /// No description provided for @inviteYourHandle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sponsor invitation'**
+  String get inviteYourHandle;
+
+  /// No description provided for @inviteCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get inviteCopy;
+
+  /// No description provided for @inviteCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Username copied'**
+  String get inviteCopied;
+
+  /// No description provided for @inviteHowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How it works'**
+  String get inviteHowTitle;
+
+  /// No description provided for @inviteAbove.
+  ///
+  /// In en, this message translates to:
+  /// **'Above you'**
+  String get inviteAbove;
+
+  /// No description provided for @inviteAbove3.
+  ///
+  /// In en, this message translates to:
+  /// **'Level 2’s sponsor'**
+  String get inviteAbove3;
+
+  /// No description provided for @inviteAbove2.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sponsor’s sponsor'**
+  String get inviteAbove2;
+
+  /// No description provided for @inviteAbove1.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sponsor'**
+  String get inviteAbove1;
+
+  /// No description provided for @inviteYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get inviteYou;
+
+  /// No description provided for @inviteBelow1.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invitees'**
+  String get inviteBelow1;
+
+  /// No description provided for @inviteBelow2.
+  ///
+  /// In en, this message translates to:
+  /// **'Their invitees'**
+  String get inviteBelow2;
+
+  /// No description provided for @inviteBelow3.
+  ///
+  /// In en, this message translates to:
+  /// **'The next level'**
+  String get inviteBelow3;
+
+  /// No description provided for @inviteBelow.
+  ///
+  /// In en, this message translates to:
+  /// **'Below you'**
+  String get inviteBelow;
+
+  /// No description provided for @inviteChainNote.
+  ///
+  /// In en, this message translates to:
+  /// **'These 6 levels earn on your transfers, and you on theirs.'**
+  String get inviteChainNote;
+
+  /// No description provided for @inviteExampleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Example'**
+  String get inviteExampleTitle;
+
+  /// No description provided for @inviteExampleSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount sent'**
+  String get inviteExampleSent;
+
+  /// No description provided for @inviteExampleFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Service fee ({rate})'**
+  String inviteExampleFees(String rate);
+
+  /// No description provided for @inviteExamplePool.
+  ///
+  /// In en, this message translates to:
+  /// **'Commissions ({rate} of the fee)'**
+  String inviteExamplePool(String rate);
+
+  /// No description provided for @inviteExampleNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Rates shown as an example.'**
+  String get inviteExampleNote;
+
+  /// No description provided for @inviteRulesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The rules'**
+  String get inviteRulesTitle;
+
+  /// No description provided for @inviteRuleFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing up is free.'**
+  String get inviteRuleFree;
+
+  /// No description provided for @inviteRuleRealTransfers.
+  ///
+  /// In en, this message translates to:
+  /// **'Earnings on real transfers only.'**
+  String get inviteRuleRealTransfers;
+
+  /// No description provided for @inviteRuleConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Released once the recipient confirms.'**
+  String get inviteRuleConfirmed;
+
+  /// No description provided for @inviteRuleFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken from the fee, never the amount.'**
+  String get inviteRuleFees;
+
+  /// No description provided for @sendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send money'**
+  String get sendTitle;
+
+  /// No description provided for @sendByUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get sendByUsername;
+
+  /// No description provided for @sendByPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get sendByPhone;
+
+  /// No description provided for @sendUsernameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'username'**
+  String get sendUsernameHint;
+
+  /// No description provided for @sendPhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get sendPhoneHint;
+
+  /// No description provided for @sendPhoneNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No account with this number.'**
+  String get sendPhoneNotFound;
+
+  /// No description provided for @sendRecents.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent ({count})'**
+  String sendRecents(int count);
+
+  /// No description provided for @sendFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get sendFrom;
+
+  /// No description provided for @sendMobileMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Money'**
+  String get sendMobileMoney;
+
+  /// No description provided for @sendYouPay.
+  ///
+  /// In en, this message translates to:
+  /// **'You pay'**
+  String get sendYouPay;
+
+  /// No description provided for @sendReceives.
+  ///
+  /// In en, this message translates to:
+  /// **'They receive'**
+  String get sendReceives;
+
+  /// No description provided for @sendFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee'**
+  String get sendFee;
+
+  /// No description provided for @sendFeePaidByYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid by you'**
+  String get sendFeePaidByYou;
+
+  /// No description provided for @sendPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get sendPay;
+
+  /// No description provided for @sendPayAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {amount}'**
+  String sendPayAmount(String amount);
+
+  /// No description provided for @sendNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A note…'**
+  String get sendNoteHint;
+
+  /// No description provided for @currencyUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'Dollars'**
+  String get currencyUsd;
+
+  /// No description provided for @currencyCdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Congolese francs'**
+  String get currencyCdf;
+
+  /// No description provided for @sentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'On its way'**
+  String get sentTitle;
+
+  /// No description provided for @sentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'to'**
+  String get sentTo;
+
+  /// No description provided for @sentFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee'**
+  String get sentFee;
+
+  /// No description provided for @sentNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get sentNote;
+
+  /// No description provided for @sentReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get sentReference;
+
+  /// No description provided for @sentDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get sentDate;
+
+  /// No description provided for @sentStepPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Money payment'**
+  String get sentStepPayment;
+
+  /// No description provided for @sentStepPaymentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve with your Mobile Money PIN.'**
+  String get sentStepPaymentBody;
+
+  /// No description provided for @sentStepPayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending to the recipient'**
+  String get sentStepPayout;
+
+  /// No description provided for @sentStepPayoutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To {handle}’s Mobile Money.'**
+  String sentStepPayoutBody(String handle);
+
+  /// No description provided for @sentStepConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmation'**
+  String get sentStepConfirm;
+
+  /// No description provided for @sentStepConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{handle} confirms receipt.'**
+  String sentStepConfirmBody(String handle);
+
+  /// No description provided for @sentBackHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to home'**
+  String get sentBackHome;
+
+  /// No description provided for @detailStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer status'**
+  String get detailStatusTitle;
+
+  /// No description provided for @detailRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipient'**
+  String get detailRecipient;
+
+  /// No description provided for @detailSender.
+  ///
+  /// In en, this message translates to:
+  /// **'Sender'**
+  String get detailSender;
+
+  /// No description provided for @detailSeeAllWith.
+  ///
+  /// In en, this message translates to:
+  /// **'See all with {handle}'**
+  String detailSeeAllWith(String handle);
+
+  /// No description provided for @detailAmountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get detailAmountTitle;
+
+  /// No description provided for @detailTransferAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get detailTransferAmount;
+
+  /// No description provided for @detailFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee'**
+  String get detailFee;
+
+  /// No description provided for @detailTotalPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Total paid'**
+  String get detailTotalPaid;
+
+  /// No description provided for @detailTotalReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'They receive'**
+  String get detailTotalReceived;
+
+  /// No description provided for @detailInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer details'**
+  String get detailInfoTitle;
+
+  /// No description provided for @detailSentOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent on'**
+  String get detailSentOn;
+
+  /// No description provided for @detailTransferId.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer ID'**
+  String get detailTransferId;
+
+  /// No description provided for @detailReferenceId.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference ID'**
+  String get detailReferenceId;
+
+  /// No description provided for @detailCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get detailCopied;
+
+  /// No description provided for @detailTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get detailTryAgain;
+
+  /// No description provided for @detailGetHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support'**
+  String get detailGetHelp;
+
+  /// No description provided for @detailStepSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get detailStepSubmitted;
+
+  /// No description provided for @detailStepPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Money payment confirmed'**
+  String get detailStepPaid;
+
+  /// No description provided for @detailStepConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Received and confirmed by {handle}'**
+  String detailStepConfirmed(String handle);
+
+  /// No description provided for @detailStepWaitingRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'{handle} must confirm'**
+  String detailStepWaitingRecipient(String handle);
+
+  /// No description provided for @detailStepWaitingYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm you received this money'**
+  String get detailStepWaitingYou;
+
+  /// No description provided for @detailStepFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment was not approved in time, or a wrong PIN was entered. Please try again.'**
+  String get detailStepFailed;
+
+  /// No description provided for @todayAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Today at {time}'**
+  String todayAt(String time);
+
+  /// No description provided for @yesterdayAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday at {time}'**
+  String yesterdayAt(String time);
+
+  /// No description provided for @contactTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact us'**
+  String get contactTitle;
+
+  /// No description provided for @contactSapottiText.
+  ///
+  /// In en, this message translates to:
+  /// **'The fastest way to reach us'**
+  String get contactSapottiText;
+
+  /// No description provided for @contactRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get contactRecommended;
+
+  /// No description provided for @contactEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'E-mail'**
+  String get contactEmailTitle;
+
+  /// No description provided for @contactEmailText.
+  ///
+  /// In en, this message translates to:
+  /// **'Write to our support team'**
+  String get contactEmailText;
+
+  /// No description provided for @contactReplyTime.
+  ///
+  /// In en, this message translates to:
+  /// **'We usually reply in less than an hour'**
+  String get contactReplyTime;
+
+  /// No description provided for @appearanceIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Zawapay App appearance'**
+  String get appearanceIntro;
+
+  /// No description provided for @appearanceAutoText.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows your phone’s setting'**
+  String get appearanceAutoText;
+
+  /// No description provided for @appearanceLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get appearanceLight;
+
+  /// No description provided for @appearanceDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get appearanceDark;
+
+  /// No description provided for @historyFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get historyFilters;
+
+  /// No description provided for @historyClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get historyClear;
+
+  /// No description provided for @historyResults.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No results} =1{1 result} other{{count} results}}'**
+  String historyResults(int count);
+
+  /// No description provided for @historyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing for these filters.'**
+  String get historyEmpty;
+
+  /// No description provided for @filterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent, received, by person or by date.'**
+  String get filterSubtitle;
+
+  /// No description provided for @filterPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Person'**
+  String get filterPerson;
+
+  /// No description provided for @filterEveryone.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get filterEveryone;
+
+  /// No description provided for @filterType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get filterType;
+
+  /// No description provided for @filterStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get filterStatus;
+
+  /// No description provided for @filterPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get filterPeriod;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterAll;
+
+  /// No description provided for @filterSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get filterSent;
+
+  /// No description provided for @filterReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get filterReceived;
+
+  /// No description provided for @periodAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get periodAll;
+
+  /// No description provided for @periodMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get periodMonth;
+
+  /// No description provided for @periodDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days'**
+  String periodDays(int count);
+
+  /// No description provided for @periodYear.
+  ///
+  /// In en, this message translates to:
+  /// **'1 year'**
+  String get periodYear;
+
+  /// No description provided for @filterShowResults.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No results} =1{Show 1 result} other{Show {count} results}}'**
+  String filterShowResults(int count);
+
+  /// No description provided for @scanToPay.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to pay'**
+  String get scanToPay;
+
+  /// No description provided for @scanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Place the QR code in the frame'**
+  String get scanHint;
+
+  /// No description provided for @scanMyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'My QR code'**
+  String get scanMyCode;
+
+  /// No description provided for @myQrCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy {handle}'**
+  String myQrCopy(String handle);
+
+  /// No description provided for @myQrAsked.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} asked'**
+  String myQrAsked(String amount);
+
+  /// No description provided for @myQrShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share QR code'**
+  String get myQrShare;
+
+  /// No description provided for @myQrShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay me on Zawapay App: {handle}'**
+  String myQrShareText(String handle);
+
+  /// No description provided for @myQrShareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing could not open'**
+  String get myQrShareFailed;
+
+  /// No description provided for @myQrRequestMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Request money'**
+  String get myQrRequestMoney;
+
+  /// No description provided for @myQrEditRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the request'**
+  String get myQrEditRequest;
+
+  /// No description provided for @myQrRequestAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Request this amount'**
+  String get myQrRequestAmount;
+
+  /// No description provided for @myQrRemoveAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the amount'**
+  String get myQrRemoveAmount;
+
+  /// No description provided for @sendRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount requested'**
+  String get sendRequested;
+
+  /// No description provided for @sendViaUssd.
+  ///
+  /// In en, this message translates to:
+  /// **'USSD confirmation'**
+  String get sendViaUssd;
+
+  /// No description provided for @sendZawapayBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Zawapay balance'**
+  String get sendZawapayBalance;
+
+  /// No description provided for @sendInsufficient.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient balance'**
+  String get sendInsufficient;
+
+  /// No description provided for @sentStepBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid with your Zawapay balance'**
+  String get sentStepBalance;
+
+  /// No description provided for @sentStepBalanceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken from your balance, no Mobile Money PIN.'**
+  String get sentStepBalanceBody;
+
+  /// No description provided for @scanGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get scanGallery;
+
+  /// No description provided for @scanUnknownCode.
+  ///
+  /// In en, this message translates to:
+  /// **'This is not a Zawapay App code'**
+  String get scanUnknownCode;
+
+  /// No description provided for @scanNoCodeInPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'No QR code in this photo'**
+  String get scanNoCodeInPhoto;
+
   /// No description provided for @noConnectionTitle.
   ///
   /// In en, this message translates to:
@@ -545,7 +1751,7 @@ abstract class AppLocalizations {
   /// No description provided for @noConnectionBody.
   ///
   /// In en, this message translates to:
-  /// **'Check your internet connection\nand try again'**
+  /// **'Check your connection and try again'**
   String get noConnectionBody;
 
   /// No description provided for @retry.

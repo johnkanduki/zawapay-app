@@ -123,11 +123,13 @@ class _RuleRow extends StatelessWidget {
                 : null,
           ),
           const SizedBox(width: 14),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 16,
-              color: ok ? AppColors.black : AppColors.grey,
+          Flexible(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 16,
+                color: ok ? AppColors.black : AppColors.grey,
+              ),
             ),
           ),
         ],

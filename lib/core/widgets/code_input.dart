@@ -65,6 +65,8 @@ class _CodeInputState extends State<CodeInput> {
         // Transparent field laid over the boxes: it receives taps and keyboard input.
         Positioned.fill(
           child: TextField(
+            // Tapping anywhere outside the field closes the keyboard.
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             controller: _controller,
             focusNode: _focusNode,
             autofocus: widget.autofocus,

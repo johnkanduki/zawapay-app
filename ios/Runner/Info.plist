@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Zawapay App utilise la caméra pour votre photo de profil et pour scanner les codes QR de paiement.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Zawapay App enregistre votre code QR de paiement dans vos photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Zawapay App ouvre vos photos pour lire un code QR de paiement.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

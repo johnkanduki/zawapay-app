@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/settings/app_settings.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_buttons.dart';
 import '../../../core/widgets/app_checkbox.dart';
@@ -7,6 +8,8 @@ import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/auth_card_scaffold.dart';
 import '../../../core/widgets/phone_number_field.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../home/home_screen.dart';
+import 'profile_photo_screen.dart';
 import 'verify_code_screen.dart';
 
 /// Sign-up, step 2: the Mobile Money number.
@@ -17,9 +20,16 @@ import 'verify_code_screen.dart';
 ///
 /// The withdrawal PIN is not asked here: it will be set at the first withdrawal.
 class SignUpNumbersScreen extends StatefulWidget {
-  const SignUpNumbersScreen({super.key, required this.email});
+  const SignUpNumbersScreen({
+    super.key,
+    required this.email,
+    required this.firstName,
+    required this.lastName,
+  });
 
   final String email;
+  final String firstName;
+  final String lastName;
 
   @override
   State<SignUpNumbersScreen> createState() => _SignUpNumbersScreenState();
@@ -59,9 +69,31 @@ class _SignUpNumbersScreenState extends State<SignUpNumbersScreen> {
             MaterialPageRoute(
               builder: (_) => VerifyCodeScreen(
                 email: widget.email,
+                // Last step: the profile photo, then "Finish".
                 onVerified: (codeContext) =>
-                    Navigator.of(codeContext)
-                        .popUntil((route) => route.isFirst),
+                    Navigator.of(codeContext).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => ProfilePhotoScreen(
+                          // Sign-up is over: the home page replaces every
+                          // sign-up screen.
+                          onFinished: (photoContext, photoPath) =>
+                              Navigator.of(photoContext).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder: (_) => HomeScreen(
+                                    firstName: widget.firstName,
+                                    lastName: widget.lastName,
+                                    email: widget.email,
+                                    countryCode: AppSettingsScope.of(context)
+                                        .country
+                                        ?.isoCode,
+                                    photoPath: photoPath,
+                                  ),
+                                ),
+                                (_) => false,
+                              ),
+                        ),
+                      ),
+                    ),
               ),
             ),
           ),
