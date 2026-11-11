@@ -1,8 +1,10 @@
 import 'package:circle_flags/circle_flags.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/account/zawapay_account.dart';
 import '../../core/countries/country.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/verified_badge.dart';
 
 /// A Zawapay account that can receive money. It is found by its "@"
@@ -14,9 +16,40 @@ class Recipient {
     required this.countryCode,
     required this.phone,
     this.certified = false,
+    this.photoUrl,
   });
 
-  /// Without the "@".
+  /// A member found on the server. [phone] is its WITHDRAWAL number: the
+  /// money sent always arrives there, never on the payment number.
+  factory Recipient.fromMember(ZawapayMember member) {
+    final full = member.receivePhone ?? '';
+    final dial = supportedCountries
+        .where((c) => c.isoCode == member.country)
+        .firstOrNull
+        ?.dialCode;
+    return Recipient(
+      username: member.handle,
+      fullName: member.name,
+      countryCode: member.country,
+      phone: dial != null && full.startsWith(dial)
+          ? full.substring(dial.length)
+          : full.replaceFirst('+', ''),
+      certified: member.certified,
+      photoUrl: member.hasPhoto ? member.photoUrl : null,
+    );
+  }
+
+  /// A Mobile Money number typed by the sender: the money goes straight to
+  /// it, with no Zawapay account needed (and none looked up).
+  factory Recipient.number(String countryCode, String nationalNumber) =>
+      Recipient(
+        username: '',
+        fullName: '',
+        countryCode: countryCode,
+        phone: nationalNumber,
+      );
+
+  /// Without the "@"; empty for a send to a number.
   final String username;
   final String fullName;
   final String countryCode;
@@ -25,13 +58,27 @@ class Recipient {
   final String phone;
   final bool certified;
 
-  String get handle => '@$username';
+  /// Profile photo; the initials are shown without it.
+  final String? photoUrl;
 
-  Country get country =>
-      supportedCountries.firstWhere((c) => c.isoCode == countryCode);
+  /// True when the money goes to a typed number, not to an account.
+  bool get isNumber => username.isEmpty;
+
+  /// "@username", or the number for a send to a number.
+  String get handle => isNumber ? fullPhone : '@$username';
+
+  /// What the server needs: the "@" or the full number ("+243975135801").
+  String get address => isNumber ? '${country.dialCode}$phone' : username;
+
+  Country get country => supportedCountries.firstWhere(
+    (c) => c.isoCode == countryCode,
+    orElse: () =>
+        Country(isoCode: countryCode, dialCode: '', currencies: const []),
+  );
 
   /// "+243 975 135 801".
   String get fullPhone {
+    if (phone.isEmpty) return '';
     // 10 digits read best in pairs (07 01 02 03 04), others in threes.
     final step = phone.length == 10 ? 2 : 3;
     final groups = <String>[];
@@ -41,7 +88,14 @@ class Recipient {
     return '${country.dialCode} ${groups.join(' ')}';
   }
 
-  String get initials => fullName
+  /// Name and number on one line ("Zawapay App · +243 975 135 801"),
+  /// leaving out what is not known yet.
+  String get details => isNumber
+      ? ''
+      : [fullName, fullPhone].where((part) => part.isNotEmpty).join(' · ');
+
+  /// Two letters for the avatar: from the name, or from the "@".
+  String get initials => (fullName.isEmpty ? username : fullName)
       .split(' ')
       .where((part) => part.isNotEmpty)
       .take(2)
@@ -49,38 +103,12 @@ class Recipient {
       .join();
 }
 
-/// Demo accounts, only for the UI. They will come from the Zawapay server.
-const List<Recipient> demoRecipients = [
-  Recipient(
-    username: 'zawapay',
-    fullName: 'Zawapay App',
-    countryCode: 'CD',
-    phone: '975135801',
-    certified: true,
-  ),
-  Recipient(
-    username: 'amina',
-    fullName: 'Amina Diallo',
-    countryCode: 'SN',
-    phone: '771234567',
-    certified: true,
-  ),
-  Recipient(
-    username: 'kofi.mensah',
-    fullName: 'Kofi Mensah',
-    countryCode: 'CI',
-    phone: '0701020304',
-  ),
-  Recipient(
-    username: 'mireille.k',
-    fullName: 'Mireille Kabeya',
-    countryCode: 'CD',
-    phone: '812345678',
-  ),
-];
+/// Zawapay accounts the app knows about. Empty: real accounts will come
+/// from the Zawapay server (no fake or demo account in the app).
+final List<Recipient> knownAccounts = [];
 
 /// Looks for an account by its exact username (no suggestions).
-Recipient? findByUsername(String username) => demoRecipients
+Recipient? findByUsername(String username) => knownAccounts
     .where((r) => r.username == username.toLowerCase())
     .firstOrNull;
 
@@ -91,7 +119,7 @@ Recipient? findByPhone(String countryCode, String number) {
       value.replaceAll(RegExp(r'\D'), '').replaceFirst(RegExp('^0+'), '');
   final wanted = clean(number);
   if (wanted.isEmpty) return null;
-  return demoRecipients
+  return knownAccounts
       .where((r) => r.countryCode == countryCode && clean(r.phone) == wanted)
       .firstOrNull;
 }
@@ -120,23 +148,39 @@ class RecipientAvatar extends StatelessWidget {
               color: AppColors.red.withValues(alpha: 0.18),
             ),
             alignment: Alignment.center,
-            child: Text(
-              recipient.initials,
-              style: TextStyle(
-                fontSize: size * 0.3,
-                fontWeight: FontWeight.w800,
-                color: AppColors.red,
-              ),
-            ),
+            clipBehavior: Clip.antiAlias,
+            foregroundDecoration: recipient.photoUrl == null
+                ? null
+                : BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: NetworkImage(recipient.photoUrl!),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+            child: recipient.isNumber
+                ? Icon(
+                    Icons.phone_rounded,
+                    size: size * 0.45,
+                    color: AppColors.red,
+                  )
+                : Text(
+                    recipient.initials,
+                    style: TextStyle(
+                      fontSize: size * 0.3,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.red,
+                    ),
+                  ),
           ),
           Positioned(
             right: 0,
             bottom: 0,
             child: Container(
               padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.black,
+                color: context.zc.page,
               ),
               child: CircleFlag(recipient.countryCode, size: flag),
             ),
@@ -171,7 +215,7 @@ class RecipientHandle extends StatelessWidget {
             style: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.w700,
-              color: AppColors.white,
+              color: context.zc.text,
             ),
           ),
         ),

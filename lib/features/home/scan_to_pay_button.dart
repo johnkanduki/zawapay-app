@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../l10n/app_localizations.dart';
 
 /// "Scan to pay" on the right of the home header: a red rounded square with
@@ -38,10 +39,10 @@ class ScanToPayButton extends StatelessWidget {
             Text(
               l10n.scanToPay,
               maxLines: 1,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppColors.white,
+                color: context.zc.text,
               ),
             ),
           ],

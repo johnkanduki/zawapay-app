@@ -1,6 +1,24 @@
 {
   "pins" : [
     {
+      "identity" : "app-check",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/google/app-check.git",
+      "state" : {
+        "revision" : "b7c71458b70284cc0f5a87103f66f0b1d98b1873",
+        "version" : "12.1.0"
+      }
+    },
+    {
+      "identity" : "appauth-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/openid/AppAuth-iOS.git",
+      "state" : {
+        "revision" : "a972daac82d449d58ab119e91c68153e29ddac33",
+        "version" : "3.0.0"
+      }
+    },
+    {
       "identity" : "google-mlkit-swiftpm",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/d-date/google-mlkit-swiftpm",
@@ -19,6 +37,15 @@
       }
     },
     {
+      "identity" : "googlesignin-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/google/GoogleSignIn-iOS.git",
+      "state" : {
+        "revision" : "bfaebbc04a4d13ed7a89b0fc1fb8ad66b362cc1c",
+        "version" : "10.1.0"
+      }
+    },
+    {
       "identity" : "googleutilities",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/GoogleUtilities.git",
@@ -34,6 +61,24 @@
       "state" : {
         "revision" : "a2ab612cb980066ee56d90d60d8462992c07f24b",
         "version" : "3.5.0"
+      }
+    },
+    {
+      "identity" : "gtmappauth",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/google/GTMAppAuth.git",
+      "state" : {
+        "revision" : "57094cd46bc8700d3a887e2a429f42b6e8ea3f0b",
+        "version" : "6.0.0"
+      }
+    },
+    {
+      "identity" : "interop-ios-for-google-sdks",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/google/interop-ios-for-google-sdks.git",
+      "state" : {
+        "revision" : "040d087ac2267d2ddd4cca36c757d1c6a05fdbfe",
+        "version" : "101.0.0"
       }
     },
     {

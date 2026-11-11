@@ -2,16 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/account/app_rules.dart';
+import '../../core/account/account_error.dart';
+import '../../core/account/destinations.dart';
+import '../../core/account/zawapay_account.dart';
+import '../../core/widgets/top_notice.dart';
 import '../../core/countries/country.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../l10n/app_localizations.dart';
 import 'recipient.dart';
 import 'send_success_screen.dart';
 import 'send_ui.dart';
 
-/// Example service fee (6 % of the amount received). The real rate will be
-/// an admin setting on the server; this value is only for the UI.
-const double exampleServiceFee = 0.06;
+/// Service fee rate, set in the admin dashboard (Tarifs); 6 % to start.
+double get serviceFeeRate => appRules.value.serviceFeeRate;
 
 /// Fee on top of what the recipient gets: the sender pays
 /// received + fee, the recipient gets exactly what was typed.
@@ -58,8 +63,17 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
 
   /// Pay with the Zawapay balance instead of Mobile Money.
   bool _fromBalance = false;
-  late String _currency =
-      widget.senderCountry.currencies.contains(widget.initialCurrency)
+
+  /// Another country: the recipient gets its currency (typed here), the
+  /// sender pays in dollars with the fee included.
+  late final Destination? _dest =
+      widget.recipient.countryCode == widget.senderCountry.isoCode
+      ? null
+      : destinationFor(widget.recipient.countryCode);
+
+  late String _currency = _dest != null
+      ? _dest.currency
+      : widget.senderCountry.currencies.contains(widget.initialCurrency)
       ? widget.initialCurrency!
       : widget.senderCountry.currencies.first;
 
@@ -79,7 +93,7 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
 
   /// Enough Zawapay balance for the amount and the fee.
   bool get _balanceEnough {
-    final paid = _received + feeFor(_received, exampleServiceFee);
+    final paid = _received + feeFor(_received, serviceFeeRate);
     return paid > 0 && _balance >= paid;
   }
 
@@ -92,22 +106,49 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
     });
   }
 
-  void _send() {
-    final fee = feeFor(_received, exampleServiceFee);
+  bool _busy = false;
+
+  /// "Pay": the server recomputes everything and sends the USSD request to
+  /// the PAYMENT number; the page that follows shows the transfer live.
+  Future<void> _send() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => SendSuccessScreen(
-          fromBalance: _fromBalance && _balanceEnough,
-          recipient: widget.recipient,
-          paid: _received + fee,
-          received: _received,
-          fee: fee,
-          currency: _currency,
-          note: _note.text.trim(),
+    final l10n = AppLocalizations.of(context);
+    if (_fromBalance && _balanceEnough) {
+      // Paying from the commissions balance comes next.
+      showTopNotice(context, l10n.contactSoon, icon: Icons.info_rounded);
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      final t = await zawapayAccount.createTransfer(
+        recipient: widget.recipient.address,
+        currency: _currency,
+        amount: _amount.text.trim().replaceAll(',', '.').replaceAll(' ', ''),
+        note: _note.text,
+      );
+      if (!mounted) return;
+      double num(String key) => double.tryParse('${t[key]}') ?? 0;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => SendSuccessScreen(
+            recipient: widget.recipient,
+            paid: num('paid'),
+            // Abroad: what the recipient gets in their currency.
+            received: _dest != null ? num('destAmount') : num('received'),
+            fee: num('fee'),
+            currency: _currency,
+            payCurrency: _dest != null ? 'USD' : null,
+            note: _note.text.trim(),
+            transferId: t['id'] as String?,
+            reference: t['reference'] as String?,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (error) {
+      if (mounted) showAccountError(context, error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
@@ -118,15 +159,27 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
       locale: locale,
       decimalDigits: 2,
     );
-    final fee = feeFor(_received, exampleServiceFee);
-    final paid = _received + fee;
+    final dest = _dest;
+    final quote = dest?.quote(_received);
+    final fee = quote?.fee ?? feeFor(_received, serviceFeeRate);
+    final paid = quote?.paid ?? _received + fee;
     final symbol = _currency;
-    final canSend = _received > 0;
+    // Abroad the sender pays in dollars.
+    final paySymbol = dest != null ? '\$' : symbol;
+    final whole = NumberFormat.decimalPatternDigits(
+      locale: locale,
+      decimalDigits: 0,
+    );
+    final inLimits =
+        dest == null || (_received >= dest.min && _received <= dest.max);
+    final canSend = _received > 0 && inLimits;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: context.zc.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.black,
+        backgroundColor: context.zc.page,
         body: SafeArea(
           // Fills the screen; when the keyboard is open the page scrolls,
           // so the fields and "Send" stay reachable.
@@ -166,16 +219,16 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   RecipientHandle(recipient: widget.recipient),
-                                  Text(
-                                    '${widget.recipient.fullName} · '
-                                    '${widget.recipient.fullPhone}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: SendColors.soft,
+                                  if (widget.recipient.details.isNotEmpty)
+                                    Text(
+                                      widget.recipient.details,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: context.zc.soft,
+                                      ),
                                     ),
-                                  ),
                                 ],
                               ),
                             ),
@@ -199,9 +252,10 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                               // only the currency is chosen (USD / CDF).
                               // A requested amount keeps its currency.
                               if (!widget.isRequest &&
+                                  dest == null &&
                                   widget.senderCountry.currencies.length >
                                       1) ...[
-                                _CurrencySwitch(
+                                CurrencySwitch(
                                   currencies: widget.senderCountry.currencies,
                                   selected: _currency,
                                   onChanged: _selectCurrency,
@@ -211,7 +265,7 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                               // The only amount you type: what the
                               // other person receives. The sender pays
                               // every fee on top.
-                              _AmountBox(
+                              AmountBox(
                                 label: widget.isRequest
                                     ? l10n.sendRequested
                                     : l10n.sendReceives,
@@ -235,18 +289,20 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                                         decimal: true,
                                       ),
                                   inputFormatters: [
+                                    // Abroad: whole amounts only (UGX…).
                                     FilteringTextInputFormatter.allow(
-                                      RegExp(r'[0-9.,]'),
+                                      RegExp(
+                                        dest != null ? r'[0-9]' : r'[0-9.,]',
+                                      ),
                                     ),
                                     LengthLimitingTextInputFormatter(12),
                                   ],
                                   cursorColor: AppColors.red,
-                                  style: _bigNumber,
+                                  style: bigAmountStyle(context),
                                   decoration: InputDecoration.collapsed(
                                     hintText: '0',
-                                    hintStyle: _bigNumber.copyWith(
-                                      color: const Color(0x4DFFFFFF),
-                                    ),
+                                    hintStyle: bigAmountStyle(context)
+                                        .copyWith(color: context.zc.faint),
                                   ),
                                 ),
                               ),
@@ -257,57 +313,73 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                                   vertical: 14,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: SendColors.field,
+                                  color: context.zc.field,
                                   borderRadius: BorderRadius.circular(22),
                                 ),
                                 child: Row(
                                   children: [
+                                    // Just "Frais" (the word is set in
+                                    // the admin dashboard → Tarifs).
                                     Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            l10n.sendFee,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              color: AppColors.white,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            l10n.sendFeePaidByYou,
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              color: SendColors.soft,
-                                            ),
-                                          ),
-                                        ],
+                                      child: Text(
+                                        feeLabel(
+                                          context,
+                                          send: true,
+                                          fallback: l10n.sendFee,
+                                        ),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: context.zc.text,
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     Text(
-                                      '${money.format(fee)} $symbol',
-                                      style: const TextStyle(
+                                      '${money.format(fee)} $paySymbol',
+                                      style: TextStyle(
                                         fontSize: 17,
                                         fontWeight: FontWeight.w600,
-                                        color: AppColors.white,
+                                        color: context.zc.text,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
+                              // Abroad: the rate given, and the limits.
+                              if (dest != null) ...[
+                                const SizedBox(height: 10),
+                                Text(
+                                  _received > 0 && !inLimits
+                                      ? l10n.sendLimits(
+                                          whole.format(dest.min),
+                                          whole.format(dest.max),
+                                          dest.currency,
+                                        )
+                                      : l10n.sendRate(
+                                          whole.format(dest.clientRate),
+                                          dest.currency,
+                                        ),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: _received > 0 && !inLimits
+                                        ? AppColors.red
+                                        : context.zc.soft,
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: 12),
-                              // Pay with Mobile Money or the Zawapay balance.
-                              _SourcePicker(
-                                currency: _currency,
-                                balance: _balance,
-                                balanceEnough: _balanceEnough,
-                                hasAmount: canSend,
-                                fromBalance: _fromBalance && _balanceEnough,
-                                onChanged: (v) =>
-                                    setState(() => _fromBalance = v),
-                              ),
+                              // Pay with Mobile Money or the Zawapay balance
+                              // (abroad: Mobile Money only for now).
+                              if (dest == null)
+                                _SourcePicker(
+                                  currency: _currency,
+                                  balance: _balance,
+                                  balanceEnough: _balanceEnough,
+                                  hasAmount: canSend,
+                                  fromBalance: _fromBalance && _balanceEnough,
+                                  onChanged: (v) =>
+                                      setState(() => _fromBalance = v),
+                                ),
                               const Spacer(),
                               const SizedBox(height: 16),
                               Container(
@@ -315,8 +387,8 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 18,
                                 ),
-                                decoration: const ShapeDecoration(
-                                  color: SendColors.field,
+                                decoration: ShapeDecoration(
+                                  color: context.zc.field,
                                   shape: StadiumBorder(),
                                 ),
                                 alignment: Alignment.centerLeft,
@@ -329,15 +401,15 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                                   controller: _note,
                                   maxLength: 60,
                                   cursorColor: AppColors.red,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
-                                    color: AppColors.white,
+                                    color: context.zc.text,
                                   ),
                                   decoration: InputDecoration.collapsed(
                                     hintText: l10n.sendNoteHint,
-                                    hintStyle: const TextStyle(
+                                    hintStyle: TextStyle(
                                       fontSize: 16,
-                                      color: SendColors.soft,
+                                      color: context.zc.soft,
                                     ),
                                   ).copyWith(counterText: ''),
                                 ),
@@ -349,7 +421,7 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                                 width: double.infinity,
                                 height: 60,
                                 child: FilledButton(
-                                  onPressed: canSend ? _send : null,
+                                  onPressed: canSend && !_busy ? _send : null,
                                   style: FilledButton.styleFrom(
                                     backgroundColor: AppColors.red,
                                     disabledBackgroundColor: AppColors.red
@@ -360,17 +432,26 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                                     ),
                                     shape: const StadiumBorder(),
                                     textStyle: const TextStyle(
+                                      fontFamily: 'Inter',
                                       fontSize: 17,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  child: Text(
-                                    canSend
-                                        ? l10n.sendPayAmount(
-                                            '${money.format(paid)} $symbol',
-                                          )
-                                        : l10n.sendPay,
-                                  ),
+                                  child: _busy
+                                      ? const SizedBox.square(
+                                          dimension: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.6,
+                                            color: AppColors.white,
+                                          ),
+                                        )
+                                      : Text(
+                                          canSend
+                                              ? l10n.sendPayAmount(
+                                                  '${money.format(paid)} $paySymbol',
+                                                )
+                                              : l10n.sendPay,
+                                        ),
                                 ),
                               ),
                             ],
@@ -389,11 +470,12 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
   }
 }
 
-const TextStyle _bigNumber = TextStyle(
+/// The big amount typed by the user (follows the mode).
+TextStyle bigAmountStyle(BuildContext context) => TextStyle(
   fontSize: 34,
   fontWeight: FontWeight.w700,
   letterSpacing: -1,
-  color: AppColors.white,
+  color: context.zc.text,
 );
 
 /// "$" for USD, the code for the other currencies.
@@ -407,8 +489,9 @@ String currencyName(AppLocalizations l10n, String code) => switch (code) {
 };
 
 /// "USD | CDF" choice, for countries with two currencies.
-class _CurrencySwitch extends StatelessWidget {
-  const _CurrencySwitch({
+class CurrencySwitch extends StatelessWidget {
+  const CurrencySwitch({
+    super.key,
     required this.currencies,
     required this.selected,
     required this.onChanged,
@@ -422,8 +505,8 @@ class _CurrencySwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(4),
-      decoration: const ShapeDecoration(
-        color: SendColors.field,
+      decoration: ShapeDecoration(
+        color: context.zc.field,
         shape: StadiumBorder(),
       ),
       child: Row(
@@ -452,7 +535,7 @@ class _CurrencySwitch extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: currency == selected
                             ? AppColors.white
-                            : SendColors.soft,
+                            : context.zc.soft,
                       ),
                     ),
                   ),
@@ -466,8 +549,9 @@ class _CurrencySwitch extends StatelessWidget {
 }
 
 /// "You pay" / "Receives" box: big number on the left, currency on the right.
-class _AmountBox extends StatelessWidget {
-  const _AmountBox({
+class AmountBox extends StatelessWidget {
+  const AmountBox({
+    super.key,
     required this.label,
     required this.symbol,
     required this.child,
@@ -485,7 +569,7 @@ class _AmountBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(6, 10, 6, 6),
       decoration: BoxDecoration(
-        color: SendColors.field,
+        color: context.zc.field,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -498,18 +582,11 @@ class _AmountBox extends StatelessWidget {
                 Expanded(
                   child: Text(
                     label,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: SendColors.soft,
-                    ),
+                    style: TextStyle(fontSize: 15, color: context.zc.soft),
                   ),
                 ),
                 if (locked)
-                  const Icon(
-                    Icons.lock_rounded,
-                    size: 16,
-                    color: SendColors.soft,
-                  ),
+                  Icon(Icons.lock_rounded, size: 16, color: context.zc.soft),
               ],
             ),
           ),
@@ -520,7 +597,7 @@ class _AmountBox extends StatelessWidget {
                   height: 70,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: SendColors.field,
+                    color: context.zc.field,
                     borderRadius: BorderRadius.circular(18),
                   ),
                   alignment: Alignment.centerLeft,
@@ -532,16 +609,16 @@ class _AmountBox extends StatelessWidget {
                 width: 84,
                 height: 70,
                 decoration: BoxDecoration(
-                  color: SendColors.field,
+                  color: context.zc.field,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   symbol,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.white,
+                    color: context.zc.text,
                   ),
                 ),
               ),
@@ -587,7 +664,7 @@ class _SourcePicker extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: SendColors.field,
+        color: context.zc.field,
         borderRadius: BorderRadius.circular(26),
       ),
       child: Row(
@@ -667,7 +744,7 @@ class _SourceOption extends StatelessWidget {
                 Icon(
                   icon,
                   size: 22,
-                  color: selected ? AppColors.red : AppColors.white,
+                  color: selected ? AppColors.red : context.zc.text,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -683,7 +760,7 @@ class _SourceOption extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: disabled ? SendColors.soft : AppColors.white,
+                            color: disabled ? context.zc.soft : context.zc.text,
                           ),
                         ),
                       ),
@@ -698,7 +775,7 @@ class _SourceOption extends StatelessWidget {
                             fontWeight: warning
                                 ? FontWeight.w600
                                 : FontWeight.w400,
-                            color: warning ? AppColors.red : SendColors.soft,
+                            color: warning ? AppColors.red : context.zc.soft,
                           ),
                         ),
                       ),

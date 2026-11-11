@@ -1,9 +1,16 @@
+import 'dart:async';
+
 import 'package:circle_flags/circle_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/account/account_error.dart';
+import '../../core/account/app_rules.dart';
+import '../../core/account/destinations.dart';
+import '../../core/account/zawapay_account.dart';
 import '../../core/countries/country.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/country_picker.dart';
 import '../../l10n/app_localizations.dart';
 import 'recipient.dart';
@@ -12,17 +19,22 @@ import 'send_ui.dart';
 
 /// "Send money", step 1: who receives the money.
 ///
-/// The user chooses to search by "@" username or by phone number. As soon as
-/// an account matches exactly, it shows with its "@" (and blue badge), name,
-/// flag and number; tapping it goes to the amount. The 3 recent recipients
-/// are listed under it.
+/// By "@" username: the account must exist; it shows with its photo, "@"
+/// (and blue badge), name and the withdrawal number where the money will
+/// arrive. By NUMBER: no account is looked up at all, the money goes straight
+/// to the typed Mobile Money number (the recipient needs no Zawapay account).
+/// "Confirm" opens the amount. The 3 recent recipients are listed under it.
 class SendRecipientScreen extends StatefulWidget {
   const SendRecipientScreen({
     super.key,
     required this.senderCountry,
     this.recents = const [],
     this.balances = const {},
+    this.myUsername,
   });
+
+  /// The sender's own "@": sending to oneself is not offered.
+  final String? myUsername;
 
   final Country senderCountry;
   final List<Recipient> recents;
@@ -42,21 +54,134 @@ class _SendRecipientScreenState extends State<SendRecipientScreen> {
   late Country _phoneCountry = widget.senderCountry;
   bool _recentsOpen = true;
 
+  /// The account found for what is typed, and what to say otherwise.
+  Recipient? _found;
+  String? _message;
+  Timer? _debounce;
+
+  /// What was searched last: an answer for older text is dropped.
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // Opens the connection to the server now, so the first search does not
+    // pay for it (and refreshes the fees on the way).
+    refreshAppRules();
+    refreshDestinations();
+    // The open countries arrive a moment later: look again.
+    destinations.addListener(_search);
+  }
+
   @override
   void dispose() {
+    destinations.removeListener(_search);
+    _debounce?.cancel();
     _input.dispose();
     super.dispose();
   }
 
-  Recipient? get _found => _by == _SearchBy.username
-      ? findByUsername(_input.text)
-      : findByPhone(_phoneCountry.isoCode, _input.text);
+  /// "+243975135801" from the country and the typed number (spaces and a
+  /// leading 0 left out); null when too short.
+  String? get _fullPhone {
+    final typed = _input.text.replaceAll(RegExp(r'\D'), '');
+    // In Côte d'Ivoire, Benin, Congo and Gabon the leading 0 is part of the
+    // number (07…, 01…, 06…); elsewhere it is the national 0.
+    final digits = keepsLeadingZero.contains(_phoneCountry.isoCode)
+        ? typed
+        : typed.replaceFirst(RegExp('^0+'), '');
+    return digits.length < 8 ? null : '${_phoneCountry.dialCode}$digits';
+  }
 
-  /// A full phone number that matches no account.
-  bool get _phoneNotFound =>
-      _by == _SearchBy.phone &&
-      _input.text.replaceAll(RegExp(r'\D'), '').length >= 9 &&
-      _found == null;
+  /// Looks the @ or the withdrawal number up once the user stops typing.
+  void _search() {
+    _debounce?.cancel();
+    final byName = _by == _SearchBy.username;
+    final query = byName ? _input.text.trim().toLowerCase() : _fullPhone;
+    setState(() {
+      _found = null;
+      _message = null;
+    });
+    if (query == null || query.length < 3) {
+      _query = '';
+      return;
+    }
+    _query = query;
+    // By number: no search, the money goes to this number.
+    if (!byName) {
+      final digits = query.substring(_phoneCountry.dialCode.length);
+      final home = _phoneCountry.isoCode == widget.senderCountry.isoCode;
+      if (digits.length >= (home ? 9 : 8)) {
+        _show(Recipient.number(_phoneCountry.isoCode, digits));
+      }
+      return;
+    }
+    // Accounts known without the server (tests only).
+    final local = byName
+        ? findByUsername(query)
+        : findByPhone(_phoneCountry.isoCode, _input.text);
+    if (local != null) {
+      _show(local);
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
+      final l10n = AppLocalizations.of(context);
+      Recipient? match;
+      String? message;
+      // By @, the photo's address is known already: it downloads at the
+      // same time as the search, not after it.
+      final photoEarly = _loadPhoto(ZawapayAccount.photoUrlOf(query));
+      try {
+        final member = await zawapayAccount.findMember(query);
+        if (member != null) {
+          match = Recipient.fromMember(member);
+          // The card waits for the photo at most 1 s; a late photo comes in
+          // on its own afterwards.
+          final photo = match.photoUrl;
+          if (photo != null && mounted) {
+            await photoEarly.timeout(
+              const Duration(seconds: 1),
+              onTimeout: () {},
+            );
+          }
+        } else {
+          message = l10n.sendUsernameNotFound;
+        }
+      } catch (error) {
+        if (mounted) message = accountErrorText(context, error);
+      }
+      if (!mounted || _query != query) return;
+      if (match != null) {
+        _show(match);
+      } else {
+        setState(() => _message = message);
+      }
+    });
+  }
+
+  /// Downloads a photo into the image cache; never fails.
+  Future<void> _loadPhoto(String url) =>
+      precacheImage(NetworkImage(url), context, onError: (_, _) {});
+
+  void _show(Recipient recipient) {
+    final l10n = AppLocalizations.of(context);
+    final own =
+        !recipient.isNumber &&
+        widget.myUsername != null &&
+        recipient.username == widget.myUsername;
+    // Another country: only the ones opened in the admin dashboard.
+    final closed =
+        recipient.countryCode != widget.senderCountry.isoCode &&
+        destinationFor(recipient.countryCode) == null;
+    setState(() {
+      _found = own || closed ? null : recipient;
+      _message = own
+          ? l10n.sendOwnAccount
+          : closed
+          ? l10n.sendCountryClosed
+          : null;
+    });
+  }
 
   void _switchTo(_SearchBy by) {
     if (by == _by) return;
@@ -64,6 +189,7 @@ class _SendRecipientScreenState extends State<SendRecipientScreen> {
       _by = by;
       _input.clear();
     });
+    _search();
   }
 
   void _open(Recipient recipient) {
@@ -83,11 +209,14 @@ class _SendRecipientScreenState extends State<SendRecipientScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final found = _found;
+    final message = _message;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: context.zc.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.black,
+        backgroundColor: context.zc.page,
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -109,11 +238,11 @@ class _SendRecipientScreenState extends State<SendRecipientScreen> {
                       padding: const EdgeInsets.only(left: 4),
                       child: Text(
                         l10n.sendTitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.8,
-                          color: AppColors.white,
+                          color: context.zc.text,
                         ),
                       ),
                     ),
@@ -122,12 +251,12 @@ class _SendRecipientScreenState extends State<SendRecipientScreen> {
                     const SizedBox(height: 12),
                     if (_by == _SearchBy.username)
                       _InputBox(
-                        prefix: const Text(
+                        prefix: Text(
                           '@',
                           style: TextStyle(
                             fontSize: 19,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.white,
+                            color: context.zc.text,
                           ),
                         ),
                         child: _textField(
@@ -135,7 +264,7 @@ class _SendRecipientScreenState extends State<SendRecipientScreen> {
                           keyboard: TextInputType.visiblePassword,
                           formatters: [
                             FilteringTextInputFormatter.allow(
-                              RegExp('[a-zA-Z0-9._]'),
+                              RegExp('[a-zA-Z0-9_-]'),
                             ),
                             LengthLimitingTextInputFormatter(30),
                           ],
@@ -153,6 +282,7 @@ class _SendRecipientScreenState extends State<SendRecipientScreen> {
                               );
                               if (picked != null) {
                                 setState(() => _phoneCountry = picked);
+                                _search();
                               }
                             },
                           ),
@@ -160,7 +290,7 @@ class _SendRecipientScreenState extends State<SendRecipientScreen> {
                           Expanded(
                             child: _InputBox(
                               child: _textField(
-                                hint: l10n.sendPhoneHint,
+                                hint: l10n.sendWithdrawNumberHint,
                                 keyboard: TextInputType.phone,
                                 formatters: [
                                   FilteringTextInputFormatter.allow(
@@ -183,17 +313,17 @@ class _SendRecipientScreenState extends State<SendRecipientScreen> {
                               padding: const EdgeInsets.only(top: 12),
                               child: _FoundAccount(
                                 recipient: found,
-                                onTap: () => _open(found),
+                                onConfirm: () => _open(found),
                               ),
                             )
-                          : _phoneNotFound
+                          : message != null
                           ? Padding(
                               padding: const EdgeInsets.fromLTRB(6, 12, 6, 0),
                               child: Text(
-                                l10n.sendPhoneNotFound,
-                                style: const TextStyle(
+                                message,
+                                style: TextStyle(
                                   fontSize: 14,
-                                  color: SendColors.soft,
+                                  color: context.zc.soft,
                                 ),
                               ),
                             )
@@ -228,23 +358,23 @@ class _SendRecipientScreenState extends State<SendRecipientScreen> {
       onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
       controller: _input,
       autofocus: false,
-      onChanged: (_) => setState(() {}),
+      onChanged: (_) => _search(),
       autocorrect: false,
       enableSuggestions: false,
       keyboardType: keyboard,
       inputFormatters: formatters,
       cursorColor: AppColors.red,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 19,
         fontWeight: FontWeight.w600,
-        color: AppColors.white,
+        color: context.zc.text,
       ),
       decoration: InputDecoration.collapsed(
         hintText: hint,
-        hintStyle: const TextStyle(
+        hintStyle: TextStyle(
           fontSize: 19,
           fontWeight: FontWeight.w600,
-          color: Color(0x66FFFFFF),
+          color: context.zc.faint,
         ),
       ),
     );
@@ -280,7 +410,7 @@ class _SearchSwitch extends StatelessWidget {
                 Icon(
                   icon,
                   size: 18,
-                  color: selected ? AppColors.white : SendColors.soft,
+                  color: selected ? AppColors.white : context.zc.soft,
                 ),
                 const SizedBox(width: 6),
                 Flexible(
@@ -291,7 +421,7 @@ class _SearchSwitch extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: selected ? AppColors.white : SendColors.soft,
+                      color: selected ? AppColors.white : context.zc.soft,
                     ),
                   ),
                 ),
@@ -304,8 +434,8 @@ class _SearchSwitch extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(4),
-      decoration: const ShapeDecoration(
-        color: SendColors.field,
+      decoration: ShapeDecoration(
+        color: context.zc.field,
         shape: StadiumBorder(),
       ),
       child: Row(
@@ -334,7 +464,7 @@ class _InputBox extends StatelessWidget {
       height: 60,
       padding: const EdgeInsets.symmetric(horizontal: 18),
       decoration: BoxDecoration(
-        color: SendColors.field,
+        color: context.zc.field,
         borderRadius: BorderRadius.circular(20),
       ),
       alignment: Alignment.centerLeft,
@@ -362,7 +492,7 @@ class _CountryButton extends StatelessWidget {
         height: 60,
         padding: const EdgeInsets.fromLTRB(12, 0, 8, 0),
         decoration: BoxDecoration(
-          color: SendColors.field,
+          color: context.zc.field,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -371,16 +501,13 @@ class _CountryButton extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               country.dialCode,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.white,
+                color: context.zc.text,
               ),
             ),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: SendColors.soft,
-            ),
+            Icon(Icons.keyboard_arrow_down_rounded, color: context.zc.soft),
           ],
         ),
       ),
@@ -388,67 +515,94 @@ class _CountryButton extends StatelessWidget {
   }
 }
 
-/// The matching account: "@" (badge), name, flag and number.
+/// The matching account, as for the sponsor at sign-up: photo, "@"
+/// (badge), name, the withdrawal number where the money will arrive, and
+/// "Confirm", which opens the amount page.
 class _FoundAccount extends StatelessWidget {
-  const _FoundAccount({required this.recipient, required this.onTap});
+  const _FoundAccount({required this.recipient, required this.onConfirm});
 
   final Recipient recipient;
-  final VoidCallback onTap;
+  final VoidCallback onConfirm;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(10, 10, 14, 10),
-        decoration: BoxDecoration(
-          color: SendColors.field,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.red, width: 1.5),
-        ),
-        child: Row(
-          children: [
-            RecipientAvatar(recipient: recipient),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RecipientHandle(recipient: recipient),
-                  const SizedBox(height: 2),
-                  Text(
-                    recipient.fullName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: AppColors.white,
-                    ),
-                  ),
-                  Text(
-                    recipient.fullPhone,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: SendColors.soft,
-                    ),
-                  ),
-                ],
+    final l10n = AppLocalizations.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: context.zc.field,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.red, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              RecipientAvatar(recipient: recipient),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RecipientHandle(recipient: recipient),
+                    const SizedBox(height: 2),
+                    if (recipient.isNumber)
+                      Text(
+                        l10n.sendStraightToNumber,
+                        style: TextStyle(fontSize: 14, color: context.zc.soft),
+                      )
+                    else
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          recipient.fullName,
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: context.zc.text,
+                          ),
+                        ),
+                      ),
+                    if (!recipient.isNumber && recipient.fullPhone.isNotEmpty)
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          l10n.sendReceivesOn(recipient.fullPhone),
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: context.zc.soft,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 48,
+            child: FilledButton(
+              onPressed: onConfirm,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.red,
+                foregroundColor: AppColors.white,
+                shape: const StadiumBorder(),
+                textStyle: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              child: Text(l10n.sendConfirm),
             ),
-            Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.red,
-              ),
-              child: const Icon(
-                Icons.arrow_forward_rounded,
-                color: AppColors.white,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -475,31 +629,28 @@ class _Recents extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(28),
       child: ColoredBox(
-        color: SendColors.card,
+        color: context.zc.card,
         child: Column(
           children: [
             GestureDetector(
               onTap: onToggle,
               behavior: HitTestBehavior.opaque,
               child: Container(
-                color: SendColors.field,
+                color: context.zc.field,
                 padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
                 child: Row(
                   children: [
                     Expanded(
                       child: Text(
                         l10n.sendRecents(recents.length),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: SendColors.soft,
-                        ),
+                        style: TextStyle(fontSize: 16, color: context.zc.soft),
                       ),
                     ),
                     Icon(
                       open
                           ? Icons.keyboard_arrow_up_rounded
                           : Icons.keyboard_arrow_down_rounded,
-                      color: SendColors.soft,
+                      color: context.zc.soft,
                     ),
                   ],
                 ),
@@ -513,8 +664,7 @@ class _Recents extends StatelessWidget {
                   : Column(
                       children: [
                         for (var i = 0; i < recents.length; i++) ...[
-                          if (i > 0)
-                            const Divider(height: 1, color: SendColors.card),
+                          if (i > 0) Divider(height: 1, color: context.zc.card),
                           GestureDetector(
                             onTap: () => onSelect(recents[i]),
                             behavior: HitTestBehavior.opaque,
@@ -538,9 +688,9 @@ class _Recents extends StatelessWidget {
                                         const SizedBox(height: 2),
                                         Text(
                                           recents[i].fullPhone,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 15,
-                                            color: SendColors.soft,
+                                            color: context.zc.soft,
                                           ),
                                         ),
                                       ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/zawapay_colors.dart';
 
 /// Rounded square checkbox (red when checked) followed by its label.
 class AppCheckbox extends StatelessWidget {
@@ -27,11 +28,11 @@ class AppCheckbox extends StatelessWidget {
             width: 26,
             height: 26,
             decoration: BoxDecoration(
-              color: value ? AppColors.red : AppColors.white,
+              color: value ? AppColors.red : context.zc.raised,
               borderRadius: BorderRadius.circular(7),
               border: value
                   ? null
-                  : Border.all(color: AppColors.grey, width: 1.8),
+                  : Border.all(color: context.zc.soft, width: 1.8),
             ),
             child: value
                 ? const Icon(

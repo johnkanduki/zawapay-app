@@ -10,7 +10,7 @@ void main() {
         locale: const Locale('fr'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: ProfilePhotoScreen(onFinished: (_, _) {}),
+        home: ProfilePhotoScreen(onFinished: (_, _) async {}),
       ),
     );
 

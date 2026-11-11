@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/account/account_error.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/zawapay_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_buttons.dart';
 import '../../../core/widgets/auth_card_scaffold.dart';
@@ -17,8 +19,10 @@ import 'face_capture_screen.dart';
 class ProfilePhotoScreen extends StatefulWidget {
   const ProfilePhotoScreen({super.key, required this.onFinished});
 
-  /// Where "Finish" leads (the home page), with the photo taken.
-  final void Function(BuildContext context, String photoPath) onFinished;
+  /// Sends the photo and opens the home page. An error is shown at the top
+  /// and "Finish" can be tapped again.
+  final Future<void> Function(BuildContext context, String photoPath)
+  onFinished;
 
   @override
   State<ProfilePhotoScreen> createState() => _ProfilePhotoScreenState();
@@ -26,6 +30,18 @@ class ProfilePhotoScreen extends StatefulWidget {
 
 class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
   String? _photoPath;
+  bool _busy = false;
+
+  Future<void> _finish(String photo) async {
+    setState(() => _busy = true);
+    try {
+      await widget.onFinished(context, photo);
+    } catch (error) {
+      if (mounted) showAccountError(context, error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   Future<void> _openCamera() async {
     final path = await Navigator.of(context).push<String>(
@@ -60,7 +76,7 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
               ? Text(
                   l10n.profilePhotoTapHint,
                   textAlign: TextAlign.center,
-                  style: AppText.label.copyWith(fontSize: 15),
+                  style: AppText.label(context).copyWith(fontSize: 15),
                 )
               : UnderlinedLink(
                   text: l10n.profilePhotoRetake,
@@ -70,9 +86,8 @@ class _ProfilePhotoScreenState extends State<ProfilePhotoScreen> {
         const SizedBox(height: 30),
         PrimaryButton(
           label: l10n.finish,
-          onPressed: photo == null
-              ? null
-              : () => widget.onFinished(context, photo),
+          busy: _busy,
+          onPressed: photo == null || _busy ? null : () => _finish(photo),
         ),
       ],
     );
@@ -107,21 +122,22 @@ class _PhotoCircle extends StatelessWidget {
                 height: _size,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.surface,
+                  color: context.zc.field,
                   border: Border.all(
-                    color: photo == null ? AppColors.surface : AppColors.red,
+                    color: photo == null ? context.zc.field : AppColors.red,
                     width: 4,
                   ),
                 ),
                 child: ClipOval(
                   child: photo == null
-                      ? const Icon(
+                      ? Icon(
                           Icons.person_rounded,
                           size: 110,
-                          color: AppColors.white,
+                          color: context.zc.raised,
                         )
                       : Image.file(
                           File(photo),
+                          cacheWidth: 600,
                           fit: BoxFit.cover,
                           width: _size,
                           height: _size,
@@ -137,7 +153,7 @@ class _PhotoCircle extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColors.red,
-                    border: Border.all(color: AppColors.white, width: 4),
+                    border: Border.all(color: context.zc.raised, width: 4),
                   ),
                   child: Icon(
                     photo == null

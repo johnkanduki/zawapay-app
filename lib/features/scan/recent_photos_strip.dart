@@ -79,19 +79,34 @@ class _RecentPhotosStripState extends State<RecentPhotosStrip> {
   }
 }
 
-class _Thumbnail extends StatelessWidget {
+class _Thumbnail extends StatefulWidget {
   const _Thumbnail({required this.photo});
 
   final AssetEntity photo;
 
   @override
+  State<_Thumbnail> createState() => _ThumbnailState();
+}
+
+class _ThumbnailState extends State<_Thumbnail> {
+  // Asked once: a rebuild of the scanner never loads the photo again.
+  late final Future<Uint8List?> _bytes = widget.photo.thumbnailDataWithSize(
+    const ThumbnailSize.square(240),
+  );
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<Uint8List?>(
-      future: photo.thumbnailDataWithSize(const ThumbnailSize.square(240)),
+      future: _bytes,
       builder: (context, snapshot) {
         final bytes = snapshot.data;
         if (bytes == null) return const ColoredBox(color: Color(0x1FFFFFFF));
-        return Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true);
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          cacheWidth: 240,
+        );
       },
     );
   }

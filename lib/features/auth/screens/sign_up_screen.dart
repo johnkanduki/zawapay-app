@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/account/account_error.dart';
+import '../../../core/account/zawapay_account.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_buttons.dart';
 import '../../../core/widgets/app_checkbox.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/auth_card_scaffold.dart';
+import '../../../core/widgets/top_notice.dart';
 import '../../../core/widgets/underlined_link.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/password_strength.dart';
@@ -32,6 +35,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _password = TextEditingController();
   Sponsor? _sponsor;
   bool _termsAccepted = false;
+  bool _checking = false;
 
   static final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]{2,}$');
 
@@ -62,6 +66,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _sponsor != null &&
       PasswordRules(_password.text).passed == 5 &&
       _termsAccepted;
+
+  /// "Continue": an e-mail that is already a member is stopped here with
+  /// "Sign in"; otherwise the numbers page opens.
+  Future<void> _continue() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final email = _email.text.trim();
+    final taken = AppLocalizations.of(context).alreadyMember;
+    setState(() => _checking = true);
+    try {
+      if (await zawapayAccount.isMemberEmail(email)) {
+        if (mounted) {
+          showTopNotice(context, taken, icon: Icons.info_rounded);
+        }
+        return;
+      }
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => SignUpNumbersScreen(
+            email: email,
+            password: _password.text,
+            sponsor: _sponsor!.username,
+            firstName: _firstName.text.trim(),
+            lastName: _lastName.text.trim(),
+          ),
+        ),
+      );
+    } catch (error) {
+      if (mounted) showAccountError(context, error);
+    } finally {
+      if (mounted) setState(() => _checking = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,23 +172,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         const SizedBox(height: 22),
         PrimaryButton(
           label: l10n.continueButton,
-          onPressed: !_canContinue
-              ? null
-              : () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => SignUpNumbersScreen(
-                      email: _email.text.trim(),
-                      firstName: _firstName.text.trim(),
-                      lastName: _lastName.text.trim(),
-                    ),
-                  ),
-                ),
+          busy: _checking,
+          onPressed: _canContinue && !_checking ? _continue : null,
         ),
         const SizedBox(height: 22),
         Center(
           child: Text.rich(
             TextSpan(
-              style: AppText.body,
+              style: AppText.body(context),
               children: [
                 TextSpan(text: l10n.alreadyHaveAccount),
                 linkSpan(
@@ -185,7 +213,7 @@ class _TermsCheckbox extends StatelessWidget {
       onChanged: onChanged,
       label: Text.rich(
         TextSpan(
-          style: AppText.body,
+          style: AppText.body(context),
           children: [
             TextSpan(text: l10n.acceptPrefix),
             linkSpan(l10n.acceptTerms, () {}),

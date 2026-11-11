@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../send/recipient.dart';
 import 'transfer.dart';
-
-const Color _circle = Color(0x14FFFFFF);
 
 /// One line of the history: status in a circle, the other person's "@"
 /// (badge), the status, and the signed amount with when it happened.
@@ -27,7 +26,7 @@ class TransferRow extends StatelessWidget {
     final when = transfer.daysAgo >= 30
         ? l10n.monthsAgo((transfer.daysAgo / 30).round())
         : l10n.daysAgo(transfer.daysAgo);
-    const grey = Color(0x99FFFFFF);
+    final grey = context.zc.soft;
     final locale = Localizations.localeOf(context).toLanguageTag();
 
     return GestureDetector(
@@ -40,15 +39,16 @@ class TransferRow extends StatelessWidget {
             Container(
               width: 46,
               height: 46,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _circle,
+                // Stands out on its card: grey circle on the white card.
+                color: context.zc.isDark ? context.zc.card : context.zc.field,
               ),
               child: Icon(
                 icon,
                 size: 28,
                 color: transfer.status == TransferStatus.success
-                    ? AppColors.white
+                    ? context.zc.text
                     : AppColors.red,
               ),
             ),
@@ -60,10 +60,7 @@ class TransferRow extends StatelessWidget {
                 children: [
                   // The other person, by "@" (with the blue badge).
                   RecipientHandle(recipient: transfer.other, fontSize: 15),
-                  Text(
-                    status,
-                    style: const TextStyle(fontSize: 15, color: grey),
-                  ),
+                  Text(status, style: TextStyle(fontSize: 15, color: grey)),
                 ],
               ),
             ),
@@ -77,16 +74,16 @@ class TransferRow extends StatelessWidget {
                     transfer.signedAmount(locale),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.white,
+                      color: context.zc.text,
                     ),
                   ),
                   Text(
                     when,
                     textAlign: TextAlign.end,
-                    style: const TextStyle(fontSize: 13, color: grey),
+                    style: TextStyle(fontSize: 13, color: grey),
                   ),
                 ],
               ),

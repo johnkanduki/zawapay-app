@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/countries/country.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../l10n/app_localizations.dart';
 
 /// White "Zawapay" balance card: one line per currency of the user's country
@@ -43,8 +44,9 @@ class _BalanceCardState extends State<BalanceCard> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
+      // Stands out: white on the dark page, black on the light one.
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.zc.inverse,
         borderRadius: BorderRadius.circular(28),
       ),
       child: Row(
@@ -92,9 +94,9 @@ class _BalanceCardState extends State<BalanceCard> {
                           text: _hidden
                               ? '••••••'
                               : amount.format(widget.balances[currency] ?? 0),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            color: AppColors.black,
+                            color: context.zc.onInverse,
                           ),
                         ),
                       ],
@@ -104,7 +106,12 @@ class _BalanceCardState extends State<BalanceCard> {
                 const SizedBox(height: 4),
                 Text(
                   l10n.balanceUpdatedAt(time),
-                  style: const TextStyle(fontSize: 13, color: AppColors.grey),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.zc.isDark
+                        ? AppColors.grey
+                        : const Color(0x99FFFFFF),
+                  ),
                 ),
               ],
             ),
@@ -135,9 +142,11 @@ class _BalanceCardState extends State<BalanceCard> {
           const SizedBox(width: 10),
           Container(
             padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.surface,
+              color: context.zc.isDark
+                  ? AppColors.surface
+                  : const Color(0x33FFFFFF),
             ),
             child: CircleFlag(widget.country.isoCode, size: 42),
           ),
@@ -170,6 +179,7 @@ class SendWithdrawButtons extends StatelessWidget {
             icon: Icons.arrow_outward_rounded,
             color: AppColors.red,
             iconBackground: const Color(0x33FFFFFF),
+            foreground: AppColors.white,
             onTap: onSend,
           ),
         ),
@@ -178,8 +188,12 @@ class SendWithdrawButtons extends StatelessWidget {
           child: _ActionButton(
             label: l10n.homeWithdraw,
             icon: Icons.south_west_rounded,
-            color: const Color(0x1FFFFFFF),
-            iconBackground: const Color(0x14FFFFFF),
+            color: context.zc.cardStrong,
+            // Grey circle inside the white button (light mode).
+            iconBackground: context.zc.isDark
+                ? context.zc.card
+                : context.zc.field,
+            foreground: context.zc.text,
             onTap: onWithdraw,
           ),
         ),
@@ -194,6 +208,7 @@ class _ActionButton extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.iconBackground,
+    required this.foreground,
     required this.onTap,
   });
 
@@ -201,6 +216,9 @@ class _ActionButton extends StatelessWidget {
   final IconData icon;
   final Color color;
   final Color iconBackground;
+
+  /// Icon and label colour.
+  final Color foreground;
   final VoidCallback onTap;
 
   @override
@@ -225,7 +243,7 @@ class _ActionButton extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: iconBackground,
                 ),
-                child: Icon(icon, color: AppColors.white, size: 24),
+                child: Icon(icon, color: foreground, size: 24),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -234,10 +252,10 @@ class _ActionButton extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.white,
+                      color: foreground,
                     ),
                   ),
                 ),

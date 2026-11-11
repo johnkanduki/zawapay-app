@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/zawapay_colors.dart';
 import '../theme/app_theme.dart';
 
 /// Grey label above a rounded grey field.
@@ -13,7 +13,7 @@ class FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 10),
-      child: Text(text, style: AppText.label),
+      child: Text(text, style: AppText.label(context)),
     );
   }
 }
@@ -58,12 +58,12 @@ class AppTextField extends StatelessWidget {
       onChanged: onChanged,
       textCapitalization: textCapitalization,
       autofillHints: autofillHints,
-      style: const TextStyle(fontSize: 16, color: AppColors.black),
+      style: TextStyle(fontSize: 16, color: context.zc.text),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(fontSize: 16, color: AppColors.grey),
+        hintStyle: TextStyle(fontSize: 16, color: context.zc.soft),
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: context.zc.field,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 22,
           vertical: 19,
@@ -124,7 +124,7 @@ class _PasswordFieldState extends State<PasswordField> {
         onPressed: () => setState(() => _hidden = !_hidden),
         icon: Icon(
           _hidden ? Icons.visibility_rounded : Icons.visibility_off_rounded,
-          color: AppColors.grey,
+          color: context.zc.soft,
         ),
       ),
     );

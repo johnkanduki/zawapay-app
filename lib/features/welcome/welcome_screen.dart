@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/auth_card_scaffold.dart';
@@ -39,17 +40,13 @@ class WelcomeScreen extends StatelessWidget {
             if (picked != null) settings.setCountry(picked);
           },
           leading: country == null
-              ? const Icon(
-                  Icons.public_rounded,
-                  color: AppColors.grey,
-                  size: 28,
-                )
+              ? Icon(Icons.public_rounded, color: context.zc.soft, size: 28)
               : RoundFlag(country: country),
           text: country == null ? l10n.countryHint : country.name(l10n),
           isPlaceholder: country == null,
-          trailing: const Icon(
+          trailing: Icon(
             Icons.keyboard_arrow_down_rounded,
-            color: AppColors.black,
+            color: context.zc.text,
           ),
         ),
         const SizedBox(height: 22),
@@ -108,7 +105,7 @@ class _SelectorTile extends StatelessWidget {
         height: 60,
         padding: const EdgeInsets.symmetric(horizontal: 18),
         decoration: ShapeDecoration(
-          color: AppColors.surface,
+          color: context.zc.field,
           shape: StadiumBorder(
             side: BorderSide(
               color: isSelected ? AppColors.red : Colors.transparent,
@@ -125,7 +122,7 @@ class _SelectorTile extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isPlaceholder ? AppColors.grey : AppColors.black,
+                  color: isPlaceholder ? context.zc.soft : context.zc.text,
                 ),
               ),
             ),
@@ -151,10 +148,12 @@ class _RadioDot extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: selected ? AppColors.red : Colors.transparent,
-        border: selected ? null : Border.all(color: AppColors.grey, width: 1.6),
+        border: selected
+            ? null
+            : Border.all(color: context.zc.soft, width: 1.6),
       ),
       child: selected
-          ? const Icon(Icons.check_rounded, size: 16, color: AppColors.white)
+          ? Icon(Icons.check_rounded, size: 16, color: context.zc.raised)
           : null,
     );
   }

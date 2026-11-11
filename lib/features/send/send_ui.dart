@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 
-/// Colours and small pieces shared by the dark "Send" pages.
+/// Fixed dark colours, kept only for pages that stay dark in both modes
+/// (camera). Other pages use `context.zc` (light / dark).
 abstract final class SendColors {
   /// Outer frame of a card.
   static const Color frame = Color(0x0FFFFFFF);
@@ -33,11 +34,14 @@ class RoundIconButton extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: const BoxDecoration(
+        // White with a thin line in light mode: visible on the grey page
+        // and inside white cards alike.
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: SendColors.field,
+          color: context.zc.isDark ? context.zc.field : context.zc.raised,
+          border: context.zc.isDark ? null : Border.all(color: context.zc.line),
         ),
-        child: Icon(icon, color: AppColors.white),
+        child: Icon(icon, color: context.zc.text),
       ),
     );
   }
@@ -60,12 +64,12 @@ class FramedCard extends StatelessWidget {
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(36),
-        border: Border.all(color: SendColors.frame),
+        border: Border.all(color: context.zc.frame),
       ),
       child: Container(
         padding: padding,
         decoration: BoxDecoration(
-          color: SendColors.card,
+          color: context.zc.card,
           borderRadius: BorderRadius.circular(30),
         ),
         child: child,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/zawapay_colors.dart';
 
 /// Black text with a thick red underline, used for every tappable link.
 class UnderlinedLink extends StatelessWidget {
@@ -29,7 +30,7 @@ class UnderlinedLink extends StatelessWidget {
           fontSize: fontSize,
           height: 1.35,
           fontWeight: FontWeight.w500,
-          color: AppColors.black,
+          color: context.zc.text,
           decoration: TextDecoration.underline,
           decorationColor: AppColors.red,
           decorationThickness: 2.4,

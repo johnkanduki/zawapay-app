@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/underlined_link.dart';
@@ -14,7 +14,7 @@ import '../auth/screens/sign_up_screen.dart';
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
-  static const _heroImage = 'assets/images/onboarding_hero.png';
+  static const _heroImage = 'assets/images/onboarding_hero.jpg';
 
   /// How much the panel covers the bottom of the image.
   static const double _panelOverlap = 36;
@@ -22,7 +22,7 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: context.zc.raised,
       body: Column(
         children: [
           // The image fills the space above the panel and runs a little
@@ -82,8 +82,8 @@ class _ActionsPanel extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 30, 16, 0),
-      decoration: const BoxDecoration(
-        color: AppColors.white,
+      decoration: BoxDecoration(
+        color: context.zc.raised,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(OnboardingScreen._panelOverlap),
         ),
@@ -110,7 +110,7 @@ class _ActionsPanel extends StatelessWidget {
             const SizedBox(height: 24),
             Text.rich(
               TextSpan(
-                style: AppText.body.copyWith(fontSize: 15),
+                style: AppText.body(context).copyWith(fontSize: 15),
                 children: [
                   TextSpan(text: l10n.legalPrefix),
                   linkSpan(l10n.legalTerms, () {}, fontSize: 15),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../send/recipient.dart';
 import '../send/send_ui.dart';
@@ -116,8 +117,8 @@ class _FilterSheetState extends State<_FilterSheet> {
     final count = _filter.apply(widget.transfers).length;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.black,
+      decoration: BoxDecoration(
+        color: context.zc.page,
         borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -135,7 +136,7 @@ class _FilterSheetState extends State<_FilterSheet> {
               width: 44,
               height: 5,
               decoration: BoxDecoration(
-                color: SendColors.field,
+                color: context.zc.field,
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
@@ -159,11 +160,11 @@ class _FilterSheetState extends State<_FilterSheet> {
                     Expanded(
                       child: Text(
                         l10n.historyFilters,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.6,
-                          color: AppColors.white,
+                          color: context.zc.text,
                         ),
                       ),
                     ),
@@ -186,7 +187,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 const SizedBox(height: 4),
                 Text(
                   l10n.filterSubtitle,
-                  style: const TextStyle(fontSize: 15, color: SendColors.soft),
+                  style: TextStyle(fontSize: 15, color: context.zc.soft),
                 ),
                 const SizedBox(height: 18),
                 _PersonRow(person: _filter.person, onTap: _pickPerson),
@@ -218,7 +219,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                           (
                             TransferStatus.success,
                             l10n.statusSuccess,
-                            const _Dot(filled: true, color: AppColors.white),
+                            _Dot(filled: true, color: context.zc.text),
                           ),
                           (
                             TransferStatus.pending,
@@ -272,9 +273,10 @@ class _FilterSheetState extends State<_FilterSheet> {
                 backgroundColor: AppColors.red,
                 disabledBackgroundColor: AppColors.red.withValues(alpha: 0.35),
                 foregroundColor: AppColors.white,
-                disabledForegroundColor: SendColors.soft,
+                disabledForegroundColor: context.zc.soft,
                 shape: const StadiumBorder(),
                 textStyle: const TextStyle(
+                  fontFamily: 'Inter',
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                 ),
@@ -293,7 +295,7 @@ class _FilterSheetState extends State<_FilterSheet> {
       context: context,
       useSafeArea: true,
       barrierColor: AppColors.scrim,
-      backgroundColor: AppColors.black,
+      backgroundColor: context.zc.page,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(34)),
       ),
@@ -308,11 +310,11 @@ class _FilterSheetState extends State<_FilterSheet> {
                 padding: const EdgeInsets.only(left: 6, bottom: 12),
                 child: Text(
                   l10n.filterPerson.toUpperCase(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.8,
-                    color: SendColors.soft,
+                    color: context.zc.soft,
                   ),
                 ),
               ),
@@ -325,10 +327,10 @@ class _FilterSheetState extends State<_FilterSheet> {
                     const SizedBox(width: 12),
                     Text(
                       l10n.filterEveryone,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.white,
+                        color: context.zc.text,
                       ),
                     ),
                   ],
@@ -395,7 +397,7 @@ class _PersonRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(8, 8, 14, 8),
         decoration: ShapeDecoration(
-          color: SendColors.field,
+          color: context.zc.field,
           shape: StadiumBorder(
             side: BorderSide(
               color: who == null ? Colors.transparent : AppColors.red,
@@ -414,10 +416,10 @@ class _PersonRow extends StatelessWidget {
               child: who == null
                   ? Text(
                       l10n.filterEveryone,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.white,
+                        color: context.zc.text,
                       ),
                     )
                   : Align(
@@ -425,7 +427,7 @@ class _PersonRow extends StatelessWidget {
                       child: RecipientHandle(recipient: who, fontSize: 16),
                     ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: SendColors.soft),
+            Icon(Icons.chevron_right_rounded, color: context.zc.soft),
           ],
         ),
       ),
@@ -452,7 +454,7 @@ class _PersonOption extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 6),
         padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
         decoration: ShapeDecoration(
-          color: selected ? SendColors.field : Colors.transparent,
+          color: selected ? context.zc.field : Colors.transparent,
           shape: const StadiumBorder(),
         ),
         child: Row(
@@ -490,7 +492,9 @@ class _MenuPill<T> extends StatelessWidget {
 
     return PopupMenuButton<int>(
       tooltip: title,
-      color: Color.alphaBlend(SendColors.field, AppColors.black),
+      color: context.zc.isDark
+          ? Color.alphaBlend(context.zc.field, AppColors.black)
+          : context.zc.raised,
       elevation: 12,
       offset: const Offset(0, 54),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
@@ -501,11 +505,11 @@ class _MenuPill<T> extends StatelessWidget {
           height: 34,
           child: Text(
             title.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
-              color: SendColors.soft,
+              color: context.zc.soft,
             ),
           ),
         ),
@@ -527,7 +531,7 @@ class _MenuPill<T> extends StatelessWidget {
                       fontWeight: options[i].$1 == value
                           ? FontWeight.w700
                           : FontWeight.w400,
-                      color: AppColors.white,
+                      color: context.zc.text,
                     ),
                   ),
                 ),
@@ -544,7 +548,7 @@ class _MenuPill<T> extends StatelessWidget {
         decoration: ShapeDecoration(
           color: active
               ? AppColors.red.withValues(alpha: 0.16)
-              : SendColors.field,
+              : context.zc.field,
           shape: const StadiumBorder(),
         ),
         child: Row(
@@ -558,14 +562,14 @@ class _MenuPill<T> extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: active ? AppColors.red : AppColors.white,
+                  color: active ? AppColors.red : context.zc.text,
                 ),
               ),
             ),
             Icon(
               Icons.keyboard_arrow_down_rounded,
               size: 20,
-              color: active ? AppColors.red : SendColors.soft,
+              color: active ? AppColors.red : context.zc.soft,
             ),
           ],
         ),

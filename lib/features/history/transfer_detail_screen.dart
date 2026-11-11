@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/top_notice.dart';
 import '../../l10n/app_localizations.dart';
 import '../send/recipient.dart';
@@ -28,9 +29,11 @@ class TransferDetailScreen extends StatelessWidget {
     final failed = transfer.status == TransferStatus.failed;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: context.zc.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.black,
+        backgroundColor: context.zc.page,
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -92,7 +95,7 @@ class TransferDetailScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
                       decoration: BoxDecoration(
-                        color: SendColors.field,
+                        color: context.zc.field,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Column(
@@ -103,24 +106,24 @@ class TransferDetailScreen extends StatelessWidget {
                           ),
                           _Line(l10n.detailFee, money(transfer.fee)),
                           _Line(l10n.detailTotalPaid, money(transfer.paid)),
-                          const Divider(height: 22, color: SendColors.field),
+                          Divider(height: 22, color: context.zc.field),
                           Row(
                             children: [
                               Expanded(
                                 child: Text(
                                   l10n.detailTotalReceived,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
-                                    color: AppColors.white,
+                                    color: context.zc.text,
                                   ),
                                 ),
                               ),
                               Text(
                                 money(transfer.received),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.white,
+                                  color: context.zc.text,
                                 ),
                               ),
                             ],
@@ -270,11 +273,11 @@ class _StatusHeader extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Text(
             '${transfer.outgoing ? '-' : '+'}$amount',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 34,
               fontWeight: FontWeight.w800,
               letterSpacing: -1.2,
-              color: AppColors.white,
+              color: context.zc.text,
             ),
           ),
         ),
@@ -283,7 +286,7 @@ class _StatusHeader extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: ShapeDecoration(
             color: transfer.status == TransferStatus.success
-                ? AppColors.white.withValues(alpha: 0.12)
+                ? context.zc.text.withValues(alpha: 0.12)
                 : AppColors.red.withValues(alpha: 0.16),
             shape: const StadiumBorder(),
           ),
@@ -293,7 +296,7 @@ class _StatusHeader extends StatelessWidget {
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: transfer.status == TransferStatus.success
-                  ? AppColors.white
+                  ? context.zc.text
                   : AppColors.red,
             ),
           ),
@@ -311,11 +314,11 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     text.toUpperCase(),
-    style: const TextStyle(
+    style: TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.w700,
       letterSpacing: 0.6,
-      color: SendColors.soft,
+      color: context.zc.soft,
     ),
   );
 }
@@ -325,7 +328,7 @@ class _Divider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      const Divider(height: 44, color: SendColors.field);
+      Divider(height: 44, color: context.zc.field);
 }
 
 enum _Step { done, current, failed }
@@ -366,8 +369,8 @@ class _StepRow extends StatelessWidget {
           ),
         ),
       ),
-      _Step.failed => const _Mark(
-        color: AppColors.white,
+      _Step.failed => _Mark(
+        color: context.zc.isDark ? AppColors.white : context.zc.field,
         child: Icon(Icons.close_rounded, size: 18, color: AppColors.red),
       ),
     };
@@ -409,17 +412,14 @@ class _StepRow extends StatelessWidget {
                       fontWeight: state == _Step.done
                           ? FontWeight.w500
                           : FontWeight.w700,
-                      color: failed ? AppColors.red : AppColors.white,
+                      color: failed ? AppColors.red : context.zc.text,
                     ),
                   ),
                   if (when != null) ...[
                     const SizedBox(height: 3),
                     Text(
                       when,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: SendColors.soft,
-                      ),
+                      style: TextStyle(fontSize: 14, color: context.zc.soft),
                     ),
                   ],
                 ],
@@ -479,10 +479,10 @@ class _PersonRow extends StatelessWidget {
               RecipientHandle(recipient: person, fontSize: 19),
               const SizedBox(height: 2),
               Text(
-                '${person.fullName} · ${person.fullPhone}',
+                person.details,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 14, color: SendColors.soft),
+                style: TextStyle(fontSize: 14, color: context.zc.soft),
               ),
             ],
           ),
@@ -513,7 +513,7 @@ class _Line extends StatelessWidget {
             flex: wideValue ? 2 : 3,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 15, color: SendColors.soft),
+              style: TextStyle(fontSize: 15, color: context.zc.soft),
             ),
           ),
           const SizedBox(width: 12),
@@ -522,7 +522,7 @@ class _Line extends StatelessWidget {
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: const TextStyle(fontSize: 15, color: AppColors.white),
+              style: TextStyle(fontSize: 15, color: context.zc.text),
             ),
           ),
         ],
@@ -556,7 +556,7 @@ class _CopyLine extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 15, color: SendColors.soft),
+              style: TextStyle(fontSize: 15, color: context.zc.soft),
             ),
           ),
           const SizedBox(width: 8),
@@ -566,7 +566,7 @@ class _CopyLine extends StatelessWidget {
               short,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 15, color: AppColors.white),
+              style: TextStyle(fontSize: 15, color: context.zc.text),
             ),
           ),
           const SizedBox(width: 6),
@@ -579,15 +579,11 @@ class _CopyLine extends StatelessWidget {
             child: Container(
               width: 34,
               height: 34,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: SendColors.field,
+                color: context.zc.field,
               ),
-              child: const Icon(
-                Icons.copy_rounded,
-                size: 17,
-                color: AppColors.white,
-              ),
+              child: Icon(Icons.copy_rounded, size: 17, color: context.zc.text),
             ),
           ),
         ],
@@ -619,10 +615,14 @@ class _WideButton extends StatelessWidget {
         icon: Icon(icon, size: 20),
         label: Text(label),
         style: FilledButton.styleFrom(
-          backgroundColor: primary ? AppColors.red : SendColors.field,
-          foregroundColor: AppColors.white,
+          backgroundColor: primary ? AppColors.red : context.zc.field,
+          foregroundColor: context.zc.text,
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+          textStyle: const TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );

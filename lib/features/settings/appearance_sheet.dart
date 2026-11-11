@@ -117,10 +117,10 @@ class AppearanceSheet extends StatelessWidget {
 /// The sheet's own colours, for the light and the dark mode.
 class _SheetColors {
   _SheetColors(bool dark)
-    : background = dark ? AppColors.black : AppColors.white,
-      card = dark ? const Color(0x14FFFFFF) : AppColors.surface,
-      field = dark ? const Color(0x1FFFFFFF) : AppColors.white,
-      frame = dark ? const Color(0x0FFFFFFF) : AppColors.surface,
+    : background = dark ? AppColors.black : AppColors.surface,
+      card = dark ? const Color(0x14FFFFFF) : AppColors.white,
+      field = dark ? const Color(0x1FFFFFFF) : AppColors.surface,
+      frame = dark ? const Color(0x0FFFFFFF) : const Color(0x0F000000),
       text = dark ? AppColors.white : AppColors.black,
       soft = dark ? const Color(0x99FFFFFF) : AppColors.grey;
 

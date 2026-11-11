@@ -55,6 +55,12 @@ class _ScanScreenState extends State<ScanScreen>
   String? _lastUnknown;
 
   @override
+  void initState() {
+    super.initState();
+    ScanSound.warmUp();
+  }
+
+  @override
   void dispose() {
     _line.dispose();
     _camera.dispose();
@@ -70,20 +76,32 @@ class _ScanScreenState extends State<ScanScreen>
 
   Future<void> _handle(String? raw) async {
     if (_handling || raw == null) return;
+    final l10n = AppLocalizations.of(context);
     final request = PayQr.parse(raw);
-    final recipient = PayQr.recipientOf(raw);
-    if (recipient == null) {
-      // Say it once per code, not on every camera frame.
+    // Not a Zawapay code, or the user's own code: say it once per code,
+    // not on every camera frame.
+    final problem = request == null
+        ? l10n.scanUnknownCode
+        : request.username == widget.me.username
+        ? l10n.scanOwnCode
+        : null;
+    if (problem != null) {
       if (raw != _lastUnknown) {
         _lastUnknown = raw;
-        showTopNotice(
-          context,
-          AppLocalizations.of(context).scanUnknownCode,
-          icon: Icons.error_rounded,
-        );
+        showTopNotice(context, problem, icon: Icons.error_rounded);
       }
       return;
     }
+    // Every valid Zawapay code is accepted: a known account shows its
+    // details; any other "@" is accepted too (the server will fill it in).
+    final recipient =
+        PayQr.recipientOf(raw) ??
+        Recipient(
+          username: request!.username,
+          fullName: '',
+          countryCode: widget.senderCountry.isoCode,
+          phone: '',
+        );
     _handling = true;
     // Code found: the double "ding" and two quick taps.
     ScanSound.play();

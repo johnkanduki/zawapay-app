@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/account/zawapay_account.dart';
 import '../../../core/countries/country.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/zawapay_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/country_picker.dart';
@@ -34,24 +38,26 @@ class Sponsor {
       .join();
 }
 
-/// Demo accounts, only for the UI. They will be replaced by a search on the
-/// Zawapay server once it exists.
-final List<Sponsor> demoSponsors = [
-  Sponsor(
-    username: 'zawapay',
-    fullName: 'Zawapay App',
-    country: _country('CD'),
-  ),
-  Sponsor(username: 'amina', fullName: 'Amina Diallo', country: _country('SN')),
-  Sponsor(
-    username: 'kofi.mensah',
-    fullName: 'Kofi Mensah',
-    country: _country('CI'),
-  ),
-];
+/// Sponsors known without the server: always empty in the app (tests only).
+/// Every other @ is looked up on the Zawapay App server.
+final List<Sponsor> knownSponsors = [];
 
-Country _country(String isoCode) =>
-    supportedCountries.firstWhere((country) => country.isoCode == isoCode);
+/// The member behind [username] on the server, or null.
+Future<Sponsor?> findSponsor(String username) async {
+  final member = await zawapayAccount.findMember(username);
+  if (member == null) return null;
+  final country = supportedCountries.firstWhere(
+    (c) => c.isoCode == member.country,
+    orElse: () =>
+        Country(isoCode: member.country, dialCode: '', currencies: const []),
+  );
+  return Sponsor(
+    username: member.handle,
+    fullName: member.name,
+    country: country,
+    photoUrl: member.hasPhoto ? member.photoUrl : null,
+  );
+}
 
 /// "Invitation parrain ou marraine": the username of the person who invited
 /// the user (never called a "referral code" in the app), always starting with "@".
@@ -75,19 +81,53 @@ class _SponsorInvitationFieldState extends State<SponsorInvitationField> {
   final _focusNode = FocusNode();
   Sponsor? _found;
   bool _confirmed = false;
+  Timer? _debounce;
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
+  /// Looks the @ up once the user stops typing; only the answer for the
+  /// text still in the field is shown.
   void _onChanged(String username) {
-    final match = demoSponsors
-        .where((sponsor) => sponsor.username == username)
+    _debounce?.cancel();
+    if (_found != null) setState(() => _found = null);
+    if (username.length < 3) return;
+    final local = knownSponsors
+        .where((s) => s.username == username)
         .firstOrNull;
-    setState(() => _found = match);
+    if (local != null) {
+      setState(() => _found = local);
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
+      Sponsor? match;
+      // The photo's address is known from the @: it downloads at the same
+      // time as the search. The card waits for it at most 1 s; a late photo
+      // comes in on its own afterwards.
+      final photoEarly = precacheImage(
+        NetworkImage(ZawapayAccount.photoUrlOf(username)),
+        context,
+        onError: (_, _) {},
+      );
+      try {
+        match = await findSponsor(username);
+        if (match?.photoUrl != null) {
+          await photoEarly.timeout(
+            const Duration(seconds: 1),
+            onTimeout: () {},
+          );
+        }
+      } catch (_) {
+        // No network: nothing shown, the user can type again.
+      }
+      if (!mounted || _controller.text != username) return;
+      setState(() => _found = match);
+    });
   }
 
   void _confirm() {
@@ -116,7 +156,7 @@ class _SponsorInvitationFieldState extends State<SponsorInvitationField> {
           height: 60,
           padding: EdgeInsets.only(left: sponsor == null ? 22 : 12, right: 12),
           decoration: ShapeDecoration(
-            color: AppColors.surface,
+            color: context.zc.field,
             shape: StadiumBorder(
               side: BorderSide(
                 color: _confirmed ? AppColors.red : Colors.transparent,
@@ -130,12 +170,12 @@ class _SponsorInvitationFieldState extends State<SponsorInvitationField> {
                 _SponsorPhoto(sponsor: sponsor),
                 const SizedBox(width: 10),
               ],
-              const Text(
+              Text(
                 '@',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.black,
+                  color: context.zc.text,
                 ),
               ),
               const SizedBox(width: 1),
@@ -154,21 +194,21 @@ class _SponsorInvitationFieldState extends State<SponsorInvitationField> {
                   keyboardType: TextInputType.visiblePassword,
                   textInputAction: TextInputAction.next,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9._]')),
+                    FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9_-]')),
                     LengthLimitingTextInputFormatter(30),
                     const _LowerCaseFormatter(),
                   ],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.black,
+                    color: context.zc.text,
                   ),
                   decoration: InputDecoration.collapsed(
                     hintText: l10n.sponsorInvitationHint,
-                    hintStyle: const TextStyle(
+                    hintStyle: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
-                      color: AppColors.grey,
+                      color: context.zc.soft,
                     ),
                   ),
                 ),
@@ -212,7 +252,7 @@ class _ConfirmCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 12, 10, 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.zc.field,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
@@ -223,22 +263,22 @@ class _ConfirmCard extends StatelessWidget {
               children: [
                 Text(
                   l10n.sponsorQuestion,
-                  style: AppText.label.copyWith(fontSize: 13),
+                  style: AppText.label(context).copyWith(fontSize: 13),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   sponsor.fullName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.black,
+                    color: context.zc.text,
                   ),
                 ),
                 Text(
                   sponsor.country.name(l10n),
-                  style: AppText.label.copyWith(fontSize: 13),
+                  style: AppText.label(context).copyWith(fontSize: 13),
                 ),
               ],
             ),
@@ -288,10 +328,8 @@ class _ConfirmedLine extends StatelessWidget {
           Expanded(
             child: Text(
               l10n.sponsorConfirmed(sponsor.fullName),
-              style: AppText.label.copyWith(
-                fontSize: 14,
-                color: AppColors.black,
-              ),
+              style: AppText.label(context)
+                  .copyWith(fontSize: 14, color: context.zc.text),
             ),
           ),
           UnderlinedLink(text: l10n.sponsorChange, onTap: onChange),

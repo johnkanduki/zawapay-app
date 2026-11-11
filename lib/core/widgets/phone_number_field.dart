@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../countries/country.dart';
-import '../theme/app_colors.dart';
+import '../theme/zawapay_colors.dart';
 import '../settings/app_settings.dart';
 import 'country_picker.dart';
 import 'app_text_field.dart';
@@ -50,8 +50,8 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
             onTap: _pickCountry,
             child: Container(
               padding: const EdgeInsets.only(left: 10, right: 14),
-              decoration: const ShapeDecoration(
-                color: AppColors.surface,
+              decoration: ShapeDecoration(
+                color: context.zc.field,
                 shape: StadiumBorder(),
               ),
               child: Row(
@@ -60,15 +60,12 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                   const SizedBox(width: 10),
                   Text(
                     _country.dialCode,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      color: AppColors.black,
-                    ),
+                    style: TextStyle(fontSize: 17, color: context.zc.text),
                   ),
                   const SizedBox(width: 6),
-                  const Icon(
+                  Icon(
                     Icons.keyboard_arrow_down_rounded,
-                    color: AppColors.black,
+                    color: context.zc.text,
                     size: 22,
                   ),
                 ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../send/send_ui.dart';
 import 'history_filter.dart';
@@ -41,9 +42,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final active = _filter.activeCount;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: context.zc.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.black,
+        backgroundColor: context.zc.page,
         body: SafeArea(
           child: ListView(
             physics: const BouncingScrollPhysics(
@@ -71,11 +74,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           Expanded(
                             child: Text(
                               l10n.homeActivity,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 26,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: -0.6,
-                                color: AppColors.white,
+                                color: context.zc.text,
                               ),
                             ),
                           ),
@@ -92,9 +95,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             Expanded(
                               child: Text(
                                 l10n.historyResults(shown.length),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
-                                  color: SendColors.soft,
+                                  color: context.zc.soft,
                                 ),
                               ),
                             ),
@@ -114,7 +117,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ],
                         ),
                       ),
-                    const Divider(height: 1, color: SendColors.card),
+                    Divider(height: 1, color: context.zc.card),
                     const SizedBox(height: 6),
                     if (shown.isEmpty)
                       Padding(
@@ -127,9 +130,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               ? l10n.homeNoTransfers
                               : l10n.historyEmpty,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
-                            color: SendColors.soft,
+                            color: context.zc.soft,
                           ),
                         ),
                       )

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zawapay_app/core/widgets/top_notice.dart';
-import 'package:zawapay_app/features/history/transfer.dart';
 import 'package:zawapay_app/features/history/transfer_detail_screen.dart';
 import 'package:zawapay_app/l10n/app_localizations.dart';
+
+import 'test_data.dart';
 
 void main() {
   Widget app(Widget home) => MaterialApp(
@@ -21,7 +22,7 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
-      app(TransferDetailScreen(transfer: demoTransfers.first)),
+      app(TransferDetailScreen(transfer: testTransfers.first)),
     );
     final help = find.text('Contacter le support');
     await tester.ensureVisible(help);

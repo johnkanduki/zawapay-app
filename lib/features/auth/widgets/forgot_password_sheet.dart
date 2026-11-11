@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_theme.dart';
+import '../../../core/account/account_error.dart';
+import '../../../core/account/zawapay_account.dart';
 import '../../../core/widgets/app_bottom_sheet.dart';
 import '../../../core/widgets/app_buttons.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/auth_card_scaffold.dart';
-import '../../../core/widgets/underlined_link.dart';
 import '../../../l10n/app_localizations.dart';
 import '../screens/new_password_screen.dart';
 import '../screens/verify_code_screen.dart';
@@ -18,18 +18,25 @@ Future<void> showForgotPasswordSheet(BuildContext context) {
     context,
     showClose: true,
     builder: (sheetContext) => _ForgotPasswordForm(
-      onSend: (email) {
-        Navigator.of(sheetContext).pop();
+      onSend: (email) async {
+        zawapayAccount.lang = Localizations.localeOf(sheetContext).languageCode;
+        // Same answer whether the account exists or not.
+        await zawapayAccount.startReset(email);
+        if (sheetContext.mounted) Navigator.of(sheetContext).pop();
         navigator.push(
           MaterialPageRoute(
             builder: (_) => VerifyCodeScreen(
               email: email,
-              onVerified: (codeContext) => Navigator.of(codeContext)
-                  .pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => const NewPasswordScreen(),
-                    ),
+              onResend: () => zawapayAccount.startReset(email),
+              onVerified: (codeContext, code) async {
+                final ticket = await zawapayAccount.verifyReset(email, code);
+                if (!codeContext.mounted) return;
+                Navigator.of(codeContext).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) => NewPasswordScreen(resetTicket: ticket),
                   ),
+                );
+              },
             ),
           ),
         );
@@ -41,7 +48,7 @@ Future<void> showForgotPasswordSheet(BuildContext context) {
 class _ForgotPasswordForm extends StatefulWidget {
   const _ForgotPasswordForm({required this.onSend});
 
-  final ValueChanged<String> onSend;
+  final Future<void> Function(String email) onSend;
 
   @override
   State<_ForgotPasswordForm> createState() => _ForgotPasswordFormState();
@@ -49,6 +56,26 @@ class _ForgotPasswordForm extends StatefulWidget {
 
 class _ForgotPasswordFormState extends State<_ForgotPasswordForm> {
   final _email = TextEditingController();
+  bool _busy = false;
+
+  static final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]{2,}$');
+
+  @override
+  void initState() {
+    super.initState();
+    _email.addListener(() => setState(() {}));
+  }
+
+  Future<void> _send() async {
+    setState(() => _busy = true);
+    try {
+      await widget.onSend(_email.text.trim());
+    } catch (error) {
+      if (mounted) showAccountError(context, error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -75,20 +102,10 @@ class _ForgotPasswordFormState extends State<_ForgotPasswordForm> {
           const SizedBox(height: 26),
           PrimaryButton(
             label: l10n.sendCode,
-            onPressed: () => widget.onSend(_email.text.trim()),
-          ),
-          const SizedBox(height: 22),
-          Center(
-            child: Text.rich(
-              TextSpan(
-                style: AppText.body,
-                children: [
-                  TextSpan(text: l10n.codeNotReceived),
-                  linkSpan(l10n.resend, () {}),
-                ],
-              ),
-              textAlign: TextAlign.center,
-            ),
+            busy: _busy,
+            onPressed: _emailPattern.hasMatch(_email.text.trim()) && !_busy
+                ? _send
+                : null,
           ),
         ],
       ),

@@ -6,6 +6,8 @@ import 'package:zawapay_app/features/send/recipient.dart';
 import 'package:zawapay_app/features/send/send_amount_screen.dart';
 import 'package:zawapay_app/l10n/app_localizations.dart';
 
+import 'test_data.dart';
+
 void main() {
   final congo = supportedCountries.first;
   const me = Recipient(
@@ -57,7 +59,7 @@ void main() {
     await tester.pumpWidget(
       app(
         SendAmountScreen(
-          recipient: demoRecipients.first,
+          recipient: testAccounts.first,
           senderCountry: congo,
           initialAmount: 100,
           initialCurrency: 'USD',
@@ -82,7 +84,7 @@ void main() {
     await tester.pumpWidget(
       app(
         SendAmountScreen(
-          recipient: demoRecipients.first,
+          recipient: testAccounts.first,
           senderCountry: congo,
           initialAmount: 100,
           initialCurrency: 'USD',
@@ -97,6 +99,9 @@ void main() {
     await tester.tap(find.text('Payer 106,00 USD'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
-    expect(find.text('Payé avec votre solde Zawapay'), findsOneWidget);
+    // Paying from the balance comes later: a notice, no fake receipt.
+    expect(find.text('Bientôt disponible'), findsOneWidget);
+    expect(find.text('Payé avec votre solde Zawapay'), findsNothing);
+    await tester.pump(const Duration(seconds: 5));
   });
 }

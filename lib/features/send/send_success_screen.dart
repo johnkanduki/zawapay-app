@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/account/app_rules.dart';
+import '../../core/account/zawapay_account.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../l10n/app_localizations.dart';
 import 'recipient.dart';
 import 'send_amount_screen.dart';
@@ -15,7 +19,7 @@ import 'send_ui.dart';
 /// A transfer is only complete once the Mobile Money payment is confirmed
 /// AND the recipient confirms in the app, so the page says it is on its
 /// way, shows the receipt and the three steps.
-class SendSuccessScreen extends StatelessWidget {
+class SendSuccessScreen extends StatefulWidget {
   const SendSuccessScreen({
     super.key,
     required this.recipient,
@@ -23,25 +27,118 @@ class SendSuccessScreen extends StatelessWidget {
     required this.received,
     required this.fee,
     required this.currency,
+    this.payCurrency,
     this.note = '',
     this.fromBalance = false,
     this.sentAt,
+    this.transferId,
+    this.reference,
   });
 
   final Recipient recipient;
   final double paid;
   final double received;
   final double fee;
+
+  /// Currency of [received] (the recipient's).
   final String currency;
+
+  /// Currency of [paid] and [fee] when it differs (abroad: the sender pays
+  /// in USD, the recipient gets UGX…).
+  final String? payCurrency;
   final String note;
 
   /// Paid with the Zawapay balance (no Mobile Money confirmation needed).
   final bool fromBalance;
   final DateTime? sentAt;
 
-  /// Demo reference; the server will give the real one.
+  /// The real transfer on the server: the page then follows it live.
+  final String? transferId;
+  final String? reference;
+
+  @override
+  State<SendSuccessScreen> createState() => _SendSuccessScreenState();
+}
+
+class _SendSuccessScreenState extends State<SendSuccessScreen> {
+  /// Server status: created, collecting, collected, paying_out, paid_out,
+  /// confirmed, collect_failed, payout_failed, refunded.
+  String _status = 'collecting';
+  Timer? _timer;
+
+  static const _finished = {
+    'confirmed',
+    'collect_failed',
+    'payout_failed',
+    'refunded',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.transferId != null) {
+      _timer = Timer.periodic(const Duration(seconds: 3), (_) => _refresh());
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  /// Reads where the transfer stands; stops once it is over.
+  Future<void> _refresh() async {
+    try {
+      final t = await zawapayAccount.transfer(widget.transferId!);
+      final status = t['status'] as String? ?? _status;
+      if (!mounted) return;
+      if (status != _status) setState(() => _status = status);
+      if (_finished.contains(status)) _timer?.cancel();
+    } catch (_) {
+      // No network for a moment: tried again in 3 s.
+    }
+  }
+
+  /// Each step: done, current, waiting or failed, from the server status.
+  (TransferStepState, TransferStepState, TransferStepState) get _steps =>
+      switch (_status) {
+        'collected' || 'paying_out' => (
+          TransferStepState.done,
+          TransferStepState.current,
+          TransferStepState.waiting,
+        ),
+        'paid_out' => (
+          TransferStepState.done,
+          TransferStepState.done,
+          TransferStepState.current,
+        ),
+        'confirmed' => (
+          TransferStepState.done,
+          TransferStepState.done,
+          TransferStepState.done,
+        ),
+        'collect_failed' => (
+          TransferStepState.failed,
+          TransferStepState.waiting,
+          TransferStepState.waiting,
+        ),
+        'payout_failed' || 'refunded' => (
+          TransferStepState.done,
+          TransferStepState.failed,
+          TransferStepState.waiting,
+        ),
+        _ => (
+          TransferStepState.current,
+          TransferStepState.waiting,
+          TransferStepState.waiting,
+        ),
+      };
+
+  /// Temporary reference until the server gives the real one.
   String get _reference {
-    final time = (sentAt ?? DateTime.now()).millisecondsSinceEpoch;
+    if (widget.reference != null) return widget.reference!;
+    final time = (widget.sentAt ?? DateTime.now()).millisecondsSinceEpoch;
     return 'ZP-${(time % 100000000).toString().padLeft(8, '0')}';
   }
 
@@ -53,14 +150,26 @@ class SendSuccessScreen extends StatelessWidget {
       locale: locale,
       decimalDigits: 2,
     );
-    final symbol = currencySymbol(currency);
-    String amount(double value) => '${money.format(value)} $symbol';
+    final whole = NumberFormat.decimalPatternDigits(
+      locale: locale,
+      decimalDigits: 0,
+    );
+    String amountIn(double value, String code) =>
+        '${(code == 'USD' || code == 'CDF' ? money : whole).format(value)} '
+        '${currencySymbol(code)}';
+    // What the recipient gets, in their currency…
+    String amount(double value) => amountIn(value, widget.currency);
+    // … and what the sender pays.
+    String paidAmount(double value) =>
+        amountIn(value, widget.payCurrency ?? widget.currency);
     final date = DateFormat.yMMMd(locale)
         .add_Hm()
-        .format(sentAt ?? DateTime.now());
+        .format(widget.sentAt ?? DateTime.now());
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: context.zc.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: PopScope(
         // Back goes home: the transfer is already on its way.
         canPop: false,
@@ -70,7 +179,7 @@ class SendSuccessScreen extends StatelessWidget {
           }
         },
         child: Scaffold(
-          backgroundColor: AppColors.black,
+          backgroundColor: context.zc.page,
           body: SafeArea(
             child: Column(
               children: [
@@ -87,27 +196,32 @@ class SendSuccessScreen extends StatelessWidget {
                                   .popUntil((route) => route.isFirst),
                         ),
                       ),
-                      const Center(child: _SentMark()),
+                      const Center(child: SentMark()),
                       const SizedBox(height: 22),
                       Text(
-                        l10n.sentTitle,
+                        _steps.$1 == TransferStepState.failed ||
+                                _steps.$2 == TransferStepState.failed
+                            ? l10n.sentFailedTitle
+                            : _status == 'paid_out' || _status == 'confirmed'
+                            ? l10n.sentDoneTitle
+                            : l10n.sentTitle,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
-                          color: SendColors.soft,
+                          color: context.zc.soft,
                         ),
                       ),
                       const SizedBox(height: 6),
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          amount(received),
-                          style: const TextStyle(
+                          amount(widget.received),
+                          style: TextStyle(
                             fontSize: 38,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -1,
-                            color: AppColors.white,
+                            color: context.zc.text,
                           ),
                         ),
                       ),
@@ -117,13 +231,13 @@ class SendSuccessScreen extends StatelessWidget {
                         children: [
                           Text(
                             '${l10n.sentTo} ',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 17,
-                              color: SendColors.soft,
+                              color: context.zc.soft,
                             ),
                           ),
                           Flexible(
-                            child: RecipientHandle(recipient: recipient),
+                            child: RecipientHandle(recipient: widget.recipient),
                           ),
                         ],
                       ),
@@ -134,7 +248,10 @@ class SendSuccessScreen extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                RecipientAvatar(recipient: recipient, size: 44),
+                                RecipientAvatar(
+                                  recipient: widget.recipient,
+                                  size: 44,
+                                ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
@@ -142,36 +259,50 @@ class SendSuccessScreen extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        recipient.fullName,
-                                        style: const TextStyle(
+                                        widget.recipient.isNumber
+                                            ? widget.recipient.fullPhone
+                                            : widget.recipient.fullName,
+                                        style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
-                                          color: AppColors.white,
+                                          color: context.zc.text,
                                         ),
                                       ),
-                                      Text(
-                                        recipient.fullPhone,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: SendColors.soft,
+                                      if (!widget.recipient.isNumber)
+                                        Text(
+                                          widget.recipient.fullPhone,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: context.zc.soft,
+                                          ),
                                         ),
-                                      ),
                                     ],
                                   ),
                                 ),
                               ],
                             ),
-                            const Divider(height: 28, color: SendColors.field),
-                            _Line(l10n.sendYouPay, amount(paid)),
-                            _Line(l10n.sentFee, amount(fee)),
-                            _Line(
+                            Divider(height: 28, color: context.zc.field),
+                            ReceiptLine(
+                              l10n.sendYouPay,
+                              paidAmount(widget.paid),
+                            ),
+                            ReceiptLine(
+                              feeLabel(
+                                context,
+                                send: true,
+                                fallback: l10n.sentFee,
+                              ),
+                              paidAmount(widget.fee),
+                            ),
+                            ReceiptLine(
                               l10n.sendReceives,
-                              amount(received),
+                              amount(widget.received),
                               strong: true,
                             ),
-                            if (note.isNotEmpty) _Line(l10n.sentNote, note),
-                            _Line(l10n.sentReference, _reference),
-                            _Line(l10n.sentDate, date),
+                            if (widget.note.isNotEmpty)
+                              ReceiptLine(l10n.sentNote, widget.note),
+                            ReceiptLine(l10n.sentReference, _reference),
+                            ReceiptLine(l10n.sentDate, date),
                           ],
                         ),
                       ),
@@ -181,26 +312,52 @@ class SendSuccessScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _Step(
-                              state: _StepState.current,
-                              title: fromBalance
+                            StatusStep(
+                              state: _steps.$1,
+                              title: widget.fromBalance
                                   ? l10n.sentStepBalance
                                   : l10n.sentStepPayment,
-                              body: fromBalance
-                                  ? l10n.sentStepBalanceBody
-                                  : l10n.sentStepPaymentBody,
+                              body: switch (_steps.$1) {
+                                TransferStepState.failed =>
+                                  l10n.sentStepPaymentFailed,
+                                TransferStepState.done =>
+                                  l10n.sentStepPaymentDone,
+                                _ =>
+                                  widget.fromBalance
+                                      ? l10n.sentStepBalanceBody
+                                      : l10n.sentStepPaymentBody,
+                              },
                             ),
-                            _Step(
-                              state: _StepState.waiting,
+                            StatusStep(
+                              state: _steps.$2,
                               title: l10n.sentStepPayout,
-                              body: l10n.sentStepPayoutBody(recipient.handle),
+                              body: switch (_steps.$2) {
+                                TransferStepState.failed =>
+                                  l10n.sentStepPayoutFailed,
+                                TransferStepState.done =>
+                                  l10n.sentStepPayoutDone(
+                                    widget.recipient.handle,
+                                  ),
+                                _ => l10n.sentStepPayoutBody(
+                                  widget.recipient.handle,
+                                ),
+                              },
+                              // To a number nobody confirms: the payout ends it.
+                              last: widget.recipient.isNumber,
                             ),
-                            _Step(
-                              state: _StepState.waiting,
-                              title: l10n.sentStepConfirm,
-                              body: l10n.sentStepConfirmBody(recipient.handle),
-                              last: true,
-                            ),
+                            if (!widget.recipient.isNumber)
+                              StatusStep(
+                                state: _steps.$3,
+                                title: l10n.sentStepConfirm,
+                                body: _steps.$3 == TransferStepState.done
+                                    ? l10n.sentStepConfirmDone(
+                                        widget.recipient.handle,
+                                      )
+                                    : l10n.sentStepConfirmBody(
+                                        widget.recipient.handle,
+                                      ),
+                                last: true,
+                              ),
                           ],
                         ),
                       ),
@@ -221,6 +378,7 @@ class SendSuccessScreen extends StatelessWidget {
                         foregroundColor: AppColors.white,
                         shape: const StadiumBorder(),
                         textStyle: const TextStyle(
+                          fontFamily: 'Inter',
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                         ),
@@ -239,8 +397,8 @@ class SendSuccessScreen extends StatelessWidget {
 }
 
 /// Red paper-plane mark that pops in, with soft rings around it.
-class _SentMark extends StatelessWidget {
-  const _SentMark();
+class SentMark extends StatelessWidget {
+  const SentMark({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -281,9 +439,9 @@ class _SentMark extends StatelessWidget {
                   ),
                   child: Transform.rotate(
                     angle: -math.pi / 7,
-                    child: const Icon(
+                    child: Icon(
                       Icons.send_rounded,
-                      color: AppColors.white,
+                      color: context.zc.text,
                       size: 42,
                     ),
                   ),
@@ -297,8 +455,8 @@ class _SentMark extends StatelessWidget {
   }
 }
 
-class _Line extends StatelessWidget {
-  const _Line(this.label, this.value, {this.strong = false});
+class ReceiptLine extends StatelessWidget {
+  const ReceiptLine(this.label, this.value, {super.key, this.strong = false});
 
   final String label;
   final String value;
@@ -311,10 +469,7 @@ class _Line extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 15, color: SendColors.soft),
-          ),
+          Text(label, style: TextStyle(fontSize: 15, color: context.zc.soft)),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
@@ -323,7 +478,7 @@ class _Line extends StatelessWidget {
               style: TextStyle(
                 fontSize: strong ? 17 : 15,
                 fontWeight: strong ? FontWeight.w700 : FontWeight.w500,
-                color: AppColors.white,
+                color: context.zc.text,
               ),
             ),
           ),
@@ -333,25 +488,29 @@ class _Line extends StatelessWidget {
   }
 }
 
-enum _StepState { current, waiting }
+enum TransferStepState { done, current, waiting, failed }
 
 /// One step of the transfer, linked to the next by a thin line.
-class _Step extends StatelessWidget {
-  const _Step({
+class StatusStep extends StatelessWidget {
+  const StatusStep({
+    super.key,
     required this.state,
     required this.title,
     required this.body,
     this.last = false,
   });
 
-  final _StepState state;
+  final TransferStepState state;
   final String title;
   final String body;
   final bool last;
 
   @override
   Widget build(BuildContext context) {
-    final current = state == _StepState.current;
+    final current = state == TransferStepState.current;
+    final done = state == TransferStepState.done;
+    final failed = state == TransferStepState.failed;
+    final active = current || done || failed;
 
     return IntrinsicHeight(
       child: Row(
@@ -366,14 +525,26 @@ class _Step extends StatelessWidget {
                   height: 22,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: current ? AppColors.red : Colors.transparent,
+                    color: current || done ? AppColors.red : Colors.transparent,
                     border: Border.all(
-                      color: current ? AppColors.red : const Color(0x4DFFFFFF),
+                      color: active ? AppColors.red : context.zc.faint,
                       width: 2,
                     ),
                   ),
-                  child: current
-                      ? const Padding(
+                  child: done
+                      ? const Icon(
+                          Icons.check_rounded,
+                          size: 14,
+                          color: AppColors.white,
+                        )
+                      : failed
+                      ? const Icon(
+                          Icons.close_rounded,
+                          size: 14,
+                          color: AppColors.red,
+                        )
+                      : current
+                      ? Padding(
                           padding: EdgeInsets.all(4),
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
@@ -383,10 +554,12 @@ class _Step extends StatelessWidget {
                       : null,
                 ),
                 if (!last)
-                  const Expanded(
+                  Expanded(
                     child: SizedBox(
                       width: 2,
-                      child: ColoredBox(color: SendColors.field),
+                      child: ColoredBox(
+                        color: done ? AppColors.red : context.zc.field,
+                      ),
                     ),
                   ),
               ],
@@ -404,16 +577,16 @@ class _Step extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: current ? AppColors.white : SendColors.soft,
+                      color: active ? context.zc.text : context.zc.soft,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     body,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       height: 1.35,
-                      color: SendColors.soft,
+                      color: context.zc.soft,
                     ),
                   ),
                 ],

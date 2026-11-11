@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/zawapay_colors.dart';
 import '../theme/app_theme.dart';
 
-/// Light grey page with a white rounded card holding a title, a subtitle and a form.
+/// Light grey page (black in dark mode) with a white rounded card (dark grey
+/// in dark mode) holding a title, a subtitle and a form.
 class AuthCardScaffold extends StatelessWidget {
   const AuthCardScaffold({
     super.key,
@@ -22,22 +24,28 @@ class AuthCardScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight - 48,
-              ),
-              child: Center(
-                child: AuthCard(
-                  title: title,
-                  subtitle: subtitle,
-                  subtitleTrailing: subtitleTrailing,
-                  children: children,
+    // Status bar icons: dark on the light page, white on the dark one.
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: context.zc.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: context.zc.backdrop,
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 48,
+                ),
+                child: Center(
+                  child: AuthCard(
+                    title: title,
+                    subtitle: subtitle,
+                    subtitleTrailing: subtitleTrailing,
+                    children: children,
+                  ),
                 ),
               ),
             ),
@@ -69,24 +77,23 @@ class AuthCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(26, 34, 26, 30),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.zc.raised,
         borderRadius: BorderRadius.circular(30),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppText.screenTitle),
+          Text(title, style: AppText.screenTitle(context)),
           if (subtitle != null) ...[
             const SizedBox(height: 10),
-            Text(subtitle!, style: AppText.body),
+            Text(subtitle!, style: AppText.body(context)),
           ],
           if (subtitleTrailing != null)
             Text(
               subtitleTrailing!,
-              style: AppText.body.copyWith(
-                color: AppColors.black,
-                fontWeight: FontWeight.w600,
-              ),
+              style: AppText.body(
+                context,
+              ).copyWith(color: context.zc.text, fontWeight: FontWeight.w600),
             ),
           const SizedBox(height: 24),
           ...children,

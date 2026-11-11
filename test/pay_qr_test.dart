@@ -16,6 +16,20 @@ void main() {
     expect(PayQr.recipientOf(null), isNull);
   });
 
+  test('Any valid Zawapay code is read, even for an account not in demo', () {
+    final request = PayQr.parse('zawapay://pay/johnkanduki');
+    expect(request?.username, 'johnkanduki');
+    expect(PayQr.parse('https://wa.me/123'), isNull);
+    const someone = Recipient(
+      username: 'johnkanduki',
+      fullName: '',
+      countryCode: 'CD',
+      phone: '',
+    );
+    expect(someone.details, '');
+    expect(someone.initials, 'J');
+  });
+
   test('A code can carry the amount asked for', () {
     final text = PayQr.forUsername('zawapay', amount: 10, currency: 'USD');
     expect(text, 'zawapay://pay/zawapay?amount=10&currency=USD');

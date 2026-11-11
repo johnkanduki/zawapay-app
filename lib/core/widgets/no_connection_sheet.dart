@@ -29,13 +29,13 @@ Future<void> showNoConnectionSheet(
           Text(
             l10n.noConnectionTitle,
             textAlign: TextAlign.center,
-            style: AppText.screenTitle.copyWith(fontSize: 26),
+            style: AppText.screenTitle(context).copyWith(fontSize: 26),
           ),
           const SizedBox(height: 10),
           Text(
             l10n.noConnectionBody,
             textAlign: TextAlign.center,
-            style: AppText.body.copyWith(fontSize: 17),
+            style: AppText.body(context).copyWith(fontSize: 17),
           ),
           const SizedBox(height: 28),
           PrimaryButton(

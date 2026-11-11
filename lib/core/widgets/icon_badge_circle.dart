@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/zawapay_colors.dart';
 
 /// Line icon inside a light grey ring, with a small red badge at the bottom right.
 class IconBadgeCircle extends StatelessWidget {
@@ -29,11 +30,11 @@ class IconBadgeCircle extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.white,
-              border: Border.all(color: AppColors.surface, width: ring),
+              color: context.zc.raised,
+              border: Border.all(color: context.zc.field, width: ring),
             ),
             alignment: Alignment.center,
-            child: Icon(icon, size: size * 0.34, color: AppColors.black),
+            child: Icon(icon, size: size * 0.34, color: context.zc.text),
           ),
           Positioned(
             right: size * 0.105,
@@ -54,7 +55,7 @@ class IconBadgeCircle extends StatelessWidget {
                 ),
                 child: DefaultTextStyle(
                   style: TextStyle(
-                    color: AppColors.white,
+                    color: context.zc.raised,
                     fontWeight: FontWeight.w800,
                     fontSize: badgeSize * 0.3,
                   ),

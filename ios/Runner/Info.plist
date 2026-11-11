@@ -8,6 +8,20 @@
 	<string>Zawapay App enregistre votre code QR de paiement dans vos photos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Zawapay App ouvre vos photos pour lire un code QR de paiement.</string>
+	<!-- "Continue with Google": Zawapay App's iOS client (Google Cloud, project zawapay-app). -->
+	<key>GIDClientID</key>
+	<string>1002693321533-bmbg04fh8m6b5vqh6fm9lj31u5a81itp.apps.googleusercontent.com</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.1002693321533-bmbg04fh8m6b5vqh6fm9lj31u5a81itp</string>
+			</array>
+		</dict>
+	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

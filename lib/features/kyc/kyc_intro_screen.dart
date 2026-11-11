@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/verified_badge.dart';
 import '../../l10n/app_localizations.dart';
@@ -25,18 +26,17 @@ class KycIntroScreen extends StatelessWidget {
   final String username;
   final String? photoPath;
 
-  static const Color _card = Color(0x14FFFFFF);
-  static const Color _soft = Color(0x99FFFFFF);
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final handle = username.isEmpty ? '' : '@$username';
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: context.zc.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.black,
+        backgroundColor: context.zc.page,
         body: SafeArea(
           child: Column(
             children: [
@@ -59,22 +59,22 @@ class KycIntroScreen extends StatelessWidget {
                     Text(
                       l10n.kycTitle,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         height: 1.15,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -1,
-                        color: AppColors.white,
+                        color: context.zc.text,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       l10n.kycSubtitle,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         height: 1.45,
-                        color: _soft,
+                        color: context.zc.soft,
                       ),
                     ),
                     const SizedBox(height: 26),
@@ -107,19 +107,19 @@ class KycIntroScreen extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.lock_outline_rounded,
                           size: 18,
-                          color: _soft,
+                          color: context.zc.soft,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             l10n.kycPrivacy,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               height: 1.4,
-                              color: _soft,
+                              color: context.zc.soft,
                             ),
                           ),
                         ),
@@ -186,7 +186,7 @@ class _ProfilePreview extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: KycIntroScreen._card,
+        color: context.zc.card,
         borderRadius: BorderRadius.circular(26),
       ),
       child: Row(
@@ -195,9 +195,14 @@ class _ProfilePreview extends StatelessWidget {
             child: SizedBox.square(
               dimension: 52,
               child: photo != null
-                  ? Image.file(File(photo), fit: BoxFit.cover)
+                  ? Image.file(
+                      File(photo),
+                      fit: BoxFit.cover,
+                      // Decoded small: a full camera photo is never needed here.
+                      cacheWidth: 240,
+                    )
                   : ColoredBox(
-                      color: KycIntroScreen._card,
+                      color: context.zc.card,
                       child: Center(
                         child: initial.isEmpty
                             ? const Icon(
@@ -226,10 +231,10 @@ class _ProfilePreview extends StatelessWidget {
                     fullName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.white,
+                      color: context.zc.text,
                     ),
                   ),
                 if (handle.isNotEmpty)
@@ -240,10 +245,10 @@ class _ProfilePreview extends StatelessWidget {
                           handle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: KycIntroScreen._soft,
+                            color: context.zc.soft,
                           ),
                         ),
                       ),
@@ -283,11 +288,11 @@ class _Step extends StatelessWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: KycIntroScreen._card,
+              color: context.zc.card,
             ),
-            child: Icon(icon, color: AppColors.white, size: 24),
+            child: Icon(icon, color: context.zc.text, size: 24),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -296,19 +301,19 @@ class _Step extends StatelessWidget {
               children: [
                 Text(
                   '$number. $title',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.white,
+                    color: context.zc.text,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   body,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     height: 1.4,
-                    color: KycIntroScreen._soft,
+                    color: context.zc.soft,
                   ),
                 ),
               ],
@@ -333,11 +338,11 @@ class _RoundIconButton extends StatelessWidget {
       child: Container(
         width: 48,
         height: 48,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Color(0x1FFFFFFF),
+          color: context.zc.field,
         ),
-        child: Icon(icon, color: AppColors.white),
+        child: Icon(icon, color: context.zc.text),
       ),
     );
   }

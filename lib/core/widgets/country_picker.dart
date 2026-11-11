@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../countries/country.dart';
 import '../theme/app_colors.dart';
+import '../theme/zawapay_colors.dart';
 import '../theme/app_theme.dart';
 import 'app_bottom_sheet.dart';
 
@@ -81,7 +82,7 @@ class _CountryPickerCardState extends State<_CountryPickerCard> {
       height: MediaQuery.sizeOf(context).height * 0.74,
       padding: const EdgeInsets.fromLTRB(16, 30, 16, 0),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.zc.raised,
         borderRadius: BorderRadius.circular(30),
       ),
       child: Column(
@@ -89,7 +90,10 @@ class _CountryPickerCardState extends State<_CountryPickerCard> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Text(l10n.chooseCountry, style: AppText.screenTitle),
+            child: Text(
+              l10n.chooseCountry,
+              style: AppText.screenTitle(context),
+            ),
           ),
           const SizedBox(height: 22),
           _SearchField(
@@ -134,16 +138,16 @@ class _SearchField extends StatelessWidget {
       onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
       onChanged: onChanged,
       textInputAction: TextInputAction.search,
-      style: const TextStyle(fontSize: 16, color: AppColors.black),
+      style: TextStyle(fontSize: 16, color: context.zc.text),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(fontSize: 16, color: AppColors.grey),
-        prefixIcon: const Padding(
+        hintStyle: TextStyle(fontSize: 16, color: context.zc.soft),
+        prefixIcon: Padding(
           padding: EdgeInsets.only(left: 18, right: 10),
-          child: Icon(Icons.search_rounded, color: AppColors.grey, size: 26),
+          child: Icon(Icons.search_rounded, color: context.zc.soft, size: 26),
         ),
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: context.zc.field,
         contentPadding: const EdgeInsets.symmetric(vertical: 19),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -172,8 +176,8 @@ class _CountryRow extends StatelessWidget {
         child: Container(
           height: 68,
           padding: const EdgeInsets.only(left: 8, right: 22),
-          decoration: const ShapeDecoration(
-            color: AppColors.surface,
+          decoration: ShapeDecoration(
+            color: context.zc.field,
             shape: StadiumBorder(),
           ),
           child: Row(
@@ -187,29 +191,19 @@ class _CountryRow extends StatelessWidget {
                       child: Text(
                         country.name(l10n),
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          color: AppColors.black,
-                        ),
+                        style: TextStyle(fontSize: 17, color: context.zc.text),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Text(
                       country.dialCode,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: AppColors.grey,
-                      ),
+                      style: TextStyle(fontSize: 15, color: context.zc.soft),
                     ),
                   ],
                 ),
               ),
               if (isSelected)
-                const Icon(
-                  Icons.check_rounded,
-                  color: AppColors.black,
-                  size: 28,
-                ),
+                Icon(Icons.check_rounded, color: context.zc.text, size: 28),
             ],
           ),
         ),
@@ -230,11 +224,9 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
       child: Row(
         children: [
-          Text(text, style: AppText.label.copyWith(fontSize: 15)),
+          Text(text, style: AppText.label(context).copyWith(fontSize: 15)),
           const SizedBox(width: 12),
-          const Expanded(
-            child: Divider(color: AppColors.surface, thickness: 1.5),
-          ),
+          Expanded(child: Divider(color: context.zc.field, thickness: 1.5)),
         ],
       ),
     );
@@ -257,8 +249,8 @@ class _NotAvailable extends StatelessWidget {
           Container(
             width: 84,
             height: 84,
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
+            decoration: BoxDecoration(
+              color: context.zc.field,
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -271,10 +263,10 @@ class _NotAvailable extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: AppText.screenTitle.copyWith(fontSize: 22),
+            style: AppText.screenTitle(context).copyWith(fontSize: 22),
           ),
           const SizedBox(height: 10),
-          Text(body, textAlign: TextAlign.center, style: AppText.body),
+          Text(body, textAlign: TextAlign.center, style: AppText.body(context)),
         ],
       ),
     );

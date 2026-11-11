@@ -4,6 +4,8 @@ import 'package:zawapay_app/core/widgets/verified_badge.dart';
 import 'package:zawapay_app/features/home/home_screen.dart';
 import 'package:zawapay_app/l10n/app_localizations.dart';
 
+import 'test_data.dart';
+
 void main() {
   testWidgets('Home shows the greeting, Transfer and the activity list', (
     tester,
@@ -17,7 +19,11 @@ void main() {
         locale: const Locale('fr'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const HomeScreen(firstName: 'John', lastName: 'Kanduki'),
+        home: HomeScreen(
+          firstName: 'John',
+          lastName: 'Kanduki',
+          transfers: testTransfers,
+        ),
       ),
     );
 
@@ -208,7 +214,13 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
-      app(const HomeScreen(firstName: 'John', countryCode: 'CD')),
+      app(
+        HomeScreen(
+          firstName: 'John',
+          countryCode: 'CD',
+          transfers: testTransfers,
+        ),
+      ),
     );
     expect(find.text('@zawapay'), findsNWidgets(2));
     expect(find.text('@mireille.k'), findsOneWidget);

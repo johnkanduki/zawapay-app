@@ -20,9 +20,7 @@ class ZawapayQr extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final image = QrImage(
-      QrCode.fromData(data: data, errorCorrectLevel: QrErrorCorrectLevel.H),
-    );
+    final image = qrImageFor(data);
 
     return SizedBox.square(
       dimension: size,
@@ -40,6 +38,17 @@ class ZawapayQr extends StatelessWidget {
     );
   }
 }
+
+/// The QR code of a text, computed once and kept: building it tries 8
+/// patterns, so it must not run again on every screen refresh.
+QrImage qrImageFor(String data) => _qrCache.putIfAbsent(data, () {
+  if (_qrCache.length > 20) _qrCache.clear();
+  return QrImage(
+    QrCode.fromData(data: data, errorCorrectLevel: QrErrorCorrectLevel.H),
+  );
+});
+
+final Map<String, QrImage> _qrCache = {};
 
 /// Paints the QR dots and eyes (with the empty middle).
 class ZawapayQrPainter extends CustomPainter {

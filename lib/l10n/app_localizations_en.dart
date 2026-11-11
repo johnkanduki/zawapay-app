@@ -903,7 +903,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanGallery => 'Gallery';
 
   @override
-  String get scanUnknownCode => 'This is not a Zawapay App code';
+  String get scanUnknownCode => 'This QR code is not a Zawapay App code';
+
+  @override
+  String get scanOwnCode => 'This is your own QR code';
 
   @override
   String get scanNoCodeInPhoto => 'No QR code in this photo';
@@ -952,4 +955,243 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get countryRW => 'Rwanda';
+
+  @override
+  String get errorNetwork => 'No connection. Try again.';
+
+  @override
+  String get errorGeneric => 'Something went wrong. Try again.';
+
+  @override
+  String get codeResent => 'New code sent';
+
+  @override
+  String get passwordsDontMatch => 'The two passwords do not match';
+
+  @override
+  String get alreadyMember => 'This e-mail already has an account. Sign in.';
+
+  @override
+  String get notMemberYet =>
+      'This account is not on Zawapay App yet. Create your account with the same e-mail.';
+
+  @override
+  String get contactSoon => 'Coming soon';
+
+  @override
+  String get socialJoinTitle => 'Last step';
+
+  @override
+  String get socialJoinSubtitle => 'Who invited you to Zawapay App?';
+
+  @override
+  String get withdrawTitle => 'Withdraw money';
+
+  @override
+  String get withdrawTo => 'To';
+
+  @override
+  String get withdrawToHelp => 'Your receiving number';
+
+  @override
+  String get withdrawNoNumber => 'Add a receiving number in Settings.';
+
+  @override
+  String get withdrawAmount => 'You withdraw';
+
+  @override
+  String withdrawAvailable(Object amount) {
+    return 'Available: $amount';
+  }
+
+  @override
+  String get withdrawAll => 'Withdraw all';
+
+  @override
+  String get withdrawFee => 'Fee';
+
+  @override
+  String get withdrawFree => 'Free';
+
+  @override
+  String withdrawMinimum(Object amount) {
+    return 'Minimum $amount';
+  }
+
+  @override
+  String withdrawButton(Object amount) {
+    return 'Withdraw $amount';
+  }
+
+  @override
+  String get pinCreateTitle => 'Create your PIN';
+
+  @override
+  String get pinConfirmTitle => 'Confirm your PIN';
+
+  @override
+  String get pinEnterTitle => 'Enter your PIN';
+
+  @override
+  String get pinEnterBody => 'To confirm this withdrawal.';
+
+  @override
+  String get pinMismatch => 'The two codes do not match. Try again.';
+
+  @override
+  String get pinWrong => 'Wrong PIN.';
+
+  @override
+  String get pinForgot => 'Forgot your PIN?';
+
+  @override
+  String get withdrawPendingTitle => 'Withdrawal in progress';
+
+  @override
+  String get withdrawStepSent => 'Sent to Mobile Money';
+
+  @override
+  String get withdrawStepSentBody => 'pawaPay sends the money to your number.';
+
+  @override
+  String get withdrawStepReceived => 'Received';
+
+  @override
+  String withdrawStepReceivedBody(Object phone) {
+    return 'The money arrives on $phone.';
+  }
+
+  @override
+  String get withdrawReceive => 'You receive';
+
+  @override
+  String get withdrawNumber => 'Number';
+
+  @override
+  String get sendWithdrawNumberHint => 'Mobile Money number';
+
+  @override
+  String get sendWithdrawNumberNotFound =>
+      'This withdrawal number is not on any account.';
+
+  @override
+  String get sendUsernameNotFound => 'No account with this username.';
+
+  @override
+  String get sendOwnAccount => 'This is your own account.';
+
+  @override
+  String sendReceivesOn(Object phone) {
+    return 'Receives on $phone';
+  }
+
+  @override
+  String get sendStraightToNumber => 'The money goes straight to this number.';
+
+  @override
+  String get sendCountryClosed =>
+      'Sending to this country is not available yet.';
+
+  @override
+  String sendRate(String rate, String currency) {
+    return '1 USD = $rate $currency';
+  }
+
+  @override
+  String sendLimits(String min, String max, String currency) {
+    return 'Between $min and $max $currency.';
+  }
+
+  @override
+  String get sendValue => 'Value in dollars';
+
+  @override
+  String get sendConfirm => 'Confirm';
+
+  @override
+  String get sendIsThisThePerson => 'Is this the right person?';
+
+  @override
+  String get receivePhoneTaken => 'This number belongs to another account.';
+
+  @override
+  String get phonesSaved => 'Numbers saved';
+
+  @override
+  String get signOutTitle => 'Sign out of Zawapay App?';
+
+  @override
+  String get signOutBody =>
+      'Your account and history stay safe. Sign in again with your e-mail or your @ and your password.';
+
+  @override
+  String get signOutConfirm => 'Sign out';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get signInIdLabel => 'E-mail or username';
+
+  @override
+  String get signInIdHint => 'E-mail or @username';
+
+  @override
+  String get languageIntro => 'Choose your language';
+
+  @override
+  String get aboutTitle => 'About';
+
+  @override
+  String get aboutPrivacy => 'Privacy policy';
+
+  @override
+  String get aboutTerms => 'Terms of use';
+
+  @override
+  String get aboutDeleteAccount => 'Delete account';
+
+  @override
+  String get aboutVersion => 'Version';
+
+  @override
+  String get personalInfoTitle => 'Personal information';
+
+  @override
+  String get handleLabel => 'Username';
+
+  @override
+  String get handleNeverChanges => 'Never changes';
+
+  @override
+  String get profileSaved => 'Information saved';
+
+  @override
+  String get emailChanged => 'E-mail address changed';
+
+  @override
+  String get sentStepPaymentFailed =>
+      'Payment declined or expired. Nothing was charged.';
+
+  @override
+  String get sentStepPaymentDone => 'Payment received.';
+
+  @override
+  String sentStepPayoutDone(Object handle) {
+    return 'Arrived on $handle\'s Mobile Money.';
+  }
+
+  @override
+  String get sentStepPayoutFailed => 'The payout failed. Our team is on it.';
+
+  @override
+  String sentStepConfirmDone(Object handle) {
+    return '$handle confirmed receipt.';
+  }
+
+  @override
+  String get sentFailedTitle => 'Transfer not completed';
+
+  @override
+  String get sentDoneTitle => 'Sent';
 }

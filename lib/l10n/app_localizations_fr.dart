@@ -909,7 +909,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get scanGallery => 'Galerie';
 
   @override
-  String get scanUnknownCode => 'Ce code n’est pas un code Zawapay App';
+  String get scanUnknownCode => 'Ce code QR n’est pas un code Zawapay App';
+
+  @override
+  String get scanOwnCode => 'C’est votre propre code QR';
 
   @override
   String get scanNoCodeInPhoto => 'Aucun code QR dans cette photo';
@@ -958,4 +961,249 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get countryRW => 'Rwanda';
+
+  @override
+  String get errorNetwork => 'Pas de connexion. Réessayez.';
+
+  @override
+  String get errorGeneric => 'Une erreur est survenue. Réessayez.';
+
+  @override
+  String get codeResent => 'Nouveau code envoyé';
+
+  @override
+  String get passwordsDontMatch =>
+      'Les deux mots de passe ne sont pas identiques';
+
+  @override
+  String get alreadyMember => 'Cet e-mail a déjà un compte. Connectez-vous.';
+
+  @override
+  String get notMemberYet =>
+      'Ce compte n’est pas encore sur Zawapay App. Créez votre compte avec le même e-mail.';
+
+  @override
+  String get contactSoon => 'Bientôt disponible';
+
+  @override
+  String get socialJoinTitle => 'Dernière étape';
+
+  @override
+  String get socialJoinSubtitle => 'Qui vous a invité sur Zawapay App ?';
+
+  @override
+  String get withdrawTitle => 'Retirer de l’argent';
+
+  @override
+  String get withdrawTo => 'Vers';
+
+  @override
+  String get withdrawToHelp => 'Votre numéro de réception';
+
+  @override
+  String get withdrawNoNumber =>
+      'Ajoutez un numéro de réception dans les Réglages.';
+
+  @override
+  String get withdrawAmount => 'Vous retirez';
+
+  @override
+  String withdrawAvailable(Object amount) {
+    return 'Disponible : $amount';
+  }
+
+  @override
+  String get withdrawAll => 'Tout retirer';
+
+  @override
+  String get withdrawFee => 'Frais';
+
+  @override
+  String get withdrawFree => 'Gratuit';
+
+  @override
+  String withdrawMinimum(Object amount) {
+    return 'Minimum $amount';
+  }
+
+  @override
+  String withdrawButton(Object amount) {
+    return 'Retirer $amount';
+  }
+
+  @override
+  String get pinCreateTitle => 'Créez votre code PIN';
+
+  @override
+  String get pinConfirmTitle => 'Confirmez votre code PIN';
+
+  @override
+  String get pinEnterTitle => 'Entrez votre code PIN';
+
+  @override
+  String get pinEnterBody => 'Pour confirmer ce retrait.';
+
+  @override
+  String get pinMismatch =>
+      'Les deux codes ne sont pas identiques. Recommencez.';
+
+  @override
+  String get pinWrong => 'Code PIN incorrect.';
+
+  @override
+  String get pinForgot => 'Code PIN oublié ?';
+
+  @override
+  String get withdrawPendingTitle => 'Retrait en cours';
+
+  @override
+  String get withdrawStepSent => 'Envoyé à Mobile Money';
+
+  @override
+  String get withdrawStepSentBody =>
+      'pawaPay envoie l’argent sur votre numéro.';
+
+  @override
+  String get withdrawStepReceived => 'Reçu';
+
+  @override
+  String withdrawStepReceivedBody(Object phone) {
+    return 'L’argent arrive sur le $phone.';
+  }
+
+  @override
+  String get withdrawReceive => 'Vous recevez';
+
+  @override
+  String get withdrawNumber => 'Numéro';
+
+  @override
+  String get sendWithdrawNumberHint => 'Numéro Mobile Money';
+
+  @override
+  String get sendWithdrawNumberNotFound =>
+      'Ce numéro de retrait n’est enregistré sur aucun compte.';
+
+  @override
+  String get sendUsernameNotFound => 'Aucun compte avec cet identifiant.';
+
+  @override
+  String get sendOwnAccount => 'C’est votre propre compte.';
+
+  @override
+  String sendReceivesOn(Object phone) {
+    return 'Reçoit sur $phone';
+  }
+
+  @override
+  String get sendStraightToNumber =>
+      'L’argent arrive directement sur ce numéro.';
+
+  @override
+  String get sendCountryClosed =>
+      'L’envoi vers ce pays n’est pas encore disponible.';
+
+  @override
+  String sendRate(String rate, String currency) {
+    return '1 USD = $rate $currency';
+  }
+
+  @override
+  String sendLimits(String min, String max, String currency) {
+    return 'Entre $min et $max $currency.';
+  }
+
+  @override
+  String get sendValue => 'Valeur en dollars';
+
+  @override
+  String get sendConfirm => 'Confirmer';
+
+  @override
+  String get sendIsThisThePerson => 'Est-ce bien la personne ?';
+
+  @override
+  String get receivePhoneTaken => 'Ce numéro appartient à un autre compte.';
+
+  @override
+  String get phonesSaved => 'Numéros enregistrés';
+
+  @override
+  String get signOutTitle => 'Se déconnecter de Zawapay App ?';
+
+  @override
+  String get signOutBody =>
+      'Votre compte et votre historique restent intacts. Reconnectez-vous avec votre e-mail ou votre @ et votre mot de passe.';
+
+  @override
+  String get signOutConfirm => 'Se déconnecter';
+
+  @override
+  String get cancel => 'Annuler';
+
+  @override
+  String get signInIdLabel => 'E-mail ou identifiant';
+
+  @override
+  String get signInIdHint => 'E-mail ou @identifiant';
+
+  @override
+  String get languageIntro => 'Sélectionnez votre langue préférée';
+
+  @override
+  String get aboutTitle => 'À propos';
+
+  @override
+  String get aboutPrivacy => 'Politique de confidentialité';
+
+  @override
+  String get aboutTerms => 'Conditions d’utilisation';
+
+  @override
+  String get aboutDeleteAccount => 'Supprimer le compte';
+
+  @override
+  String get aboutVersion => 'Version';
+
+  @override
+  String get personalInfoTitle => 'Informations personnelles';
+
+  @override
+  String get handleLabel => 'Identifiant';
+
+  @override
+  String get handleNeverChanges => 'Ne change jamais';
+
+  @override
+  String get profileSaved => 'Informations enregistrées';
+
+  @override
+  String get emailChanged => 'Adresse e-mail changée';
+
+  @override
+  String get sentStepPaymentFailed =>
+      'Paiement refusé ou expiré. Rien n’a été débité.';
+
+  @override
+  String get sentStepPaymentDone => 'Paiement reçu.';
+
+  @override
+  String sentStepPayoutDone(Object handle) {
+    return 'Arrivé sur le Mobile Money de $handle.';
+  }
+
+  @override
+  String get sentStepPayoutFailed =>
+      'Le versement a échoué. Notre équipe s’en occupe.';
+
+  @override
+  String sentStepConfirmDone(Object handle) {
+    return '$handle a confirmé la réception.';
+  }
+
+  @override
+  String get sentFailedTitle => 'Envoi non abouti';
+
+  @override
+  String get sentDoneTitle => 'Envoyé';
 }

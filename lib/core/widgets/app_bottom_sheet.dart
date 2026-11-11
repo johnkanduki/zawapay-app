@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/zawapay_colors.dart';
 
 /// Opens a rounded bottom sheet in the app style.
 /// With [showClose], a white round close button sits above the content
@@ -15,7 +16,7 @@ Future<T?> showAppBottomSheet<T>(
     isScrollControlled: true,
     useSafeArea: true,
     barrierColor: AppColors.scrim,
-    backgroundColor: showClose ? AppColors.surface : AppColors.white,
+    backgroundColor: showClose ? context.zc.backdrop : context.zc.raised,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(34)),
     ),
@@ -54,15 +55,11 @@ class _CloseButton extends StatelessWidget {
       child: Container(
         width: 52,
         height: 52,
-        decoration: const BoxDecoration(
-          color: AppColors.white,
+        decoration: BoxDecoration(
+          color: context.zc.raised,
           shape: BoxShape.circle,
         ),
-        child: const Icon(
-          Icons.close_rounded,
-          color: AppColors.black,
-          size: 28,
-        ),
+        child: Icon(Icons.close_rounded, color: context.zc.text, size: 28),
       ),
     );
   }

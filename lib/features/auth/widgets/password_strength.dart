@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/zawapay_colors.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// The five password rules, checked live.
@@ -63,7 +64,7 @@ class PasswordStrength extends StatelessWidget {
                 child: Container(
                   height: 7,
                   decoration: BoxDecoration(
-                    color: i < rules.level ? AppColors.red : AppColors.surface,
+                    color: i < rules.level ? AppColors.red : context.zc.field,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -77,7 +78,7 @@ class PasswordStrength extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: rules.level == 3 ? AppColors.red : AppColors.black,
+                  color: rules.level == 3 ? AppColors.red : context.zc.text,
                 ),
               ),
             ),
@@ -112,14 +113,12 @@ class _RuleRow extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: ok ? AppColors.red : Colors.transparent,
-              border: ok ? null : Border.all(color: AppColors.grey, width: 1.6),
+              border: ok
+                  ? null
+                  : Border.all(color: context.zc.soft, width: 1.6),
             ),
             child: ok
-                ? const Icon(
-                    Icons.check_rounded,
-                    size: 15,
-                    color: AppColors.white,
-                  )
+                ? Icon(Icons.check_rounded, size: 15, color: context.zc.raised)
                 : null,
           ),
           const SizedBox(width: 14),
@@ -128,7 +127,7 @@ class _RuleRow extends StatelessWidget {
               text,
               style: TextStyle(
                 fontSize: 16,
-                color: ok ? AppColors.black : AppColors.grey,
+                color: ok ? context.zc.text : context.zc.soft,
               ),
             ),
           ),

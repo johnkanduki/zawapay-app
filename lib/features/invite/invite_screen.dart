@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/top_notice.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -26,9 +27,6 @@ class InviteScreen extends StatelessWidget {
 
   final String username;
 
-  static const Color _card = Color(0x14FFFFFF);
-  static const Color _soft = Color(0x99FFFFFF);
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -37,9 +35,11 @@ class InviteScreen extends StatelessWidget {
     const pool = fees * _ExampleRates.pool;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: context.zc.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.black,
+        backgroundColor: context.zc.page,
         body: SafeArea(
           child: ListView(
             physics: const BouncingScrollPhysics(),
@@ -52,13 +52,13 @@ class InviteScreen extends StatelessWidget {
                   child: Container(
                     width: 48,
                     height: 48,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Color(0x1FFFFFFF),
+                      color: context.zc.field,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_back_rounded,
-                      color: AppColors.white,
+                      color: context.zc.text,
                     ),
                   ),
                 ),
@@ -66,21 +66,21 @@ class InviteScreen extends StatelessWidget {
               const SizedBox(height: 20),
               Text(
                 l10n.inviteTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   height: 1.15,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -1,
-                  color: AppColors.white,
+                  color: context.zc.text,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 l10n.inviteSubtitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   height: 1.45,
-                  color: _soft,
+                  color: context.zc.soft,
                 ),
               ),
               const SizedBox(height: 22),
@@ -95,7 +95,7 @@ class InviteScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: _card,
+                  color: context.zc.card,
                   borderRadius: BorderRadius.circular(28),
                 ),
                 child: Column(
@@ -110,7 +110,7 @@ class InviteScreen extends StatelessWidget {
                       ),
                       value: _money(fees),
                     ),
-                    const Divider(height: 22, color: Color(0x1FFFFFFF)),
+                    Divider(height: 22, color: context.zc.field),
                     _ExampleLine(
                       label: l10n.inviteExamplePool(
                         _percent(_ExampleRates.pool),
@@ -121,10 +121,10 @@ class InviteScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       l10n.inviteExampleNote,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         height: 1.4,
-                        color: _soft,
+                        color: context.zc.soft,
                       ),
                     ),
                   ],
@@ -158,10 +158,10 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     text,
-    style: const TextStyle(
+    style: TextStyle(
       fontSize: 20,
       fontWeight: FontWeight.w700,
-      color: AppColors.white,
+      color: context.zc.text,
     ),
   );
 }
@@ -200,10 +200,10 @@ class _ShareCard extends StatelessWidget {
                   handle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 21,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.white,
+                    color: context.zc.text,
                   ),
                 ),
               ],
@@ -217,8 +217,8 @@ class _ShareCard extends StatelessWidget {
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-              decoration: const ShapeDecoration(
-                color: AppColors.white,
+              decoration: ShapeDecoration(
+                color: context.zc.text,
                 shape: StadiumBorder(),
               ),
               child: Row(
@@ -259,7 +259,7 @@ class _LevelsChain extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       decoration: BoxDecoration(
-        color: InviteScreen._card,
+        color: context.zc.card,
         borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
@@ -277,11 +277,7 @@ class _LevelsChain extends StatelessWidget {
           Text(
             l10n.inviteChainNote,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              height: 1.4,
-              color: InviteScreen._soft,
-            ),
+            style: TextStyle(fontSize: 14, height: 1.4, color: context.zc.soft),
           ),
         ],
       ),
@@ -299,11 +295,11 @@ class _GroupLabel extends StatelessWidget {
     padding: const EdgeInsets.symmetric(vertical: 6),
     child: Text(
       text.toUpperCase(),
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w700,
         letterSpacing: 1,
-        color: InviteScreen._soft,
+        color: context.zc.soft,
       ),
     ),
   );
@@ -334,25 +330,25 @@ class _LevelNode extends StatelessWidget {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Color(0x1FFFFFFF),
+                    color: context.zc.field,
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     '$level',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.white,
+                      color: context.zc.text,
                     ),
                   ),
                 ),
                 if (!last)
-                  const Expanded(
+                  Expanded(
                     child: SizedBox(
                       width: 2,
-                      child: ColoredBox(color: Color(0x1FFFFFFF)),
+                      child: ColoredBox(color: context.zc.field),
                     ),
                   ),
               ],
@@ -364,7 +360,7 @@ class _LevelNode extends StatelessWidget {
               padding: const EdgeInsets.only(top: 9, bottom: 16),
               child: Text(
                 text,
-                style: const TextStyle(fontSize: 15, color: AppColors.white),
+                style: TextStyle(fontSize: 15, color: context.zc.text),
               ),
             ),
           ),
@@ -393,9 +389,9 @@ class _YouNode extends StatelessWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.white,
+              color: context.zc.text,
             ),
             child: const Icon(Icons.person_rounded, color: AppColors.red),
           ),
@@ -432,14 +428,14 @@ class _ExampleLine extends StatelessWidget {
     final style = TextStyle(
       fontSize: strong ? 17 : 16,
       fontWeight: strong ? FontWeight.w700 : FontWeight.w400,
-      color: strong ? AppColors.white : InviteScreen._soft,
+      color: strong ? context.zc.text : context.zc.soft,
     );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Expanded(child: Text(label, style: style)),
-          Text(value, style: style.copyWith(color: AppColors.white)),
+          Text(value, style: style.copyWith(color: context.zc.text)),
         ],
       ),
     );
@@ -470,10 +466,10 @@ class _Rule extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 height: 1.4,
-                color: AppColors.white,
+                color: context.zc.text,
               ),
             ),
           ),

@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../core/account/zawapay_account.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/app_bottom_sheet.dart';
+import '../../core/widgets/top_notice.dart';
 import '../../l10n/app_localizations.dart';
 
 /// "Contact us": white sheet coming up from the bottom, with Sapotti
 /// (recommended, the fastest way) and E-mail. All logos are black.
 ///
 /// Opened by every "Contact support" button (transfer detail, Settings,
-/// Sign in). Opening
-/// Sapotti or the mail app comes later (it needs a package to open links).
+/// Sign in). The links behind both buttons are set in the admin dashboard
+/// (Support page) and read from the server each time the sheet opens.
 Future<void> showContactSheet(BuildContext context) {
   return showAppBottomSheet<void>(
     context,
@@ -17,10 +22,38 @@ Future<void> showContactSheet(BuildContext context) {
   );
 }
 
-class ContactSheet extends StatelessWidget {
+class ContactSheet extends StatefulWidget {
   const ContactSheet({super.key});
 
-  static const Color _row = AppColors.surface;
+  @override
+  State<ContactSheet> createState() => _ContactSheetState();
+}
+
+class _ContactSheetState extends State<ContactSheet> {
+  late final _links = zawapayAccount.supportLinks();
+
+  /// Opens Sapotti (or the mail app) outside Zawapay App; "Coming soon" when
+  /// the link is not set yet or cannot be opened.
+  Future<void> _open(
+    Uri? Function(({String sapottiUrl, String email})) pick,
+  ) async {
+    final soon = AppLocalizations.of(context).contactSoon;
+    Uri? uri;
+    try {
+      uri = pick(await _links);
+    } catch (_) {
+      uri = null;
+    }
+    final opened =
+        uri != null &&
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        ).catchError((_) => false);
+    if (!opened && mounted) {
+      showTopNotice(context, soon, icon: Icons.info_rounded);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +68,7 @@ class ContactSheet extends StatelessWidget {
             width: 44,
             height: 5,
             decoration: BoxDecoration(
-              color: AppColors.grey.withValues(alpha: 0.25),
+              color: context.zc.soft.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(3),
             ),
           ),
@@ -54,11 +87,11 @@ class ContactSheet extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 child: Text(
                   l10n.contactTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 21,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.5,
-                    color: AppColors.black,
+                    color: context.zc.text,
                   ),
                 ),
               ),
@@ -72,22 +105,27 @@ class ContactSheet extends StatelessWidget {
             width: 30,
             height: 30,
             // The Sapotti "@" in black, like every logo of this page.
-            color: AppColors.black,
+            color: context.zc.text,
           ),
           title: 'Sapotti',
           subtitle: l10n.contactSapottiText,
           badge: l10n.contactRecommended,
-          onTap: () {},
+          onTap: () => _open(
+            (l) => l.sapottiUrl.isEmpty ? null : Uri.tryParse(l.sapottiUrl),
+          ),
         ),
         const SizedBox(height: 10),
         _ContactRow(
-          icon: const CustomPaint(
+          icon: CustomPaint(
             size: Size.square(28),
-            painter: _MailMarkPainter(),
+            painter: _MailMarkPainter(context.zc.text),
           ),
           title: l10n.contactEmailTitle,
           subtitle: l10n.contactEmailText,
-          onTap: () {},
+          onTap: () => _open(
+            (l) =>
+                l.email.isEmpty ? null : Uri(scheme: 'mailto', path: l.email),
+          ),
         ),
         const SizedBox(height: 22),
         FittedBox(
@@ -95,7 +133,7 @@ class ContactSheet extends StatelessWidget {
           child: Text(
             l10n.contactReplyTime,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16, color: AppColors.grey),
+            style: TextStyle(fontSize: 16, color: context.zc.soft),
           ),
         ),
         const SizedBox(height: 4),
@@ -119,8 +157,8 @@ class _BackButton extends StatelessWidget {
         height: 52,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: AppColors.white,
-          border: Border.all(color: AppColors.surface, width: 1.5),
+          color: context.zc.raised,
+          border: Border.all(color: context.zc.field, width: 1.5),
           boxShadow: const [
             BoxShadow(
               color: Color(0x14000000),
@@ -129,7 +167,7 @@ class _BackButton extends StatelessWidget {
             ),
           ],
         ),
-        child: const Icon(Icons.arrow_back_rounded, color: AppColors.black),
+        child: Icon(Icons.arrow_back_rounded, color: context.zc.text),
       ),
     );
   }
@@ -161,7 +199,7 @@ class _ContactRow extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.fromLTRB(10, 10, 14, 10),
           decoration: BoxDecoration(
-            color: ContactSheet._row,
+            color: context.zc.field,
             borderRadius: BorderRadius.circular(40),
           ),
           child: Row(
@@ -169,9 +207,9 @@ class _ContactRow extends StatelessWidget {
               Container(
                 width: 56,
                 height: 56,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.white,
+                  color: context.zc.raised,
                 ),
                 alignment: Alignment.center,
                 child: icon,
@@ -188,10 +226,10 @@ class _ContactRow extends StatelessWidget {
                             title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 19,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.black,
+                              color: context.zc.text,
                             ),
                           ),
                         ),
@@ -221,18 +259,15 @@ class _ContactRow extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.grey,
-                      ),
+                      style: TextStyle(fontSize: 14, color: context.zc.soft),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 6),
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.grey,
+                color: context.zc.soft,
                 size: 28,
               ),
             ],
@@ -245,7 +280,10 @@ class _ContactRow extends StatelessWidget {
 
 /// Bold black "M" mail mark, drawn in code (same shape as in Sapotti).
 class _MailMarkPainter extends CustomPainter {
-  const _MailMarkPainter();
+  const _MailMarkPainter(this.color);
+
+  /// Black on the light page, white on the dark one.
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -277,11 +315,12 @@ class _MailMarkPainter extends CustomPainter {
     canvas.drawPath(
       path,
       Paint()
-        ..color = AppColors.black
+        ..color = color
         ..isAntiAlias = true,
     );
   }
 
   @override
-  bool shouldRepaint(_MailMarkPainter oldDelegate) => false;
+  bool shouldRepaint(_MailMarkPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

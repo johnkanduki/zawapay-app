@@ -35,12 +35,17 @@ class _FaceCaptureScreenState extends State<FaceCaptureScreen>
   /// A face must fill at least this share of the picture width.
   static const double _minFaceShare = 0.28;
 
-  final _detector = FaceDetector(
-    options: FaceDetectorOptions(
-      performanceMode: FaceDetectorMode.fast,
-      minFaceSize: 0.15,
-    ),
-  );
+  /// Android: Google ML Kit. iOS: Apple Vision through [_iosFaces] (ML Kit
+  /// crashes on iOS 27 while writing its usage logs).
+  final FaceDetector? _detector = Platform.isAndroid
+      ? FaceDetector(
+          options: FaceDetectorOptions(
+            performanceMode: FaceDetectorMode.fast,
+            minFaceSize: 0.15,
+          ),
+        )
+      : null;
+  static const _iosFaces = MethodChannel('zawapay/face');
 
   CameraController? _controller;
   _CameraProblem _problem = _CameraProblem.none;
@@ -59,7 +64,7 @@ class _FaceCaptureScreenState extends State<FaceCaptureScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _closeCamera();
-    _detector.close();
+    _detector?.close();
     super.dispose();
   }
 
@@ -130,23 +135,16 @@ class _FaceCaptureScreenState extends State<FaceCaptureScreen>
     if (_busy || _capturing) return;
     final controller = _controller;
     if (controller == null) return;
-    final input = _toInputImage(image, controller.description);
-    if (input == null) return;
 
     _busy = true;
     try {
-      final faces = await _detector.processImage(input);
-      // The picture is in landscape: its height is the width once upright.
-      final uprightWidth = image.width < image.height
-          ? image.width
-          : image.height;
-      final next = switch (faces.length) {
+      final shares = await _faceShares(image, controller.description);
+      if (shares == null) return;
+      final next = switch (shares.length) {
         0 => _FaceState.noFace,
         > 1 => _FaceState.severalFaces,
         _ =>
-          faces.first.boundingBox.width / uprightWidth < _minFaceShare
-              ? _FaceState.tooFar
-              : _FaceState.ready,
+          shares.first < _minFaceShare ? _FaceState.tooFar : _FaceState.ready,
       };
       if (mounted && next != _face) setState(() => _face = next);
     } catch (_) {
@@ -154,6 +152,34 @@ class _FaceCaptureScreenState extends State<FaceCaptureScreen>
     } finally {
       _busy = false;
     }
+  }
+
+  /// Width of each face found, as a share of the upright picture width;
+  /// null when the frame cannot be read.
+  Future<List<double>?> _faceShares(
+    CameraImage image,
+    CameraDescription camera,
+  ) async {
+    final detector = _detector;
+    if (detector == null) {
+      if (image.planes.isEmpty) return null;
+      final plane = image.planes.first;
+      final widths = await _iosFaces.invokeListMethod<double>('faces', {
+        'bytes': plane.bytes,
+        'width': image.width,
+        'height': image.height,
+        'bytesPerRow': plane.bytesPerRow,
+      });
+      return widths;
+    }
+    final input = _toInputImage(image, camera);
+    if (input == null) return null;
+    final faces = await detector.processImage(input);
+    // The picture is in landscape: its height is the width once upright.
+    final uprightWidth = image.width < image.height
+        ? image.width
+        : image.height;
+    return [for (final f in faces) f.boundingBox.width / uprightWidth];
   }
 
   InputImage? _toInputImage(CameraImage image, CameraDescription camera) {
@@ -232,7 +258,8 @@ class _FaceCaptureScreenState extends State<FaceCaptureScreen>
                 Text(
                   l10n.faceCaptureTitle,
                   textAlign: TextAlign.center,
-                  style: AppText.screenTitle.copyWith(color: AppColors.white),
+                  style: AppText.screenTitle(context)
+                      .copyWith(color: AppColors.white),
                 ),
                 const Spacer(),
                 if (_problem != _CameraProblem.none)
@@ -413,7 +440,8 @@ class _ProblemMessage extends StatelessWidget {
         Text(
           text,
           textAlign: TextAlign.center,
-          style: AppText.body.copyWith(color: AppColors.surface, fontSize: 17),
+          style: AppText.body(context)
+              .copyWith(color: AppColors.surface, fontSize: 17),
         ),
         const SizedBox(height: 26),
         PrimaryButton(label: l10n.retry, onPressed: onRetry),

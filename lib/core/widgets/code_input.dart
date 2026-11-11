@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/zawapay_colors.dart';
 
 /// Row of digit boxes (6 for e-mail codes, 4 for the PIN).
 /// The box waiting for the next digit has a red border and a red caret.
@@ -114,17 +115,17 @@ class _DigitBox extends StatelessWidget {
           ? Container(
               width: 14,
               height: 14,
-              decoration: const BoxDecoration(
-                color: AppColors.black,
+              decoration: BoxDecoration(
+                color: context.zc.text,
                 shape: BoxShape.circle,
               ),
             )
           : Text(
               digit!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
-                color: AppColors.black,
+                color: context.zc.text,
               ),
             );
     } else if (active) {
@@ -136,7 +137,7 @@ class _DigitBox extends StatelessWidget {
       child: Container(
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? AppColors.white : AppColors.surface,
+          color: active ? context.zc.raised : context.zc.field,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: active ? AppColors.red : Colors.transparent,

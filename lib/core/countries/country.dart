@@ -49,3 +49,7 @@ const List<Country> supportedCountries = [
   Country(isoCode: 'ZM', dialCode: '+260', currencies: ['ZMW']),
   Country(isoCode: 'RW', dialCode: '+250', currencies: ['RWF']),
 ];
+
+/// Countries where a phone number's leading 0 is part of the number
+/// (Côte d'Ivoire 07…, Benin 01…, Congo 06…, Gabon 07…): never removed.
+const Set<String> keepsLeadingZero = {'CI', 'BJ', 'CG', 'GA'};

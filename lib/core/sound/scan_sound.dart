@@ -8,6 +8,16 @@ import 'package:audioplayers/audioplayers.dart';
 abstract final class ScanSound {
   static AudioPlayer? _player;
 
+  /// Loads the sound in advance (when the scanner opens), so the first
+  /// "ding" plays at once.
+  static Future<void> warmUp() async {
+    try {
+      final player = _player ??= AudioPlayer()
+        ..setReleaseMode(ReleaseMode.stop);
+      await player.setSource(AssetSource('sounds/scan_success.wav'));
+    } catch (_) {}
+  }
+
   static Future<void> play() async {
     try {
       final player = _player ??= AudioPlayer()

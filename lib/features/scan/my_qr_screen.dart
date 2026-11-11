@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/top_notice.dart';
 import '../../l10n/app_localizations.dart';
 import '../send/recipient.dart';
@@ -21,9 +22,11 @@ class MyQrScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: context.zc.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.black,
+        backgroundColor: context.zc.page,
         body: SafeArea(child: MyQrView(me: me, showBack: true)),
       ),
     );
@@ -158,11 +161,11 @@ class _MyQrViewState extends State<MyQrView> {
               Text(
                 l10n.scanToPay,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.6,
-                  color: AppColors.white,
+                  color: context.zc.text,
                 ),
               ),
               const SizedBox(height: 18),
@@ -175,7 +178,7 @@ class _MyQrViewState extends State<MyQrView> {
                 me.fullName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 15, color: SendColors.soft),
+                style: TextStyle(fontSize: 15, color: context.zc.soft),
               ),
               const SizedBox(height: 18),
               // Light frame, white card, round dots, logo in the middle.
@@ -212,10 +215,11 @@ class _MyQrViewState extends State<MyQrView> {
                   icon: const Icon(Icons.ios_share_rounded, size: 20),
                   label: Text(l10n.myQrShare),
                   style: FilledButton.styleFrom(
-                    backgroundColor: SendColors.field,
-                    foregroundColor: AppColors.white,
+                    backgroundColor: context.zc.field,
+                    foregroundColor: context.zc.text,
                     shape: const StadiumBorder(),
                     textStyle: const TextStyle(
+                      fontFamily: 'Inter',
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -233,6 +237,7 @@ class _MyQrViewState extends State<MyQrView> {
                     foregroundColor: AppColors.white,
                     shape: const StadiumBorder(),
                     textStyle: const TextStyle(
+                      fontFamily: 'Inter',
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
@@ -355,8 +360,8 @@ class _AmountSheetState extends State<_AmountSheet> {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.black,
+        decoration: BoxDecoration(
+          color: context.zc.page,
           borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
         ),
         padding: EdgeInsets.fromLTRB(
@@ -374,10 +379,10 @@ class _AmountSheetState extends State<_AmountSheet> {
                 Expanded(
                   child: Text(
                     l10n.myQrRequestMoney,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.white,
+                      color: context.zc.text,
                     ),
                   ),
                 ),
@@ -392,8 +397,8 @@ class _AmountSheetState extends State<_AmountSheet> {
             if (widget.currencies.length > 1) ...[
               Container(
                 padding: const EdgeInsets.all(4),
-                decoration: const ShapeDecoration(
-                  color: SendColors.field,
+                decoration: ShapeDecoration(
+                  color: context.zc.field,
                   shape: StadiumBorder(),
                 ),
                 child: Row(
@@ -423,7 +428,7 @@ class _AmountSheetState extends State<_AmountSheet> {
                                 fontWeight: FontWeight.w700,
                                 color: c == _currency
                                     ? AppColors.white
-                                    : SendColors.soft,
+                                    : context.zc.soft,
                               ),
                             ),
                           ),
@@ -438,7 +443,7 @@ class _AmountSheetState extends State<_AmountSheet> {
               height: 76,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: SendColors.field,
+                color: context.zc.field,
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Row(
@@ -458,27 +463,27 @@ class _AmountSheetState extends State<_AmountSheet> {
                         LengthLimitingTextInputFormatter(12),
                       ],
                       cursorColor: AppColors.red,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 34,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.white,
+                        color: context.zc.text,
                       ),
-                      decoration: const InputDecoration.collapsed(
+                      decoration: InputDecoration.collapsed(
                         hintText: '0',
                         hintStyle: TextStyle(
                           fontSize: 34,
                           fontWeight: FontWeight.w700,
-                          color: Color(0x4DFFFFFF),
+                          color: context.zc.faint,
                         ),
                       ),
                     ),
                   ),
                   Text(
                     _currency,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.white,
+                      color: context.zc.text,
                     ),
                   ),
                 ],
@@ -497,9 +502,10 @@ class _AmountSheetState extends State<_AmountSheet> {
                     alpha: 0.35,
                   ),
                   foregroundColor: AppColors.white,
-                  disabledForegroundColor: SendColors.soft,
+                  disabledForegroundColor: context.zc.soft,
                   shape: const StadiumBorder(),
                   textStyle: const TextStyle(
+                    fontFamily: 'Inter',
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                   ),
@@ -515,10 +521,11 @@ class _AmountSheetState extends State<_AmountSheet> {
                 child: FilledButton(
                   onPressed: () => Navigator.of(context).pop((0.0, _currency)),
                   style: FilledButton.styleFrom(
-                    backgroundColor: SendColors.field,
-                    foregroundColor: AppColors.white,
+                    backgroundColor: context.zc.field,
+                    foregroundColor: context.zc.text,
                     shape: const StadiumBorder(),
                     textStyle: const TextStyle(
+                      fontFamily: 'Inter',
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),

@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/verified_badge.dart';
 import '../../l10n/app_localizations.dart';
 import '../support/contact_sheet.dart';
 import 'appearance_sheet.dart';
+import 'personal_info_sheet.dart';
+import 'settings_sheet.dart';
 
 /// "Settings" tab, shown inside the home page (the bottom bar stays).
 ///
@@ -23,6 +26,7 @@ class SettingsView extends StatelessWidget {
     required this.onCertify,
     required this.onInvite,
     required this.onSignOut,
+    this.onPhones,
     this.email,
     this.photoPath,
     this.countryCode,
@@ -43,6 +47,9 @@ class SettingsView extends StatelessWidget {
   final VoidCallback onCertify;
   final VoidCallback onInvite;
   final VoidCallback onSignOut;
+
+  /// Opens the payment / withdrawal numbers page.
+  final VoidCallback? onPhones;
 
   /// Room to leave at the end for the floating bottom bar.
   final double bottomSpace;
@@ -95,8 +102,11 @@ class SettingsView extends StatelessWidget {
                 subtitle: '@$username',
               ),
             _Row(
-              leading: const _Circle(
-                child: Icon(Icons.person_add_alt_1_rounded, color: _white),
+              leading: _Circle(
+                child: Icon(
+                  Icons.person_add_alt_1_rounded,
+                  color: context.zc.text,
+                ),
               ),
               title: l10n.settingsInvite,
               subtitle: l10n.settingsInviteSubtitle,
@@ -104,8 +114,8 @@ class SettingsView extends StatelessWidget {
               onTap: onInvite,
             ),
             _Row(
-              leading: const _Circle(
-                child: Icon(Icons.smartphone_rounded, color: _white),
+              leading: _Circle(
+                child: Icon(Icons.smartphone_rounded, color: context.zc.text),
               ),
               title: l10n.settingsPhones,
               subtitleWidget: Row(
@@ -119,13 +129,13 @@ class SettingsView extends StatelessWidget {
                       phone ?? l10n.settingsPhonesHint,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: _subtitleStyle,
+                      style: TextStyle(fontSize: 15, color: context.zc.soft),
                     ),
                   ),
                 ],
               ),
               trailing: const _Chevron(),
-              onTap: () {},
+              onTap: onPhones,
             ),
             _DailyLimitRow(
               title: l10n.settingsDailyLimit,
@@ -139,17 +149,17 @@ class SettingsView extends StatelessWidget {
           title: l10n.settingsPreferences,
           children: [
             _Row(
-              leading: const _Circle(
-                child: Icon(Icons.language_rounded, color: _white),
+              leading: _Circle(
+                child: Icon(Icons.language_rounded, color: context.zc.text),
               ),
               title: l10n.settingsLanguage,
               value: language,
               trailing: const _Chevron(),
-              onTap: () {},
+              onTap: () => showLanguageSheet(context),
             ),
             _Row(
-              leading: const _Circle(
-                child: Icon(Icons.contrast_rounded, color: _white),
+              leading: _Circle(
+                child: Icon(Icons.contrast_rounded, color: context.zc.text),
               ),
               title: l10n.settingsAppearance,
               value: themeModeName(
@@ -161,14 +171,17 @@ class SettingsView extends StatelessWidget {
               onTap: () => showAppearanceSheet(context),
             ),
             _Row(
-              leading: const _Circle(
-                child: Icon(Icons.notifications_rounded, color: _white),
+              leading: _Circle(
+                child: Icon(
+                  Icons.notifications_rounded,
+                  color: context.zc.text,
+                ),
               ),
               title: l10n.settingsNotifications,
               value: l10n.settingsNotificationsOn,
-              trailing: const Icon(
+              trailing: Icon(
                 Icons.arrow_outward_rounded,
-                color: _soft,
+                color: context.zc.soft,
                 size: 22,
               ),
               onTap: () {},
@@ -180,16 +193,16 @@ class SettingsView extends StatelessWidget {
           title: l10n.settingsSecurity,
           children: [
             _Row(
-              leading: const _Circle(
-                child: Icon(Icons.pin_outlined, color: _white),
+              leading: _Circle(
+                child: Icon(Icons.pin_outlined, color: context.zc.text),
               ),
               title: l10n.settingsPin,
               trailing: const _Chevron(),
               onTap: () {},
             ),
             _Row(
-              leading: const _Circle(
-                child: Icon(Icons.phone_iphone_rounded, color: _white),
+              leading: _Circle(
+                child: Icon(Icons.phone_iphone_rounded, color: context.zc.text),
               ),
               title: l10n.settingsDevices,
               value: '1',
@@ -203,21 +216,21 @@ class SettingsView extends StatelessWidget {
           title: l10n.settingsHelp,
           children: [
             _Row(
-              leading: const _Circle(
-                child: Icon(Icons.headset_mic_rounded, color: _white),
+              leading: _Circle(
+                child: Icon(Icons.headset_mic_rounded, color: context.zc.text),
               ),
               title: l10n.settingsSupport,
               trailing: const _Chevron(),
               onTap: () => showContactSheet(context),
             ),
             _Row(
-              leading: const _Circle(
-                child: Icon(Icons.help_rounded, color: _white),
+              leading: _Circle(
+                child: Icon(Icons.help_rounded, color: context.zc.text),
               ),
               title: l10n.settingsAbout,
-              value: '1.0.0',
+              value: appVersion,
               trailing: const _Chevron(),
-              onTap: () {},
+              onTap: () => showAboutSheet(context),
             ),
           ],
         ),
@@ -234,17 +247,6 @@ class SettingsView extends StatelessWidget {
     );
   }
 }
-
-const Color _white = AppColors.white;
-const Color _soft = Color(0x99FFFFFF);
-
-/// Big card around a group of rows.
-const Color _sectionColor = Color(0x0FFFFFFF);
-
-/// Each row is a lighter pill inside the card.
-const Color _rowColor = Color(0x14FFFFFF);
-const Color _circleColor = Color(0x14FFFFFF);
-const TextStyle _subtitleStyle = TextStyle(fontSize: 15, color: _soft);
 
 /// Rounded dark card with a title and its rows.
 class _Section extends StatelessWidget {
@@ -265,9 +267,9 @@ class _Section extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
       decoration: BoxDecoration(
-        color: _sectionColor,
+        color: (context.zc.isDark ? context.zc.frame : context.zc.card),
         borderRadius: BorderRadius.circular(34),
-        border: Border.all(color: const Color(0x0FFFFFFF)),
+        border: Border.all(color: context.zc.frame),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,12 +282,12 @@ class _Section extends StatelessWidget {
                 fontSize: big ? 26 : 17,
                 fontWeight: FontWeight.w700,
                 letterSpacing: big ? -0.8 : -0.2,
-                color: _white,
+                color: context.zc.text,
               ),
             ),
           ),
           if (!big) ...[
-            const Divider(height: 1, color: Color(0x14FFFFFF)),
+            Divider(height: 1, color: context.zc.card),
             const SizedBox(height: 12),
           ],
           for (var i = 0; i < children.length; i++) ...[
@@ -307,7 +309,7 @@ class _Row extends StatelessWidget {
     this.subtitleWidget,
     this.value,
     this.trailing,
-    this.titleColor = _white,
+    this.titleColor,
     this.onTap,
   });
 
@@ -317,7 +319,9 @@ class _Row extends StatelessWidget {
   final Widget? subtitleWidget;
   final String? value;
   final Widget? trailing;
-  final Color titleColor;
+
+  /// Null: the normal text colour.
+  final Color? titleColor;
   final VoidCallback? onTap;
 
   @override
@@ -330,7 +334,7 @@ class _Row extends StatelessWidget {
                 subtitle!,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: _subtitleStyle,
+                style: TextStyle(fontSize: 15, color: context.zc.soft),
               ));
 
     return GestureDetector(
@@ -338,8 +342,8 @@ class _Row extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
-        decoration: const ShapeDecoration(
-          color: _rowColor,
+        decoration: ShapeDecoration(
+          color: (context.zc.isDark ? context.zc.card : context.zc.field),
           shape: StadiumBorder(),
         ),
         child: Row(
@@ -357,7 +361,10 @@ class _Row extends StatelessWidget {
                     child: Text(
                       title,
                       maxLines: 1,
-                      style: TextStyle(fontSize: 17, color: titleColor),
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: titleColor ?? context.zc.text,
+                      ),
                     ),
                   ),
                   if (sub != null) ...[const SizedBox(height: 3), sub],
@@ -366,7 +373,10 @@ class _Row extends StatelessWidget {
             ),
             if (value != null) ...[
               const SizedBox(width: 8),
-              Text(value!, style: const TextStyle(fontSize: 16, color: _soft)),
+              Text(
+                value!,
+                style: TextStyle(fontSize: 16, color: context.zc.soft),
+              ),
             ],
             if (trailing != null) ...[const SizedBox(width: 10), trailing!],
           ],
@@ -386,9 +396,9 @@ class _Circle extends StatelessWidget {
     return Container(
       width: 50,
       height: 50,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: _circleColor,
+        color: (context.zc.isDark ? context.zc.card : context.zc.raised),
       ),
       alignment: Alignment.center,
       child: child,
@@ -401,7 +411,7 @@ class _Chevron extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      const Icon(Icons.chevron_right_rounded, color: _soft, size: 26);
+      Icon(Icons.chevron_right_rounded, color: context.zc.soft, size: 26);
 }
 
 class _PillButton extends StatelessWidget {
@@ -424,10 +434,10 @@ class _PillButton extends StatelessWidget {
         decoration: ShapeDecoration(color: color, shape: const StadiumBorder()),
         child: Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: _white,
+            color: context.zc.text,
           ),
         ),
       ),
@@ -461,8 +471,8 @@ class _ProfileRow extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-      decoration: const ShapeDecoration(
-        color: _rowColor,
+      decoration: ShapeDecoration(
+        color: (context.zc.isDark ? context.zc.card : context.zc.field),
         shape: StadiumBorder(),
       ),
       child: Row(
@@ -471,9 +481,16 @@ class _ProfileRow extends StatelessWidget {
             child: SizedBox.square(
               dimension: 62,
               child: photo != null
-                  ? Image.file(File(photo), fit: BoxFit.cover)
+                  ? Image.file(
+                      File(photo),
+                      fit: BoxFit.cover,
+                      // Decoded small: a full camera photo is never needed here.
+                      cacheWidth: 240,
+                    )
                   : ColoredBox(
-                      color: _circleColor,
+                      color: (context.zc.isDark
+                          ? context.zc.card
+                          : context.zc.raised),
                       child: Center(
                         child: Text(
                           initial,
@@ -492,11 +509,15 @@ class _ProfileRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  fullName.isEmpty ? l10n.homeHello : fullName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 17, color: _white),
+                // Never cut with "…": a long name gets a little smaller.
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    fullName.isEmpty ? l10n.homeHello : fullName,
+                    maxLines: 1,
+                    style: TextStyle(fontSize: 17, color: context.zc.text),
+                  ),
                 ),
                 const SizedBox(height: 3),
                 Row(
@@ -506,7 +527,7 @@ class _ProfileRow extends StatelessWidget {
                         username.isEmpty ? (email ?? '') : '@$username',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: _subtitleStyle,
+                        style: TextStyle(fontSize: 15, color: context.zc.soft),
                       ),
                     ),
                     if (certified && username.isNotEmpty) ...[
@@ -520,16 +541,18 @@ class _ProfileRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           GestureDetector(
-            onTap: () {},
+            onTap: () => showPersonalInfoSheet(context),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              decoration: const ShapeDecoration(
-                color: _circleColor,
+              decoration: ShapeDecoration(
+                color: (context.zc.isDark
+                    ? context.zc.card
+                    : context.zc.raised),
                 shape: StadiumBorder(),
               ),
               child: Text(
                 l10n.settingsEdit,
-                style: const TextStyle(fontSize: 16, color: _white),
+                style: TextStyle(fontSize: 16, color: context.zc.text),
               ),
             ),
           ),
@@ -561,14 +584,18 @@ class _DailyLimitRow extends StatelessWidget {
       onTap: () {},
       child: Container(
         padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
-        decoration: const ShapeDecoration(
-          color: _rowColor,
+        decoration: ShapeDecoration(
+          color: (context.zc.isDark ? context.zc.card : context.zc.field),
           shape: StadiumBorder(),
         ),
         child: Row(
           children: [
-            const _Circle(
-              child: Icon(Icons.speed_rounded, color: _white, size: 26),
+            _Circle(
+              child: Icon(
+                Icons.speed_rounded,
+                color: context.zc.text,
+                size: 26,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -584,14 +611,17 @@ class _DailyLimitRow extends StatelessWidget {
                           child: Text(
                             title,
                             maxLines: 1,
-                            style: const TextStyle(fontSize: 17, color: _white),
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: context.zc.text,
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         value,
-                        style: const TextStyle(fontSize: 13, color: _soft),
+                        style: TextStyle(fontSize: 13, color: context.zc.soft),
                       ),
                     ],
                   ),

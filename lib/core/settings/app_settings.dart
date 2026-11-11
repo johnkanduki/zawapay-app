@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../countries/country.dart';
 
@@ -28,7 +29,12 @@ class AppSettings extends ChangeNotifier {
   void setLocale(Locale locale) {
     _locale = locale;
     notifyListeners();
+    _storage
+        .write(key: _localeKey, value: locale.languageCode)
+        .catchError((_) {});
   }
+
+  static const _localeKey = 'zawapay.language';
 
   /// Light, dark, or (by default, for every new account) the phone's own
   /// setting.
@@ -37,6 +43,30 @@ class AppSettings extends ChangeNotifier {
   void setThemeMode(ThemeMode mode) {
     _themeMode = mode;
     notifyListeners();
+    // Kept on the phone: the app opens in the same mode next time.
+    _storage.write(key: _themeKey, value: mode.name).catchError((_) {});
+  }
+
+  static const _themeKey = 'zawapay.theme_mode';
+  static const _storage = FlutterSecureStorage();
+
+  /// At start-up: the Appearance chosen last time (Automatic by default).
+  Future<void> load() async {
+    try {
+      final saved = await _storage.read(key: _themeKey);
+      _themeMode = ThemeMode.values.firstWhere(
+        (m) => m.name == saved,
+        orElse: () => ThemeMode.system,
+      );
+    } catch (_) {
+      _themeMode = ThemeMode.system;
+    }
+    try {
+      final lang = await _storage.read(key: _localeKey);
+      if (lang == 'fr' || lang == 'en') _locale = Locale(lang!);
+    } catch (_) {
+      // Keeps the phone's language.
+    }
   }
 
   void completeSetup() {

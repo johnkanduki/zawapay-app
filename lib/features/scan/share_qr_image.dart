@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/zawapay_logo.dart';
@@ -49,9 +48,7 @@ Future<File> buildShareQrImage({
   _logo(canvas, const Rect.fromLTWH(width / 2 - 250, 78, logo, logo));
 
   // The QR code (same drawing as in the app), logo in the empty middle.
-  final image = QrImage(
-    QrCode.fromData(data: data, errorCorrectLevel: QrErrorCorrectLevel.H),
-  );
+  final image = qrImageFor(data);
   canvas.save();
   canvas.translate(qrLeft, qrTop);
   ZawapayQrPainter(image).paint(canvas, const Size.square(qrSide));

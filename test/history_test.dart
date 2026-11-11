@@ -6,6 +6,8 @@ import 'package:zawapay_app/features/history/transfer.dart';
 import 'package:zawapay_app/features/home/home_screen.dart';
 import 'package:zawapay_app/l10n/app_localizations.dart';
 
+import 'test_data.dart';
+
 void main() {
   Widget app(Widget home) => MaterialApp(
     locale: const Locale('fr'),
@@ -15,7 +17,7 @@ void main() {
   );
 
   test('Filters keep only the matching transfers', () {
-    final all = demoTransfers;
+    final all = testTransfers;
     expect(const HistoryFilter().apply(all).length, all.length);
     final failed = const HistoryFilter(status: TransferStatus.failed);
     expect(failed.apply(all).length, 2);
@@ -33,7 +35,9 @@ void main() {
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(app(const HomeScreen(firstName: 'John')));
+    await tester.pumpWidget(
+      app(HomeScreen(firstName: 'John', transfers: testTransfers)),
+    );
     // Only the 3 latest on the home page.
     expect(find.text('@zawapay'), findsNWidgets(2));
     await tester.tap(find.text('VOIR TOUT L’HISTORIQUE'));

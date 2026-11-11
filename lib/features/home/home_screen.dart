@@ -4,9 +4,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/account/app_rules.dart';
+import '../../core/account/destinations.dart';
+import '../../core/account/withdraw_pin.dart';
+import '../../core/account/zawapay_account.dart';
 import '../../core/countries/country.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/verified_badge.dart';
 import '../../l10n/app_localizations.dart';
 import '../invite/invite_screen.dart';
@@ -22,7 +27,10 @@ import 'balance_card.dart';
 import 'scan_to_pay_button.dart';
 import '../kyc/kyc_intro_screen.dart';
 import '../onboarding/onboarding_screen.dart';
+import '../settings/phone_numbers_screen.dart';
 import '../settings/settings_view.dart';
+import '../settings/sign_out_dialog.dart';
+import '../withdraw/withdraw_screen.dart';
 
 /// Home page, reached after "Finish" (sign-up) or "Sign in".
 ///
@@ -41,6 +49,8 @@ class HomeScreen extends StatefulWidget {
     this.transfers,
     this.balances = const {},
     this.onRefresh,
+    this.withdrawPhone,
+    this.paymentPhone,
   });
 
   final String? firstName;
@@ -57,7 +67,7 @@ class HomeScreen extends StatefulWidget {
   /// next to the username. Until then, tapping the profile opens the check.
   final bool certified;
 
-  /// Last transfers; the demo ones when not given.
+  /// Last transfers (from the server; none yet).
   final List<Transfer>? transfers;
 
   /// Balance per currency ("USD", "CDF"…). Empty for a new account.
@@ -70,6 +80,13 @@ class HomeScreen extends StatefulWidget {
 
   /// Called when the page is pulled down and released, to reload it.
   final Future<void> Function()? onRefresh;
+
+  /// Where withdrawals go: the receiving number (the payment number when
+  /// "same number" stayed ticked at sign-up).
+  final String? withdrawPhone;
+
+  /// Receives the USSD payment requests (shown in Settings).
+  final String? paymentPhone;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -125,7 +142,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// How far the page is pulled down right now (0 when at rest).
-  double _pull = 0;
+  /// Only the header and the spinner listen to it: pulling the page no
+  /// longer rebuilds the whole home page on every pixel.
+  final _pull = ValueNotifier<double>(0);
   bool _dragging = false;
 
   /// How far the page was pulled when the finger was lifted.
@@ -139,12 +158,13 @@ class _HomeScreenState extends State<HomeScreen> {
       final pull = _scroll.hasClients
           ? math.max(0.0, -_scroll.position.pixels)
           : 0.0;
-      if (pull != _pull) setState(() => _pull = pull);
+      _pull.value = pull;
     });
   }
 
   @override
   void dispose() {
+    _pull.dispose();
     _scroll.dispose();
     super.dispose();
   }
@@ -178,9 +198,13 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_refreshing) return;
     HapticFeedback.mediumImpact();
     setState(() => _refreshing = true);
-    // No server yet: the page simply waits a moment.
-    await (widget.onRefresh?.call() ??
-        Future<void>.delayed(const Duration(milliseconds: 1200)));
+    // The latest fees (admin dashboard → Tarifs), and the page's own refresh.
+    await Future.wait([
+      refreshAppRules(),
+      refreshDestinations(),
+      widget.onRefresh?.call() ??
+          Future<void>.delayed(const Duration(milliseconds: 1200)),
+    ]);
     if (mounted) setState(() => _refreshing = false);
   }
 
@@ -202,9 +226,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: context.zc.isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.black,
+        backgroundColor: context.zc.page,
         extendBody: true,
         body: _tab == _qrTab
             // Middle tab: the user's own payment QR code.
@@ -225,6 +251,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   photoPath: widget.photoPath,
                   certified: widget.certified,
                   countryCode: widget.countryCode,
+                  phone: widget.paymentPhone,
+                  onPhones: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => PhoneNumbersScreen(
+                        paymentPhone: widget.paymentPhone,
+                        receivePhone: widget.withdrawPhone,
+                        myUsername: username,
+                      ),
+                    ),
+                  ),
                   // Room for the floating bar (72) and its margin, above
                   // the phone's own bottom area.
                   bottomSpace: MediaQuery.paddingOf(context).bottom + 96,
@@ -234,10 +270,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       builder: (_) => InviteScreen(username: username),
                     ),
                   ),
-                  onSignOut: () => Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-                    (_) => false,
-                  ),
+                  onSignOut: () async {
+                    // Asked first, as at the reference.
+                    if (!await confirmSignOut(context) || !context.mounted) {
+                      return;
+                    }
+                    // Closed on the server and on the phone.
+                    zawapayAccount.signOut();
+                    withdrawPin.forget();
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (_) => const OnboardingScreen(),
+                      ),
+                      (_) => false,
+                    );
+                  },
                 ),
               )
             : SafeArea(
@@ -250,8 +297,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       left: 0,
                       right: 0,
                       child: IgnorePointer(
-                        child: _PullSpinner(
-                          progress: (_pull / _refreshPull).clamp(0.0, 1.0),
+                        child: ValueListenableBuilder<double>(
+                          valueListenable: _pull,
+                          builder: (_, pull, _) => _PullSpinner(
+                            progress: (pull / _refreshPull).clamp(0.0, 1.0),
+                          ),
                         ),
                       ),
                     ),
@@ -260,8 +310,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         // Pushing the page up: photo, name and username stay fixed and
                         // the rest scrolls underneath. Pulling it down: the header
                         // comes down with the whole page, to refresh it.
-                        Transform.translate(
-                          offset: Offset(0, _pull),
+                        ValueListenableBuilder<double>(
+                          valueListenable: _pull,
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
                             child: _ProfileHeader(
@@ -279,6 +329,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ? () => setState(() => _tab = _settingsTab)
                                   : () => _openKyc(fullName, username),
                             ),
+                          ),
+                          builder: (_, pull, child) => Transform.translate(
+                            offset: Offset(0, pull),
+                            child: child,
                           ),
                         ),
                         Expanded(
@@ -308,19 +362,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     SendRecipientScreen(
                                                       senderCountry: country,
                                                       balances: widget.balances,
-                                                      recents: demoRecipients
-                                                          .take(3)
-                                                          .toList(),
+                                                      recents: const [],
+                                                      myUsername: username,
                                                     ),
                                               ),
                                             ),
-                                        onWithdraw: () {},
+                                        onWithdraw: () =>
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (_) => WithdrawScreen(
+                                                  country: country,
+                                                  phone: widget.withdrawPhone,
+                                                  balances: widget.balances,
+                                                ),
+                                              ),
+                                            ),
                                       ),
                                     ],
                                   );
                                   final history = _ActivityCard(
                                     transfers: _last3(
-                                      widget.transfers ?? demoTransfers,
+                                      widget.transfers ?? const <Transfer>[],
                                     ),
                                     open: _activityOpen,
                                     onToggle: () => setState(
@@ -330,7 +392,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       MaterialPageRoute(
                                         builder: (_) => HistoryScreen(
                                           transfers:
-                                              widget.transfers ?? demoTransfers,
+                                              widget.transfers ??
+                                              const <Transfer>[],
                                         ),
                                       ),
                                     ),
@@ -432,64 +495,51 @@ class _ProfileHeader extends StatelessWidget {
           _Avatar(photoPath: photoPath, name: initialSource),
           const SizedBox(width: 14),
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, box) {
-                // The "@" line sets the width: the name never goes past
-                // the end of the username (and its badge).
-                const handleStyle = TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0x99FFFFFF),
-                );
-                final painter = TextPainter(
-                  text: TextSpan(text: '@$username', style: handleStyle),
-                  textDirection: Directionality.of(context),
-                  textScaler: MediaQuery.textScalerOf(context),
-                  maxLines: 1,
-                )..layout();
-                final handleWidth = username.isEmpty
-                    ? box.maxWidth
-                    : (painter.width + (certified ? 21 : 0)).clamp(
-                        0.0,
-                        box.maxWidth,
-                      );
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: handleWidth),
-                      child: Text(
-                        fullName.isEmpty ? l10n.homeHello : fullName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.white,
-                        ),
-                      ),
+            // Name and @ always shown in full, never cut with "…": a long
+            // name gets a little smaller to fit on its line.
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    fullName.isEmpty ? l10n.homeHello : fullName,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: context.zc.text,
                     ),
-                    if (username.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              '@$username',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: handleStyle,
-                            ),
+                  ),
+                ),
+                if (username.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '@$username',
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: context.zc.soft,
                           ),
+                        ),
+                        // The certified username gets the blue badge.
+                        if (certified) ...[
                           const SizedBox(width: 5),
-                          // The certified username gets the blue badge.
-                          if (certified) const VerifiedBadge(size: 16),
+                          const VerifiedBadge(size: 16),
                         ],
-                      ),
-                    ],
-                  ],
-                );
-              },
+                      ],
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           const SizedBox(width: 10),
@@ -528,7 +578,7 @@ class _PullSpinner extends StatelessWidget {
             value: progress,
             strokeWidth: 2.5,
             color: AppColors.red,
-            backgroundColor: const Color(0x1FFFFFFF),
+            backgroundColor: context.zc.cardStrong,
           ),
         ),
       ),
@@ -570,10 +620,6 @@ String usernameFromName(String fullName) {
   return buffer.toString();
 }
 
-/// Translucent white used for the dark cards (the palette stays the same).
-const Color _card = Color(0x14FFFFFF);
-const Color _cardStrong = Color(0x1FFFFFFF);
-
 class _Avatar extends StatelessWidget {
   const _Avatar({required this.photoPath, required this.name});
 
@@ -591,15 +637,20 @@ class _Avatar extends StatelessWidget {
       width: 58,
       height: 58,
       padding: const EdgeInsets.all(3),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: _cardStrong,
+        color: context.zc.cardStrong,
       ),
       child: ClipOval(
         child: photo != null
-            ? Image.file(File(photo), fit: BoxFit.cover)
+            ? Image.file(
+                File(photo),
+                fit: BoxFit.cover,
+                // Decoded small: a full camera photo is never needed here.
+                cacheWidth: 240,
+              )
             : ColoredBox(
-                color: _card,
+                color: context.zc.card,
                 child: Center(
                   child: initial.isEmpty
                       ? const Icon(Icons.person_rounded, color: AppColors.red)
@@ -638,7 +689,7 @@ class _ActivityCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: _card,
+        color: context.zc.card,
         borderRadius: BorderRadius.circular(32),
       ),
       child: Column(
@@ -650,10 +701,10 @@ class _ActivityCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     l10n.homeActivity,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 21,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.white,
+                      color: context.zc.text,
                     ),
                   ),
                 ),
@@ -699,7 +750,12 @@ class _ActivityCard extends StatelessWidget {
                 ? const SizedBox(width: double.infinity)
                 : Column(
                     children: [
-                      const Divider(height: 1, color: _card),
+                      Divider(
+                        height: 1,
+                        color: context.zc.isDark
+                            ? context.zc.card
+                            : context.zc.line,
+                      ),
                       const SizedBox(height: 4),
                       if (transfers.isEmpty)
                         Padding(
@@ -710,9 +766,9 @@ class _ActivityCard extends StatelessWidget {
                           child: Text(
                             l10n.homeNoTransfers,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.surface,
+                              color: context.zc.text,
                             ),
                           ),
                         )
@@ -776,40 +832,65 @@ class _BottomBar extends StatelessWidget {
         child: Container(
           width: 300,
           height: 72,
-          padding: const EdgeInsets.all(6),
           decoration: ShapeDecoration(
-            color: Color.alphaBlend(_cardStrong, AppColors.black),
+            color: Color.alphaBlend(context.zc.cardStrong, context.zc.page),
             shape: const StadiumBorder(),
           ),
-          child: Row(
+          // No inner margin: the selected pill fills the whole height and,
+          // on the ends, follows the bar's own rounded edge.
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
             children: [
-              for (var i = 0; i < _icons.length; i++)
-                Expanded(
-                  child: Semantics(
-                    button: true,
-                    selected: i == selected,
-                    label: labels[i],
-                    child: GestureDetector(
-                      onTap: () => onSelect(i),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        decoration: ShapeDecoration(
-                          color: i == selected
-                              ? AppColors.black
-                              : Colors.transparent,
-                          shape: const StadiumBorder(),
-                        ),
-                        child: Icon(
-                          _icons[i],
-                          size: 30,
-                          color: i == selected
-                              ? AppColors.red
-                              : AppColors.white,
-                        ),
+              // The pill slides to the selected button.
+              AnimatedAlign(
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment(
+                  -1 + selected * 2 / (_icons.length - 1),
+                  0,
+                ),
+                child: FractionallySizedBox(
+                  widthFactor: 1 / _icons.length,
+                  heightFactor: 1,
+                  child: DecoratedBox(
+                    decoration: ShapeDecoration(
+                      color: AppColors.red.withValues(alpha: 0.18),
+                      shape: const StadiumBorder(
+                        side: BorderSide(color: AppColors.red, width: 1.5),
                       ),
                     ),
                   ),
                 ),
+              ),
+              Row(
+                children: [
+                  for (var i = 0; i < _icons.length; i++)
+                    Expanded(
+                      child: Semantics(
+                        button: true,
+                        selected: i == selected,
+                        label: labels[i],
+                        child: GestureDetector(
+                          onTap: () => onSelect(i),
+                          behavior: HitTestBehavior.opaque,
+                          child: Center(
+                            child: AnimatedScale(
+                              duration: const Duration(milliseconds: 200),
+                              scale: i == selected ? 1.08 : 1,
+                              child: Icon(
+                                _icons[i],
+                                size: 30,
+                                color: i == selected
+                                    ? AppColors.red
+                                    : context.zc.text,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
         ),

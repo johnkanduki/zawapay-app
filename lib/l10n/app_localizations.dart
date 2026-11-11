@@ -1733,8 +1733,14 @@ abstract class AppLocalizations {
   /// No description provided for @scanUnknownCode.
   ///
   /// In en, this message translates to:
-  /// **'This is not a Zawapay App code'**
+  /// **'This QR code is not a Zawapay App code'**
   String get scanUnknownCode;
+
+  /// No description provided for @scanOwnCode.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your own QR code'**
+  String get scanOwnCode;
 
   /// No description provided for @scanNoCodeInPhoto.
   ///
@@ -1831,6 +1837,438 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rwanda'**
   String get countryRW;
+
+  /// No description provided for @errorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Try again.'**
+  String get errorNetwork;
+
+  /// No description provided for @errorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again.'**
+  String get errorGeneric;
+
+  /// No description provided for @codeResent.
+  ///
+  /// In en, this message translates to:
+  /// **'New code sent'**
+  String get codeResent;
+
+  /// No description provided for @passwordsDontMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two passwords do not match'**
+  String get passwordsDontMatch;
+
+  /// No description provided for @alreadyMember.
+  ///
+  /// In en, this message translates to:
+  /// **'This e-mail already has an account. Sign in.'**
+  String get alreadyMember;
+
+  /// No description provided for @notMemberYet.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is not on Zawapay App yet. Create your account with the same e-mail.'**
+  String get notMemberYet;
+
+  /// No description provided for @contactSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get contactSoon;
+
+  /// No description provided for @socialJoinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last step'**
+  String get socialJoinTitle;
+
+  /// No description provided for @socialJoinSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Who invited you to Zawapay App?'**
+  String get socialJoinSubtitle;
+
+  /// No description provided for @withdrawTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw money'**
+  String get withdrawTitle;
+
+  /// No description provided for @withdrawTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get withdrawTo;
+
+  /// No description provided for @withdrawToHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Your receiving number'**
+  String get withdrawToHelp;
+
+  /// No description provided for @withdrawNoNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a receiving number in Settings.'**
+  String get withdrawNoNumber;
+
+  /// No description provided for @withdrawAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'You withdraw'**
+  String get withdrawAmount;
+
+  /// No description provided for @withdrawAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available: {amount}'**
+  String withdrawAvailable(Object amount);
+
+  /// No description provided for @withdrawAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw all'**
+  String get withdrawAll;
+
+  /// No description provided for @withdrawFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee'**
+  String get withdrawFee;
+
+  /// No description provided for @withdrawFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get withdrawFree;
+
+  /// No description provided for @withdrawMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum {amount}'**
+  String withdrawMinimum(Object amount);
+
+  /// No description provided for @withdrawButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw {amount}'**
+  String withdrawButton(Object amount);
+
+  /// No description provided for @pinCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your PIN'**
+  String get pinCreateTitle;
+
+  /// No description provided for @pinConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your PIN'**
+  String get pinConfirmTitle;
+
+  /// No description provided for @pinEnterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your PIN'**
+  String get pinEnterTitle;
+
+  /// No description provided for @pinEnterBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To confirm this withdrawal.'**
+  String get pinEnterBody;
+
+  /// No description provided for @pinMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two codes do not match. Try again.'**
+  String get pinMismatch;
+
+  /// No description provided for @pinWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong PIN.'**
+  String get pinWrong;
+
+  /// No description provided for @pinForgot.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot your PIN?'**
+  String get pinForgot;
+
+  /// No description provided for @withdrawPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawal in progress'**
+  String get withdrawPendingTitle;
+
+  /// No description provided for @withdrawStepSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to Mobile Money'**
+  String get withdrawStepSent;
+
+  /// No description provided for @withdrawStepSentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'pawaPay sends the money to your number.'**
+  String get withdrawStepSentBody;
+
+  /// No description provided for @withdrawStepReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get withdrawStepReceived;
+
+  /// No description provided for @withdrawStepReceivedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The money arrives on {phone}.'**
+  String withdrawStepReceivedBody(Object phone);
+
+  /// No description provided for @withdrawReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'You receive'**
+  String get withdrawReceive;
+
+  /// No description provided for @withdrawNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get withdrawNumber;
+
+  /// No description provided for @sendWithdrawNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Money number'**
+  String get sendWithdrawNumberHint;
+
+  /// No description provided for @sendWithdrawNumberNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This withdrawal number is not on any account.'**
+  String get sendWithdrawNumberNotFound;
+
+  /// No description provided for @sendUsernameNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No account with this username.'**
+  String get sendUsernameNotFound;
+
+  /// No description provided for @sendOwnAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your own account.'**
+  String get sendOwnAccount;
+
+  /// No description provided for @sendReceivesOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Receives on {phone}'**
+  String sendReceivesOn(Object phone);
+
+  /// No description provided for @sendStraightToNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'The money goes straight to this number.'**
+  String get sendStraightToNumber;
+
+  /// No description provided for @sendCountryClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending to this country is not available yet.'**
+  String get sendCountryClosed;
+
+  /// No description provided for @sendRate.
+  ///
+  /// In en, this message translates to:
+  /// **'1 USD = {rate} {currency}'**
+  String sendRate(String rate, String currency);
+
+  /// No description provided for @sendLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'Between {min} and {max} {currency}.'**
+  String sendLimits(String min, String max, String currency);
+
+  /// No description provided for @sendValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value in dollars'**
+  String get sendValue;
+
+  /// No description provided for @sendConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get sendConfirm;
+
+  /// No description provided for @sendIsThisThePerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Is this the right person?'**
+  String get sendIsThisThePerson;
+
+  /// No description provided for @receivePhoneTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'This number belongs to another account.'**
+  String get receivePhoneTaken;
+
+  /// No description provided for @phonesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Numbers saved'**
+  String get phonesSaved;
+
+  /// No description provided for @signOutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of Zawapay App?'**
+  String get signOutTitle;
+
+  /// No description provided for @signOutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account and history stay safe. Sign in again with your e-mail or your @ and your password.'**
+  String get signOutBody;
+
+  /// No description provided for @signOutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get signOutConfirm;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @signInIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'E-mail or username'**
+  String get signInIdLabel;
+
+  /// No description provided for @signInIdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'E-mail or @username'**
+  String get signInIdHint;
+
+  /// No description provided for @languageIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your language'**
+  String get languageIntro;
+
+  /// No description provided for @aboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get aboutTitle;
+
+  /// No description provided for @aboutPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get aboutPrivacy;
+
+  /// No description provided for @aboutTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of use'**
+  String get aboutTerms;
+
+  /// No description provided for @aboutDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get aboutDeleteAccount;
+
+  /// No description provided for @aboutVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get aboutVersion;
+
+  /// No description provided for @personalInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal information'**
+  String get personalInfoTitle;
+
+  /// No description provided for @handleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get handleLabel;
+
+  /// No description provided for @handleNeverChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Never changes'**
+  String get handleNeverChanges;
+
+  /// No description provided for @profileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Information saved'**
+  String get profileSaved;
+
+  /// No description provided for @emailChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'E-mail address changed'**
+  String get emailChanged;
+
+  /// No description provided for @sentStepPaymentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment declined or expired. Nothing was charged.'**
+  String get sentStepPaymentFailed;
+
+  /// No description provided for @sentStepPaymentDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment received.'**
+  String get sentStepPaymentDone;
+
+  /// No description provided for @sentStepPayoutDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrived on {handle}\'s Mobile Money.'**
+  String sentStepPayoutDone(Object handle);
+
+  /// No description provided for @sentStepPayoutFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The payout failed. Our team is on it.'**
+  String get sentStepPayoutFailed;
+
+  /// No description provided for @sentStepConfirmDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{handle} confirmed receipt.'**
+  String sentStepConfirmDone(Object handle);
+
+  /// No description provided for @sentFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer not completed'**
+  String get sentFailedTitle;
+
+  /// No description provided for @sentDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get sentDoneTitle;
 }
 
 class _AppLocalizationsDelegate

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/zawapay_colors.dart';
 
 /// Shows a short message that slides DOWN from the top of the screen, like
 /// the phone's own notifications, then goes back up on its own.
@@ -103,7 +104,7 @@ class _TopNoticeState extends State<_TopNotice>
             child: Container(
               padding: const EdgeInsets.fromLTRB(14, 12, 18, 12),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: context.zc.raised,
                 borderRadius: BorderRadius.circular(22),
                 boxShadow: const [
                   BoxShadow(
@@ -120,10 +121,10 @@ class _TopNoticeState extends State<_TopNotice>
                   Expanded(
                     child: Text(
                       widget.message,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.black,
+                        color: context.zc.text,
                       ),
                     ),
                   ),
