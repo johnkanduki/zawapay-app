@@ -25,15 +25,22 @@ class WithdrawalApi {
 
   final Future<Map<String, dynamic>> Function(String amount, String currency)
   quote;
-  final Future<Map<String, dynamic>> Function(String amount, String currency)
+  final Future<Map<String, dynamic>> Function(
+    String amount,
+    String currency,
+    String pin,
+  )
   create;
 }
 
 WithdrawalApi withdrawalApi = WithdrawalApi(
   quote: (amount, currency) =>
       zawapayAccount.quoteWithdrawal(amount: amount, currency: currency),
-  create: (amount, currency) =>
-      zawapayAccount.createWithdrawal(amount: amount, currency: currency),
+  create: (amount, currency, pin) => zawapayAccount.createWithdrawal(
+    amount: amount,
+    currency: currency,
+    pin: pin,
+  ),
 );
 
 /// "Withdraw": money from the Zawapay balance — ONE balance, in dollars —
@@ -141,12 +148,15 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
 
   Future<void> _withdraw() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    if (!await askWithdrawPin(context) || !mounted) return;
+    // The PIN is checked by the server, then sent with the withdrawal.
+    final pin = await askWithdrawPin(context);
+    if (pin == null || !mounted) return;
     setState(() => _busy = true);
     try {
       final w = await withdrawalApi.create(
         _value.toStringAsFixed(2),
         _currency,
+        pin,
       );
       refreshMyTransfers(); // the balance goes down at once
       if (!mounted) return;

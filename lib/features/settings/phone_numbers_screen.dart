@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/account/account_error.dart';
 import '../../core/account/zawapay_account.dart';
 import '../../core/countries/country.dart';
+import '../withdraw/pin_sheet.dart';
+import 'phone_code_sheet.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/app_buttons.dart';
@@ -123,9 +125,29 @@ class _PhoneNumbersScreenState extends State<PhoneNumbersScreen> {
           return;
         }
       }
+      // Security: the PIN, checked by the server, before any number change
+      // (created first if there is none yet).
+      if (!mounted) return;
+      final changed =
+          _paymentPhone != widget.paymentPhone ||
+          receive != widget.receivePhone;
+      String? pin;
+      if (changed) {
+        // 1. Each NEW number is proved by a code sent to it (SMS).
+        final known = {widget.paymentPhone, widget.receivePhone};
+        for (final phone in {_paymentPhone, receive}) {
+          if (phone == null || known.contains(phone)) continue;
+          if (!mounted || !await verifyNewPhone(context, phone)) return;
+        }
+        // 2. Then the PIN (checked by the server).
+        if (!mounted) return;
+        pin = await askWithdrawPin(context, forNumbers: true);
+        if (pin == null) return;
+      }
       await zawapayAccount.savePhones(
         paymentPhone: _paymentPhone,
         receivePhone: receive,
+        pin: pin,
       );
       if (!mounted) return;
       showTopNotice(context, l10n.phonesSaved);

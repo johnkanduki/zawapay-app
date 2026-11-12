@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:zawapay_app/core/account/withdraw_pin.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zawapay_app/core/countries/country.dart';
 import 'package:zawapay_app/features/withdraw/withdraw_screen.dart';
 import 'package:zawapay_app/l10n/app_localizations.dart';
 
+import 'fake_pin.dart';
+
 void main() {
   testWidgets('Withdraw: minimum, balance, all, PIN, then in progress', (
     tester,
   ) async {
-    FlutterSecureStorage.setMockInitialValues({});
+    // The PIN is checked by the server: here a fake one, kept in memory.
+    final pins = FakePin();
+    final beforePin = withdrawPin;
+    withdrawPin = pins;
+    addTearDown(() => withdrawPin = beforePin);
     // The server: 1 USD = 2 299 CDF for the member (week's rate minus 3 %).
     final created = <String>[];
     final before = withdrawalApi;
@@ -18,8 +24,8 @@ void main() {
         'receive': '${(double.parse(amount) * 2299).floor()}',
         'receiveCurrency': currency,
       },
-      create: (amount, currency) async {
-        created.add('$amount $currency');
+      create: (amount, currency, pin) async {
+        created.add('$amount $currency $pin');
         return {
           'receive': currency == 'CDF'
               ? '${(double.parse(amount) * 2299).floor()}'
@@ -120,17 +126,17 @@ void main() {
 
     // First withdrawal: the PIN is created, typed twice.
     expect(find.text('Créez votre code PIN'), findsOneWidget);
-    await tester.enterText(find.byType(TextField).last, '1234');
+    await tester.enterText(find.byType(TextField).last, '1357');
     await tester.pumpAndSettle();
     expect(find.text('Confirmez votre code PIN'), findsOneWidget);
-    await tester.enterText(find.byType(TextField).last, '1234');
+    await tester.enterText(find.byType(TextField).last, '1357');
     // The "in progress" step keeps moving: wait, without "settle".
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('Retrait en cours'), findsOneWidget);
     expect(find.text('Envoyé à Mobile Money'), findsOneWidget);
-    expect(created, ['20.00 USD']);
+    expect(created, ['20.00 USD 1357']);
 
     // Back from "in progress" goes home, never to a black screen.
     final NavigatorState nav = tester.state(find.byType(Navigator));
@@ -150,7 +156,7 @@ void main() {
     await tester.enterText(find.byType(TextField).last, '9999');
     await tester.pumpAndSettle();
     expect(find.text('Code PIN incorrect.'), findsOneWidget);
-    await tester.enterText(find.byType(TextField).last, '1234');
+    await tester.enterText(find.byType(TextField).last, '1357');
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Retrait en cours'), findsOneWidget);

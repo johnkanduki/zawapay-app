@@ -1658,6 +1658,59 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get pinResetTitle => 'Code reçu par e-mail';
+
+  @override
+  String pinResetBody(String email) {
+    return 'Entrez le code envoyé à $email.';
+  }
+
+  @override
+  String get pinNewTitle => 'Nouveau code PIN';
+
+  @override
+  String get pinNewBody => '4 chiffres, ni 1234 ni quatre chiffres identiques.';
+
+  @override
+  String get pinResetDone =>
+      'Nouveau code PIN enregistré. Pour votre sécurité, les retraits seront possibles dans 24 heures.';
+
+  @override
+  String get pinChangeBody => 'Pour changer vos numéros.';
+
+  @override
+  String get pinCurrentTitle => 'Votre code PIN actuel';
+
+  @override
+  String get phoneCodeTitle => 'Code de vérification';
+
+  @override
+  String phoneCodeBody(String phone) {
+    return 'Code envoyé au $phone — regardez votre WhatsApp, ou vos SMS si vous n’avez pas WhatsApp.';
+  }
+
+  @override
+  String get phoneCodeResend => 'Renvoyer par SMS';
+
+  @override
+  String get phoneCodeResent => 'Code renvoyé par SMS.';
+
+  @override
+  String phoneCodeResendIn(String time) {
+    return 'Renvoyer par SMS dans $time';
+  }
+
+  @override
+  String get accountCreatedTitle => 'Compte créé !';
+
+  @override
+  String get accountCreatedBody =>
+      'Votre compte Zawapay a été créé avec succès. Connectez-vous pour commencer à l’utiliser.';
+
+  @override
+  String get accountCreatedSignIn => 'Se connecter';
+
+  @override
   String get sendConfirm => 'Confirmer';
 
   @override

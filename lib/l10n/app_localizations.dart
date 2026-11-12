@@ -2978,6 +2978,96 @@ abstract class AppLocalizations {
   /// **'This week\'s rate: 1 USD = {rate} {currency}'**
   String withdrawRate(String rate, String currency);
 
+  /// No description provided for @pinResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Code received by e-mail'**
+  String get pinResetTitle;
+
+  /// No description provided for @pinResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code sent to {email}.'**
+  String pinResetBody(String email);
+
+  /// No description provided for @pinNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New PIN'**
+  String get pinNewTitle;
+
+  /// No description provided for @pinNewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'4 digits, neither 1234 nor four identical digits.'**
+  String get pinNewBody;
+
+  /// No description provided for @pinResetDone.
+  ///
+  /// In en, this message translates to:
+  /// **'New PIN saved. For your safety, withdrawals will be possible in 24 hours.'**
+  String get pinResetDone;
+
+  /// No description provided for @pinChangeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To change your numbers.'**
+  String get pinChangeBody;
+
+  /// No description provided for @pinCurrentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current PIN'**
+  String get pinCurrentTitle;
+
+  /// No description provided for @phoneCodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get phoneCodeTitle;
+
+  /// No description provided for @phoneCodeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Code sent to {phone} — check your WhatsApp, or your SMS if you have no WhatsApp.'**
+  String phoneCodeBody(String phone);
+
+  /// No description provided for @phoneCodeResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send again by SMS'**
+  String get phoneCodeResend;
+
+  /// No description provided for @phoneCodeResent.
+  ///
+  /// In en, this message translates to:
+  /// **'Code sent again by SMS.'**
+  String get phoneCodeResent;
+
+  /// No description provided for @phoneCodeResendIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Send again by SMS in {time}'**
+  String phoneCodeResendIn(String time);
+
+  /// No description provided for @accountCreatedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account created!'**
+  String get accountCreatedTitle;
+
+  /// No description provided for @accountCreatedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Zawapay account was created successfully. Sign in to start using it.'**
+  String get accountCreatedBody;
+
+  /// No description provided for @accountCreatedSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get accountCreatedSignIn;
+
   /// No description provided for @sendConfirm.
   ///
   /// In en, this message translates to:

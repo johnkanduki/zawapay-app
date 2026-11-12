@@ -1,58 +1,55 @@
-import 'dart:convert';
-import 'dart:math';
-
-import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// The 4-digit withdrawal PIN, created at the first withdrawal.
-///
-/// For now it is kept only on this phone, in the Keychain / Keystore, as a
-/// salted fingerprint (never the code itself). It moves to the server with
-/// the real withdrawals.
+import 'zawapay_account.dart';
+
+/// The 4-digit PIN, checked by the SERVER (since 12/11/2026): needed to
+/// withdraw and to change numbers. The server counts wrong attempts (5 →
+/// blocked 15 minutes) and never keeps the code itself. Each call answers
+/// null when it worked, otherwise the message to show.
 class WithdrawPin {
-  WithdrawPin({
-    FlutterSecureStorage? storage,
-    String key = 'zawapay.withdraw_pin',
-  }) : _storage = storage ?? const FlutterSecureStorage(),
-       _key = key;
+  const WithdrawPin();
 
-  final String _key;
-  final FlutterSecureStorage _storage;
-
-  Future<bool> exists() async {
+  Future<String?> _try(Future<void> Function() call) async {
     try {
-      return await _storage.read(key: _key) != null;
-    } catch (_) {
-      return false;
+      await call();
+      return null;
+    } on AccountException catch (e) {
+      return e.message.isEmpty ? 'Pas de connexion internet.' : e.message;
     }
   }
 
-  Future<void> create(String pin) async {
-    final salt = base64Url.encode(
-      List.generate(16, (_) => Random.secure().nextInt(256)),
-    );
-    await _storage.write(key: _key, value: '$salt.${_hash(salt, pin)}');
+  Future<bool> exists() async {
+    try {
+      return await zawapayAccount.pinExists();
+    } catch (_) {
+      return true; // offline: ask for the PIN, the server decides
+    }
   }
 
-  Future<bool> check(String pin) async {
-    final saved = await _storage.read(key: _key);
-    if (saved == null) return false;
-    final dot = saved.indexOf('.');
-    return _hash(saved.substring(0, dot), pin) == saved.substring(dot + 1);
+  Future<String?> check(String pin) => _try(() => zawapayAccount.checkPin(pin));
+  Future<String?> create(String pin) => _try(() => zawapayAccount.setPin(pin));
+  Future<String?> change(String current, String pin) =>
+      _try(() => zawapayAccount.setPin(pin, currentPin: current));
+
+  /// « Code PIN oublié »: sends a code by e-mail; the address, or null.
+  Future<String?> startReset() async {
+    try {
+      return await zawapayAccount.startPinReset();
+    } catch (_) {
+      return null;
+    }
   }
 
-  Future<void> forget() => _storage.delete(key: _key);
+  Future<String?> confirmReset(String code, String pin) =>
+      _try(() => zawapayAccount.confirmPinReset(code, pin));
 
-  /// Takes the PIN of [other] (a new one just typed twice) and empties it.
-  Future<void> takeFrom(WithdrawPin other) async {
-    final value = await other._storage.read(key: other._key);
-    if (value == null) return;
-    await _storage.write(key: _key, value: value);
-    await other.forget();
+  /// The old PIN kept on the phone (before 12/11/2026) is removed.
+  Future<void> forget() async {
+    try {
+      await const FlutterSecureStorage().delete(key: 'zawapay.withdraw_pin');
+    } catch (_) {}
   }
-
-  static String _hash(String salt, String pin) =>
-      sha256.convert(utf8.encode('$salt:$pin')).toString();
 }
 
-final withdrawPin = WithdrawPin();
+/// Tests replace it with a fake one.
+WithdrawPin withdrawPin = const WithdrawPin();

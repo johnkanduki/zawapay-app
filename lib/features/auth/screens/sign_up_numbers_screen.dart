@@ -15,6 +15,7 @@ import '../../../core/widgets/phone_number_field.dart';
 import '../../../core/widgets/top_notice.dart';
 import '../../../l10n/app_localizations.dart';
 import '../open_home.dart';
+import 'account_created_screen.dart';
 import 'profile_photo_screen.dart';
 import 'verify_code_screen.dart';
 
@@ -177,11 +178,24 @@ class _SignUpNumbersScreenState extends State<SignUpNumbersScreen> {
       builder: (_) => ProfilePhotoScreen(
         onFinished: (photoContext, photoPath) async {
           await zawapayAccount.uploadPhoto(await File(photoPath).readAsBytes());
-          final signedIn = await zawapayAccount.remember(
-            member,
-            photo: photoPath,
-          );
-          if (photoContext.mounted) openHome(photoContext, signedIn);
+          // Google / Apple (no password): straight into the app.
+          if (widget.signedIn) {
+            final signedIn = await zawapayAccount.remember(
+              member,
+              photo: photoPath,
+            );
+            if (photoContext.mounted) openHome(photoContext, signedIn);
+            return;
+          }
+          // By e-mail: "Account created", then the person signs in by
+          // themself with their identifier or e-mail and password.
+          await zawapayAccount.signOut();
+          if (photoContext.mounted) {
+            Navigator.of(photoContext).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const AccountCreatedScreen()),
+              (_) => false,
+            );
+          }
         },
       ),
     );

@@ -326,12 +326,18 @@ class ZawapayAccount {
   Future<ZawapayMember> savePhones({
     required String? paymentPhone,
     required String? receivePhone,
+    String? pin,
   }) async {
     final member = ZawapayMember.fromJson(
       (await _authorized(
             'PUT',
             '/v1/zawapay/me/phones',
-            body: {'paymentPhone': paymentPhone, 'receivePhone': receivePhone},
+            // The PIN is checked by the server before any number change.
+            body: {
+              'paymentPhone': paymentPhone,
+              'receivePhone': receivePhone,
+              'pin': ?pin,
+            },
           ))['member']
           as Map<String, dynamic>,
     );
@@ -402,6 +408,57 @@ class ZawapayAccount {
       (await _authorized('GET', '/v1/zawapay/me/commissions'))['history']
           as Map<String, dynamic>;
 
+  // ---------- New number: a code sent to it (SMS, Didit) ----------
+
+  /// Sends a code to [phone]; false when the check is not active yet.
+  /// First by WhatsApp (SMS when the number has no WhatsApp); a resend
+  /// sends the same code by [channel] "sms".
+  Future<bool> sendPhoneCode(
+    String phone, {
+    String lang = 'fr',
+    String channel = 'whatsapp',
+  }) async =>
+      (await _authorized(
+        'POST',
+        '/v1/zawapay/me/phones/code',
+        body: {'phone': phone, 'lang': lang, 'channel': channel},
+      ))['required'] ==
+      true;
+
+  Future<void> checkPhoneCode(String phone, String code) async => _authorized(
+    'POST',
+    '/v1/zawapay/me/phones/code/check',
+    body: {'phone': phone, 'code': code},
+  );
+
+  // ---------- PIN (checked by the server) ----------
+
+  Future<bool> pinExists() async =>
+      ((await _authorized('GET', '/v1/zawapay/me/pin'))['pin']
+          as Map)['exists'] ==
+      true;
+
+  /// Creates the PIN, or changes it ([currentPin] needed then).
+  Future<void> setPin(String pin, {String? currentPin}) async => _authorized(
+    'POST',
+    '/v1/zawapay/me/pin',
+    body: {'pin': pin, 'currentPin': ?currentPin},
+  );
+
+  /// Checks the PIN on the server (wrong attempts are counted there).
+  Future<void> checkPin(String pin) async =>
+      _authorized('POST', '/v1/zawapay/me/pin/check', body: {'pin': pin});
+
+  /// « Code PIN oublié »: a code is sent to the account's e-mail.
+  Future<String> startPinReset() async =>
+      '${(await _authorized('POST', '/v1/zawapay/me/pin/reset', body: const {}))['sentTo'] ?? ''}';
+
+  Future<void> confirmPinReset(String code, String pin) async => _authorized(
+    'POST',
+    '/v1/zawapay/me/pin/reset/confirm',
+    body: {'code': code, 'pin': pin},
+  );
+
   /// My daily limit (null when verified) and what I sent today, in dollars.
   Future<Map<String, dynamic>> myLimit() async =>
       (await _authorized('GET', '/v1/zawapay/me/limit'))['limit']
@@ -465,11 +522,12 @@ class ZawapayAccount {
   Future<Map<String, dynamic>> createWithdrawal({
     required String amount,
     required String currency,
+    required String pin,
   }) async =>
       (await _authorized(
             'POST',
             '/v1/zawapay/withdrawals',
-            body: {'amount': amount, 'currency': currency},
+            body: {'amount': amount, 'currency': currency, 'pin': pin},
           ))['withdrawal']
           as Map<String, dynamic>;
 

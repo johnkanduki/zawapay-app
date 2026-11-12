@@ -5,113 +5,189 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/app_bottom_sheet.dart';
 import '../../core/widgets/code_input.dart';
+import '../../core/widgets/top_notice.dart';
 import '../../core/widgets/underlined_link.dart';
 import '../../l10n/app_localizations.dart';
-import '../support/contact_sheet.dart';
 
-/// Asks the 4-digit PIN before a withdrawal: created (typed twice) the very
-/// first time, then simply typed. True once the PIN is right.
-Future<bool> askWithdrawPin(BuildContext context, {WithdrawPin? pins}) async {
+/// Asks the 4-digit PIN (checked by the SERVER): created (typed twice) the
+/// very first time, otherwise typed once. Returns the PIN once accepted, so
+/// the caller sends it with the withdrawal or the number change; null when
+/// closed. "Code PIN oublié ?" sends a code by e-mail to choose a new one.
+Future<String?> askWithdrawPin(
+  BuildContext context, {
+  WithdrawPin? pins,
+  bool forNumbers = false,
+}) async {
   final store = pins ?? withdrawPin;
   final create = !await store.exists();
-  if (!context.mounted) return false;
-  final ok = await showAppBottomSheet<bool>(
+  if (!context.mounted) return null;
+  return showAppBottomSheet<String>(
     context,
     showClose: true,
-    builder: (_) => _PinForm(store: store, create: create),
+    builder: (_) => _PinForm(
+      store: store,
+      mode: create ? _Mode.create : _Mode.verify,
+      forNumbers: forNumbers,
+    ),
   );
-  return ok ?? false;
 }
 
-/// Settings → Security → "Code PIN": creates it (typed twice) when there is
-/// none; otherwise the current one first, then the new one twice. The old
-/// PIN stays until the new one is fully confirmed. True once saved.
+/// Settings → Security → "Code PIN": creates it when there is none;
+/// otherwise the current one first, then the new one twice (all checked by
+/// the server). True once saved.
 Future<bool> changeWithdrawPin(
   BuildContext context, {
   WithdrawPin? pins,
 }) async {
   final store = pins ?? withdrawPin;
-  if (await store.exists()) {
-    if (!context.mounted || !await askWithdrawPin(context, pins: store)) {
-      return false;
-    }
-    final next = WithdrawPin(key: 'zawapay.withdraw_pin.next');
-    await next.forget();
-    if (!context.mounted || !await askWithdrawPin(context, pins: next)) {
-      await next.forget();
-      return false;
-    }
-    await store.takeFrom(next);
-    return true;
+  if (!await store.exists()) {
+    if (!context.mounted) return false;
+    return await askWithdrawPin(context, pins: store) != null;
   }
   if (!context.mounted) return false;
-  return askWithdrawPin(context, pins: store);
+  final current = await showAppBottomSheet<String>(
+    context,
+    showClose: true,
+    builder: (_) => _PinForm(store: store, mode: _Mode.current),
+  );
+  if (current == null || !context.mounted) return false;
+  final saved = await showAppBottomSheet<String>(
+    context,
+    showClose: true,
+    builder: (_) =>
+        _PinForm(store: store, mode: _Mode.change, current: current),
+  );
+  return saved != null;
 }
 
+enum _Mode { verify, current, create, change, resetCode, resetNew }
+
 class _PinForm extends StatefulWidget {
-  const _PinForm({required this.store, required this.create});
+  const _PinForm({
+    required this.store,
+    required this.mode,
+    this.current,
+    this.forNumbers = false,
+  });
 
   final WithdrawPin store;
-  final bool create;
+  final _Mode mode;
+  final String? current;
+  final bool forNumbers;
 
   @override
   State<_PinForm> createState() => _PinFormState();
 }
 
 class _PinFormState extends State<_PinForm> {
-  static const _length = 4;
+  late _Mode _mode = widget.mode;
 
-  /// Creation: the first code, waiting to be typed again.
+  /// Creating: the first code, waiting to be typed again.
   String? _first;
   String _error = '';
+  bool _busy = false;
+
+  /// « Code PIN oublié »: where the code was sent, and the code typed.
+  String _sentTo = '';
+  String _emailCode = '';
 
   /// A new key empties the boxes.
   int _round = 0;
+
+  int get _length => _mode == _Mode.resetCode ? 6 : 4;
+  bool get _twice =>
+      _mode == _Mode.create || _mode == _Mode.change || _mode == _Mode.resetNew;
+
+  void _fail(String message) => setState(() {
+    _first = null;
+    _error = message;
+    _round++;
+    _busy = false;
+  });
 
   Future<void> _onChanged(String code) async {
     if (code.length < _length) {
       if (_error.isNotEmpty) setState(() => _error = '');
       return;
     }
+    if (_busy) return;
     final l10n = AppLocalizations.of(context);
-    if (widget.create && _first == null) {
+    if (_mode == _Mode.resetCode) {
+      setState(() {
+        _emailCode = code;
+        _mode = _Mode.resetNew;
+        _round++;
+      });
+      return;
+    }
+    if (_twice && _first == null) {
       setState(() {
         _first = code;
         _round++;
       });
       return;
     }
-    if (widget.create) {
-      if (code != _first) {
-        setState(() {
-          _first = null;
-          _error = l10n.pinMismatch;
-          _round++;
-        });
-        return;
+    if (_twice && code != _first) return _fail(l10n.pinMismatch);
+    setState(() => _busy = true);
+    final error = switch (_mode) {
+      _Mode.verify || _Mode.current => await widget.store.check(code),
+      _Mode.create => await widget.store.create(code),
+      _Mode.change => await widget.store.change(widget.current!, code),
+      _ => await widget.store.confirmReset(_emailCode, code),
+    };
+    if (!mounted) return;
+    if (error != null) {
+      // A wrong e-mail code: type it again.
+      if (_mode == _Mode.resetNew && error.toLowerCase().contains('code')) {
+        setState(() => _mode = _Mode.resetCode);
       }
-      await widget.store.create(code);
-      if (mounted) Navigator.of(context).pop(true);
+      return _fail(error);
+    }
+    if (_mode == _Mode.resetNew) {
+      // New PIN by e-mail: withdrawals wait 24 h, said at once.
+      Navigator.of(context).pop();
+      showTopNotice(context, l10n.pinResetDone, icon: Icons.info_rounded);
       return;
     }
-    if (await widget.store.check(code)) {
-      if (mounted) Navigator.of(context).pop(true);
-    } else if (mounted) {
-      setState(() {
-        _error = l10n.pinWrong;
-        _round++;
-      });
+    Navigator.of(context).pop(code);
+  }
+
+  Future<void> _forgot() async {
+    setState(() => _busy = true);
+    final sentTo = await widget.store.startReset();
+    if (!mounted) return;
+    if (sentTo == null) {
+      return _fail(AppLocalizations.of(context).errorGeneric);
     }
+    setState(() {
+      _sentTo = sentTo;
+      _mode = _Mode.resetCode;
+      _first = null;
+      _error = '';
+      _round++;
+      _busy = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final title = !widget.create
-        ? l10n.pinEnterTitle
-        : _first == null
-        ? l10n.pinCreateTitle
-        : l10n.pinConfirmTitle;
+    final title = switch (_mode) {
+      _Mode.verify => l10n.pinEnterTitle,
+      _Mode.current => l10n.pinCurrentTitle,
+      _Mode.resetCode => l10n.pinResetTitle,
+      _Mode.create =>
+        _first == null ? l10n.pinCreateTitle : l10n.pinConfirmTitle,
+      _ => _first == null ? l10n.pinNewTitle : l10n.pinConfirmTitle,
+    };
+    final body = switch (_mode) {
+      _Mode.verify =>
+        widget.forNumbers ? l10n.pinChangeBody : l10n.pinEnterBody,
+      _Mode.current => l10n.pinEnterBody,
+      _Mode.resetCode => l10n.pinResetBody(_sentTo),
+      _Mode.create => l10n.pinHelp,
+      _ => l10n.pinNewBody,
+    };
 
     return SingleChildScrollView(
       child: Padding(
@@ -132,7 +208,7 @@ class _PinFormState extends State<_PinForm> {
             ),
             const SizedBox(height: 6),
             Text(
-              widget.create ? l10n.pinHelp : l10n.pinEnterBody,
+              body,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 15, color: context.zc.soft),
             ),
@@ -158,13 +234,12 @@ class _PinFormState extends State<_PinForm> {
                 ),
               ),
             ),
-            if (!widget.create)
+            // Forgot: a code by e-mail, then a new PIN (withdrawals 24 h later).
+            if (_mode == _Mode.verify || _mode == _Mode.current)
               Center(
                 child: UnderlinedLink(
                   text: l10n.pinForgot,
-                  // A new PIN by e-mail code comes with the real
-                  // withdrawals; until then the support helps.
-                  onTap: () => showContactSheet(context),
+                  onTap: _busy ? () {} : _forgot,
                 ),
               ),
           ],
