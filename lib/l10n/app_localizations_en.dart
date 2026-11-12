@@ -1106,6 +1106,542 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendValue => 'Value in dollars';
 
   @override
+  String sendRateFrom(String from, String rate, String to) {
+    return '1 $from = $rate $to';
+  }
+
+  @override
+  String withdrawYouReceive(String amount) {
+    return 'You receive $amount on your number.';
+  }
+
+  @override
+  String earnPerMonth(String amount) {
+    return '$amount per month';
+  }
+
+  @override
+  String earnPerWeek(String amount) {
+    return '$amount per week';
+  }
+
+  @override
+  String earnPerYear(String amount) {
+    return '$amount per year';
+  }
+
+  @override
+  String earnBigNote(String people) {
+    return 'Real example: a team of $people people, calculated with Zawapay\'s real percentages.';
+  }
+
+  @override
+  String get earnStepsTitle => 'How it works, in 3 steps';
+
+  @override
+  String get earnStep1 => 'Share your sponsor invitation: it is your @.';
+
+  @override
+  String get earnStep2 =>
+      'Your people sign up for free and send money to their family, as usual.';
+
+  @override
+  String get earnStep3 =>
+      'On every transfer they make, you get a share. Automatically.';
+
+  @override
+  String earnPerSendTitle(String amount) {
+    return 'On every transfer of $amount';
+  }
+
+  @override
+  String earnFee(String percent) {
+    return 'Transfer fee ($percent)';
+  }
+
+  @override
+  String earnPool(String percent) {
+    return 'Shared between sponsors and invitees ($percent of the fee)';
+  }
+
+  @override
+  String get earnWhoTitle => 'Who gets how much?';
+
+  @override
+  String get earnLevel1 => 'When your friend sends (level 1)';
+
+  @override
+  String get earnLevel2 => 'When your friend\'s friend sends (level 2)';
+
+  @override
+  String get earnLevel3 => 'The next level (level 3)';
+
+  @override
+  String get earnLevelSponsor => 'When your sponsor sends';
+
+  @override
+  String earnYouGet(String amount) {
+    return 'you get $amount';
+  }
+
+  @override
+  String get earnExamplesTitle => 'Simple examples';
+
+  @override
+  String earnEx1(String amount) {
+    return 'Your friend sends $amount to their family, once.';
+  }
+
+  @override
+  String earnEx2(String times) {
+    return 'They send $times times a week.';
+  }
+
+  @override
+  String get earnEx3 => 'They keep going for a month.';
+
+  @override
+  String get earnEx4 => 'They keep going all year.';
+
+  @override
+  String get earnTeamTitle => 'Your team grows, so do your earnings';
+
+  @override
+  String earnTeamIntro(
+    String direct,
+    String each,
+    String amount,
+    String times,
+  ) {
+    return 'You invite $direct friends. Each of them invites $each. Everyone sends $amount, $times times a week.';
+  }
+
+  @override
+  String earnTeamLevel(String level, String people, String percent) {
+    return 'Level $level: $people people ($percent)';
+  }
+
+  @override
+  String earnTeamTotal(String people) {
+    return 'Your whole team: $people people';
+  }
+
+  @override
+  String get earnMoneyTitle => 'Your money';
+
+  @override
+  String get earnMoney1 =>
+      'Your earnings land on your Zawapay balance, in dollars.';
+
+  @override
+  String get earnMoney2 =>
+      'Withdraw them to your withdrawal number: dollars or francs in DR Congo, your country\'s currency elsewhere.';
+
+  @override
+  String earnMoney3(String amount) {
+    return 'Withdrawals from $amount.';
+  }
+
+  @override
+  String get earnMoneyFree => 'Withdrawals are free.';
+
+  @override
+  String earnMoneyFee(String percent) {
+    return 'Withdrawal fee: $percent.';
+  }
+
+  @override
+  String get earnFaqTitle => 'Questions';
+
+  @override
+  String get earnQ1 => 'Do I have to pay to earn?';
+
+  @override
+  String get earnA1 => 'No. Signing up and inviting are free.';
+
+  @override
+  String get earnQ2 => 'Do I have to sell anything?';
+
+  @override
+  String get earnA2 =>
+      'No. Your people send money to their family, as they already do. You get a share of the fee.';
+
+  @override
+  String get earnQ3 => 'When do I get my earnings?';
+
+  @override
+  String get earnA3 => 'As soon as the money has reached the recipient.';
+
+  @override
+  String get earnQ4 => 'Does my share reduce the money sent to the family?';
+
+  @override
+  String get earnA4 =>
+      'No. Your share comes from Zawapay\'s fee, never from the money sent.';
+
+  @override
+  String get earnHonest =>
+      'These numbers use Zawapay\'s real percentages, updated automatically. The examples assume your team sends money regularly: your real earnings depend on their real transfers.';
+
+  @override
+  String get earnShareTitle => 'Start now';
+
+  @override
+  String get earnShareText =>
+      'Send your @ to your people. They type it in “Sponsor invitation” when they sign up.';
+
+  @override
+  String get earnShareButton => 'Share my invitation';
+
+  @override
+  String earnShareMessage(String handle) {
+    return 'Join me on Zawapay App to send money to your family. When you sign up, type my sponsor invitation: $handle';
+  }
+
+  @override
+  String get earnLoadFailed =>
+      'The numbers could not be loaded. Pull the page down to try again.';
+
+  @override
+  String get commissionsOpen => 'See where my earnings come from ›';
+
+  @override
+  String get commissionsTitle => 'Commissions history';
+
+  @override
+  String get commissionsAvailable => 'Available';
+
+  @override
+  String commissionsPending(String amount) {
+    return 'Pending: $amount';
+  }
+
+  @override
+  String get commissionsEarned => 'Total earned';
+
+  @override
+  String get commissionsWithdrawn => 'Total withdrawn';
+
+  @override
+  String get commissionsIntro =>
+      'Every earning comes from a real transfer of your team. The percentage shown is exactly the one applied.';
+
+  @override
+  String get commissionsEmpty =>
+      'No commission yet. They come as soon as someone in your team sends money.';
+
+  @override
+  String get commissionsInvite => 'Invite my people';
+
+  @override
+  String commissionsSent(String handle, String amount) {
+    return '@$handle sent $amount';
+  }
+
+  @override
+  String get commissionsUp1 => 'Your invitee (level 1)';
+
+  @override
+  String get commissionsUp2 => 'Your invitee\'s invitee (level 2)';
+
+  @override
+  String get commissionsUp3 => 'Your team, level 3';
+
+  @override
+  String get commissionsDown1 => 'Your sponsor';
+
+  @override
+  String get commissionsDown2 => 'Your sponsor\'s sponsor';
+
+  @override
+  String get commissionsDown3 => 'Above, level 3';
+
+  @override
+  String commissionsShare(String percent, String pool) {
+    return '$percent of this transfer\'s commissions ($pool)';
+  }
+
+  @override
+  String commissionsShared(String percent, String count) {
+    return '$percent shared between $count people';
+  }
+
+  @override
+  String get commissionsStatusAvailable => 'Available';
+
+  @override
+  String get commissionsStatusPending => 'Waiting for confirmation';
+
+  @override
+  String get commissionsStatusCancelled => 'Cancelled (transfer failed)';
+
+  @override
+  String get commissionsWithdrawal => 'Withdrawal to your number';
+
+  @override
+  String commissionsWithdrawalGot(String amount, String phone) {
+    return '$amount to $phone';
+  }
+
+  @override
+  String get commissionsWithdrawalFee => 'Withdrawal fee';
+
+  @override
+  String get commissionsReturned => 'Withdrawal failed: money returned';
+
+  @override
+  String get commissionsWdDone => 'Paid';
+
+  @override
+  String get commissionsWdPending => 'In progress';
+
+  @override
+  String get commissionsWdFailed => 'Failed';
+
+  @override
+  String get commissionsLoadFailed =>
+      'The history could not be loaded. Pull the page down to try again.';
+
+  @override
+  String get commissionsRef => 'Reference';
+
+  @override
+  String get commissionsSentLabel => 'Sent';
+
+  @override
+  String get commissionsReceivedLabel => 'Received by the recipient';
+
+  @override
+  String get commissionsPoolLabel => 'Commissions of this transfer';
+
+  @override
+  String get commissionsPercentLabel => 'Your percentage';
+
+  @override
+  String get pinSaved => 'PIN saved.';
+
+  @override
+  String get pinOn => 'On';
+
+  @override
+  String get pinToCreate => 'To create';
+
+  @override
+  String get devicesTitle => 'Connected devices';
+
+  @override
+  String get devicesIntro =>
+      'The phones signed in to your account. If you do not recognise a device, sign it out.';
+
+  @override
+  String get devicesThis => 'This device';
+
+  @override
+  String devicesSince(String date) {
+    return 'Signed in since $date';
+  }
+
+  @override
+  String get devicesSignOut => 'Sign out';
+
+  @override
+  String get devicesConfirm =>
+      'Sign this device out? It will have to sign in again with your password.';
+
+  @override
+  String get devicesDone => 'Device signed out.';
+
+  @override
+  String get devicesCancel => 'Cancel';
+
+  @override
+  String get devicesEmpty => 'No other device.';
+
+  @override
+  String get devicesLoadFailed =>
+      'The devices could not be loaded. Pull the page down to try again.';
+
+  @override
+  String get notifOpenFailed =>
+      'Open Settings → Zawapay App → Notifications on your phone.';
+
+  @override
+  String get notifTitle => 'Notifications';
+
+  @override
+  String get notifIntro => 'Choose the alerts you want to get.';
+
+  @override
+  String get notifTransfers => 'Transfers sent and received';
+
+  @override
+  String get notifTransfersHelp =>
+      '“You received \$50”, “Your transfer arrived”.';
+
+  @override
+  String get notifCommissions => 'Commissions and withdrawals';
+
+  @override
+  String get notifCommissionsHelp => '“+\$0.78 commission”, “Withdrawal paid”.';
+
+  @override
+  String get notifNews => 'News';
+
+  @override
+  String get notifNewsHelp => 'New countries and new features of Zawapay App.';
+
+  @override
+  String get notifSoon =>
+      'Soon: these alerts will come straight to your phone. Your choices are already saved.';
+
+  @override
+  String get notifLoadFailed =>
+      'Your choices could not be loaded. Pull the page down to try again.';
+
+  @override
+  String get kycTitle2 => 'Unlock your limit';
+
+  @override
+  String kycToday(String used, String limit) {
+    return 'Today: $used of $limit';
+  }
+
+  @override
+  String kycBenefit1(String limit) {
+    return 'Send more than $limit a day, with no limit.';
+  }
+
+  @override
+  String get kycBenefit2 => 'The blue “verified” badge next to your @.';
+
+  @override
+  String get kycBenefit3 =>
+      'Your account is protected: nobody can pretend to be you.';
+
+  @override
+  String get kycHow =>
+      'It takes 2 minutes: a photo of your ID and a selfie, right here.';
+
+  @override
+  String get kycButton => 'Verify my identity';
+
+  @override
+  String get kycDoneTitle => 'Identity verified';
+
+  @override
+  String get kycDoneText =>
+      'Your limit is unlocked and your @ has the blue badge.';
+
+  @override
+  String get kycPending =>
+      'Verification in progress: the answer comes here, usually within minutes.';
+
+  @override
+  String get kycUnlimited => 'No limit';
+
+  @override
+  String kycLimitValue(String used, String limit) {
+    return '$used of $limit';
+  }
+
+  @override
+  String get earnSixTitle => 'The 6 levels that earn you money';
+
+  @override
+  String earnSixIntro(String amount) {
+    return 'You earn on the transfers of the 3 levels below you AND the 3 levels above. Here is each level\'s share of a $amount transfer:';
+  }
+
+  @override
+  String get earnSixAbove3 => 'Level 3 above';
+
+  @override
+  String get earnSixAbove2 => 'Your sponsor\'s sponsor';
+
+  @override
+  String get earnSixAbove1 => 'Your sponsor';
+
+  @override
+  String get earnSixYou => 'YOU';
+
+  @override
+  String get earnSixBelow1 => 'Your invitees';
+
+  @override
+  String get earnSixBelow2 => 'Your invitees\' invitees';
+
+  @override
+  String get earnSixBelow3 => 'Level 3 below';
+
+  @override
+  String earnSixTotal(String percent) {
+    return 'Total shared: $percent — always 100% of the transfer\'s commissions.';
+  }
+
+  @override
+  String get earnAboveTitle => 'You also earn thanks to the people above you';
+
+  @override
+  String get earnAboveIntro =>
+      'When your sponsor (or the levels above) sends money, a share goes to their invitees. It is split equally between all the invitees of that level.';
+
+  @override
+  String get earnAbove1 => 'When your sponsor sends';
+
+  @override
+  String get earnAbove2 => 'When your sponsor\'s sponsor sends';
+
+  @override
+  String get earnAbove3 => 'When level 3 above sends';
+
+  @override
+  String earnAboveShared(String amount) {
+    return '$amount shared between their invitees';
+  }
+
+  @override
+  String earnAboveEach(String people, String amount) {
+    return 'If there are $people, each one gets $amount';
+  }
+
+  @override
+  String earnWhereTitle(String amount) {
+    return 'Where does the money of a $amount transfer go?';
+  }
+
+  @override
+  String get earnWhereReceived => 'The family receives';
+
+  @override
+  String get earnWherePaid => 'The sender pays';
+
+  @override
+  String get earnWhereFee => 'Transfer fee';
+
+  @override
+  String get earnWhereNetwork => '→ for sponsors and invitees';
+
+  @override
+  String get earnWhereZawapay =>
+      '→ for Zawapay (Mobile Money, operators, running costs)';
+
+  @override
+  String get earnWhereNote =>
+      'Your share only comes from the fee: the family always gets the full amount. An empty place (no sponsor or invitee yet) goes to Zawapay.';
+
+  @override
+  String get earnProofTitle => 'How can I check it is true?';
+
+  @override
+  String get earnProof =>
+      'Every earning appears in your “Commissions history” (tap your Zawapay balance on the home page): the transfer, the person, their level and the exact percentage applied. The percentages on this page are the ones really applied.';
+
+  @override
+  String withdrawRate(String rate, String currency) {
+    return 'This week\'s rate: 1 USD = $rate $currency';
+  }
+
+  @override
   String get sendConfirm => 'Confirm';
 
   @override

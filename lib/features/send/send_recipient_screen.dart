@@ -169,10 +169,11 @@ class _SendRecipientScreenState extends State<SendRecipientScreen> {
         !recipient.isNumber &&
         widget.myUsername != null &&
         recipient.username == widget.myUsername;
-    // Another country: only the ones opened in the admin dashboard.
-    final closed =
-        recipient.countryCode != widget.senderCountry.isoCode &&
-        destinationFor(recipient.countryCode) == null;
+    // Between the 12 countries: only the ones opened in the admin
+    // dashboard (RD Congo → RD Congo always works).
+    final home =
+        recipient.countryCode == 'CD' && widget.senderCountry.isoCode == 'CD';
+    final closed = !home && destinationFor(recipient.countryCode) == null;
     setState(() {
       _found = own || closed ? null : recipient;
       _message = own
@@ -518,15 +519,89 @@ class _CountryButton extends StatelessWidget {
 /// The matching account, as for the sponsor at sign-up: photo, "@"
 /// (badge), name, the withdrawal number where the money will arrive, and
 /// "Confirm", which opens the amount page.
-class _FoundAccount extends StatelessWidget {
+class _FoundAccount extends StatefulWidget {
   const _FoundAccount({required this.recipient, required this.onConfirm});
 
   final Recipient recipient;
   final VoidCallback onConfirm;
 
   @override
+  State<_FoundAccount> createState() => _FoundAccountState();
+}
+
+/// Tapping the photo (or the name) enlarges it, still round, to make sure it
+/// is the right person; tapping again makes it small. The "Confirm" button
+/// stays right under it and is scrolled into view: never hidden.
+class _FoundAccountState extends State<_FoundAccount> {
+  bool _big = false;
+  final _confirmKey = GlobalKey();
+
+  void _toggle() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _big = !_big);
+    if (_big) {
+      // Once the photo has grown, bring "Confirm" into view if needed.
+      Future.delayed(const Duration(milliseconds: 260), () {
+        final target = _confirmKey.currentContext;
+        if (target != null && target.mounted) {
+          Scrollable.ensureVisible(
+            target,
+            alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+            duration: const Duration(milliseconds: 200),
+          );
+        }
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final recipient = widget.recipient;
+    // Big, but always leaving room for the name and "Confirm".
+    final bigSize = (MediaQuery.sizeOf(context).width * 0.5).clamp(
+      140.0,
+      200.0,
+    );
+
+    final details = Column(
+      crossAxisAlignment: _big
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
+      children: [
+        RecipientHandle(recipient: recipient),
+        const SizedBox(height: 2),
+        if (recipient.isNumber)
+          Text(
+            l10n.sendStraightToNumber,
+            style: TextStyle(fontSize: 14, color: context.zc.soft),
+          )
+        else
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: _big ? Alignment.center : Alignment.centerLeft,
+            child: Text(
+              recipient.fullName,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: _big ? 17 : 15,
+                fontWeight: _big ? FontWeight.w600 : FontWeight.w400,
+                color: context.zc.text,
+              ),
+            ),
+          ),
+        if (!recipient.isNumber && recipient.fullPhone.isNotEmpty)
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: _big ? Alignment.center : Alignment.centerLeft,
+            child: Text(
+              l10n.sendReceivesOn(recipient.fullPhone),
+              maxLines: 1,
+              style: TextStyle(fontSize: 14, color: context.zc.soft),
+            ),
+          ),
+      ],
+    );
 
     return Container(
       padding: const EdgeInsets.all(10),
@@ -538,57 +613,39 @@ class _FoundAccount extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              RecipientAvatar(recipient: recipient),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    RecipientHandle(recipient: recipient),
-                    const SizedBox(height: 2),
-                    if (recipient.isNumber)
-                      Text(
-                        l10n.sendStraightToNumber,
-                        style: TextStyle(fontSize: 14, color: context.zc.soft),
-                      )
-                    else
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          recipient.fullName,
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: context.zc.text,
-                          ),
-                        ),
+          GestureDetector(
+            onTap: _toggle,
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOut,
+              alignment: Alignment.topCenter,
+              child: _big
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Column(
+                        children: [
+                          RecipientAvatar(recipient: recipient, size: bigSize),
+                          const SizedBox(height: 10),
+                          details,
+                        ],
                       ),
-                    if (!recipient.isNumber && recipient.fullPhone.isNotEmpty)
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          l10n.sendReceivesOn(recipient.fullPhone),
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: context.zc.soft,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
+                    )
+                  : Row(
+                      children: [
+                        RecipientAvatar(recipient: recipient),
+                        const SizedBox(width: 12),
+                        Expanded(child: details),
+                      ],
+                    ),
+            ),
           ),
           const SizedBox(height: 10),
           SizedBox(
+            key: _confirmKey,
             height: 48,
             child: FilledButton(
-              onPressed: onConfirm,
+              onPressed: widget.onConfirm,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.red,
                 foregroundColor: AppColors.white,

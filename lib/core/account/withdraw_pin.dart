@@ -10,10 +10,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// salted fingerprint (never the code itself). It moves to the server with
 /// the real withdrawals.
 class WithdrawPin {
-  WithdrawPin({FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage();
+  WithdrawPin({
+    FlutterSecureStorage? storage,
+    String key = 'zawapay.withdraw_pin',
+  }) : _storage = storage ?? const FlutterSecureStorage(),
+       _key = key;
 
-  static const _key = 'zawapay.withdraw_pin';
+  final String _key;
   final FlutterSecureStorage _storage;
 
   Future<bool> exists() async {
@@ -39,6 +42,14 @@ class WithdrawPin {
   }
 
   Future<void> forget() => _storage.delete(key: _key);
+
+  /// Takes the PIN of [other] (a new one just typed twice) and empties it.
+  Future<void> takeFrom(WithdrawPin other) async {
+    final value = await other._storage.read(key: other._key);
+    if (value == null) return;
+    await _storage.write(key: _key, value: value);
+    await other.forget();
+  }
 
   static String _hash(String salt, String pin) =>
       sha256.convert(utf8.encode('$salt:$pin')).toString();

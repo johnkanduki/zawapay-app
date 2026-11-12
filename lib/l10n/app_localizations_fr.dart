@@ -1117,6 +1117,547 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sendValue => 'Valeur en dollars';
 
   @override
+  String sendRateFrom(String from, String rate, String to) {
+    return '1 $from = $rate $to';
+  }
+
+  @override
+  String withdrawYouReceive(String amount) {
+    return 'Vous recevez $amount sur votre numéro.';
+  }
+
+  @override
+  String earnPerMonth(String amount) {
+    return '$amount par mois';
+  }
+
+  @override
+  String earnPerWeek(String amount) {
+    return '$amount par semaine';
+  }
+
+  @override
+  String earnPerYear(String amount) {
+    return '$amount par an';
+  }
+
+  @override
+  String earnBigNote(String people) {
+    return 'Exemple réel : une équipe de $people personnes, calculé avec les vrais pourcentages de Zawapay.';
+  }
+
+  @override
+  String get earnStepsTitle => 'Comment ça marche, en 3 étapes';
+
+  @override
+  String get earnStep1 =>
+      'Partagez votre invitation parrain ou marraine : c’est votre @.';
+
+  @override
+  String get earnStep2 =>
+      'Vos proches s’inscrivent gratuitement et envoient de l’argent à leur famille, comme d’habitude.';
+
+  @override
+  String get earnStep3 =>
+      'À chacun de leurs envois, vous recevez une part. Automatiquement, sans rien faire.';
+
+  @override
+  String earnPerSendTitle(String amount) {
+    return 'Sur chaque envoi de $amount';
+  }
+
+  @override
+  String earnFee(String percent) {
+    return 'Frais de l’envoi ($percent)';
+  }
+
+  @override
+  String earnPool(String percent) {
+    return 'Partagé entre parrains et filleuls ($percent des frais)';
+  }
+
+  @override
+  String get earnWhoTitle => 'Qui reçoit combien ?';
+
+  @override
+  String get earnLevel1 => 'Quand votre ami envoie (niveau 1)';
+
+  @override
+  String get earnLevel2 => 'Quand l’ami de votre ami envoie (niveau 2)';
+
+  @override
+  String get earnLevel3 => 'Le niveau suivant (niveau 3)';
+
+  @override
+  String get earnLevelSponsor => 'Quand votre parrain ou marraine envoie';
+
+  @override
+  String earnYouGet(String amount) {
+    return 'vous recevez $amount';
+  }
+
+  @override
+  String get earnExamplesTitle => 'Des exemples simples';
+
+  @override
+  String earnEx1(String amount) {
+    return 'Votre ami envoie $amount à sa famille, une seule fois.';
+  }
+
+  @override
+  String earnEx2(String times) {
+    return 'Il envoie $times fois par semaine.';
+  }
+
+  @override
+  String get earnEx3 => 'Il continue pendant un mois.';
+
+  @override
+  String get earnEx4 => 'Il continue toute l’année.';
+
+  @override
+  String get earnTeamTitle => 'Votre équipe grandit, vos gains aussi';
+
+  @override
+  String earnTeamIntro(
+    String direct,
+    String each,
+    String amount,
+    String times,
+  ) {
+    return 'Vous invitez $direct amis. Chacun d’eux en invite $each. Chaque personne envoie $amount, $times fois par semaine.';
+  }
+
+  @override
+  String earnTeamLevel(String level, String people, String percent) {
+    return 'Niveau $level : $people personnes ($percent)';
+  }
+
+  @override
+  String earnTeamTotal(String people) {
+    return 'Toute votre équipe : $people personnes';
+  }
+
+  @override
+  String get earnMoneyTitle => 'Votre argent';
+
+  @override
+  String get earnMoney1 =>
+      'Vos gains arrivent sur votre solde Zawapay, en dollars.';
+
+  @override
+  String get earnMoney2 =>
+      'Vous les retirez sur votre numéro de retrait : en dollars ou en francs en RD Congo, dans la monnaie de votre pays ailleurs.';
+
+  @override
+  String earnMoney3(String amount) {
+    return 'Retrait possible dès $amount.';
+  }
+
+  @override
+  String get earnMoneyFree => 'Le retrait est gratuit.';
+
+  @override
+  String earnMoneyFee(String percent) {
+    return 'Frais de retrait : $percent.';
+  }
+
+  @override
+  String get earnFaqTitle => 'Questions fréquentes';
+
+  @override
+  String get earnQ1 => 'Est-ce que je dois payer pour gagner ?';
+
+  @override
+  String get earnA1 => 'Non. L’inscription et l’invitation sont gratuites.';
+
+  @override
+  String get earnQ2 => 'Est-ce que je dois vendre quelque chose ?';
+
+  @override
+  String get earnA2 =>
+      'Non. Vos proches envoient de l’argent à leur famille, comme ils le font déjà. Vous recevez une part des frais.';
+
+  @override
+  String get earnQ3 => 'Quand est-ce que je reçois mes gains ?';
+
+  @override
+  String get earnA3 => 'Dès que l’argent est bien arrivé chez le destinataire.';
+
+  @override
+  String get earnQ4 =>
+      'Est-ce que ma part diminue l’argent envoyé à la famille ?';
+
+  @override
+  String get earnA4 =>
+      'Non. Votre part vient des frais de Zawapay, jamais de l’argent envoyé.';
+
+  @override
+  String get earnHonest =>
+      'Ces chiffres utilisent les vrais pourcentages de Zawapay, mis à jour automatiquement. Les exemples supposent que votre équipe envoie de l’argent régulièrement : vos gains réels dépendent de leurs envois réels.';
+
+  @override
+  String get earnShareTitle => 'Commencez maintenant';
+
+  @override
+  String get earnShareText =>
+      'Envoyez votre @ à vos proches. Ils l’écrivent dans « Invitation parrain ou marraine » quand ils s’inscrivent.';
+
+  @override
+  String get earnShareButton => 'Partager mon invitation';
+
+  @override
+  String earnShareMessage(String handle) {
+    return 'Rejoins-moi sur Zawapay App pour envoyer de l’argent à ta famille. À l’inscription, écris mon invitation parrain ou marraine : $handle';
+  }
+
+  @override
+  String get earnLoadFailed =>
+      'Impossible de charger les chiffres. Tirez la page vers le bas pour réessayer.';
+
+  @override
+  String get commissionsOpen => 'Voir d’où viennent mes gains ›';
+
+  @override
+  String get commissionsTitle => 'Historique des commissions';
+
+  @override
+  String get commissionsAvailable => 'Disponible';
+
+  @override
+  String commissionsPending(String amount) {
+    return 'En attente : $amount';
+  }
+
+  @override
+  String get commissionsEarned => 'Total gagné';
+
+  @override
+  String get commissionsWithdrawn => 'Total retiré';
+
+  @override
+  String get commissionsIntro =>
+      'Chaque gain vient d’un vrai envoi de votre équipe. Le pourcentage affiché est exactement celui appliqué.';
+
+  @override
+  String get commissionsEmpty =>
+      'Pas encore de commission. Elles arrivent dès qu’une personne de votre équipe envoie de l’argent.';
+
+  @override
+  String get commissionsInvite => 'Inviter mes proches';
+
+  @override
+  String commissionsSent(String handle, String amount) {
+    return '@$handle a envoyé $amount';
+  }
+
+  @override
+  String get commissionsUp1 => 'Votre invité (niveau 1)';
+
+  @override
+  String get commissionsUp2 => 'L’invité de votre invité (niveau 2)';
+
+  @override
+  String get commissionsUp3 => 'Votre équipe, niveau 3';
+
+  @override
+  String get commissionsDown1 => 'Votre parrain ou marraine';
+
+  @override
+  String get commissionsDown2 => 'Le parrain de votre parrain';
+
+  @override
+  String get commissionsDown3 => 'Au-dessus, niveau 3';
+
+  @override
+  String commissionsShare(String percent, String pool) {
+    return '$percent des commissions de cet envoi ($pool)';
+  }
+
+  @override
+  String commissionsShared(String percent, String count) {
+    return '$percent partagés entre $count personnes';
+  }
+
+  @override
+  String get commissionsStatusAvailable => 'Disponible';
+
+  @override
+  String get commissionsStatusPending => 'En attente de confirmation';
+
+  @override
+  String get commissionsStatusCancelled => 'Annulée (envoi échoué)';
+
+  @override
+  String get commissionsWithdrawal => 'Retrait vers votre numéro';
+
+  @override
+  String commissionsWithdrawalGot(String amount, String phone) {
+    return '$amount sur $phone';
+  }
+
+  @override
+  String get commissionsWithdrawalFee => 'Frais de retrait';
+
+  @override
+  String get commissionsReturned => 'Retrait échoué : argent rendu';
+
+  @override
+  String get commissionsWdDone => 'Versé';
+
+  @override
+  String get commissionsWdPending => 'En cours';
+
+  @override
+  String get commissionsWdFailed => 'Échoué';
+
+  @override
+  String get commissionsLoadFailed =>
+      'Impossible de charger l’historique. Tirez la page vers le bas pour réessayer.';
+
+  @override
+  String get commissionsRef => 'Référence';
+
+  @override
+  String get commissionsSentLabel => 'Envoyé';
+
+  @override
+  String get commissionsReceivedLabel => 'Reçu par le destinataire';
+
+  @override
+  String get commissionsPoolLabel => 'Commissions de cet envoi';
+
+  @override
+  String get commissionsPercentLabel => 'Votre pourcentage';
+
+  @override
+  String get pinSaved => 'Code PIN enregistré.';
+
+  @override
+  String get pinOn => 'Activé';
+
+  @override
+  String get pinToCreate => 'À créer';
+
+  @override
+  String get devicesTitle => 'Appareils connectés';
+
+  @override
+  String get devicesIntro =>
+      'Les téléphones connectés à votre compte. Si vous ne reconnaissez pas un appareil, déconnectez-le.';
+
+  @override
+  String get devicesThis => 'Cet appareil';
+
+  @override
+  String devicesSince(String date) {
+    return 'Connecté depuis le $date';
+  }
+
+  @override
+  String get devicesSignOut => 'Déconnecter';
+
+  @override
+  String get devicesConfirm =>
+      'Déconnecter cet appareil ? Il devra se reconnecter avec votre mot de passe.';
+
+  @override
+  String get devicesDone => 'Appareil déconnecté.';
+
+  @override
+  String get devicesCancel => 'Annuler';
+
+  @override
+  String get devicesEmpty => 'Aucun autre appareil.';
+
+  @override
+  String get devicesLoadFailed =>
+      'Impossible de charger les appareils. Tirez la page vers le bas pour réessayer.';
+
+  @override
+  String get notifOpenFailed =>
+      'Ouvrez Réglages → Zawapay App → Notifications sur votre téléphone.';
+
+  @override
+  String get notifTitle => 'Notifications';
+
+  @override
+  String get notifIntro => 'Choisissez les alertes que vous voulez recevoir.';
+
+  @override
+  String get notifTransfers => 'Envois et réceptions';
+
+  @override
+  String get notifTransfersHelp =>
+      '« Vous avez reçu 50 \$ », « Votre envoi est arrivé ».';
+
+  @override
+  String get notifCommissions => 'Commissions et retraits';
+
+  @override
+  String get notifCommissionsHelp =>
+      '« +0,78 \$ de commission », « Retrait versé ».';
+
+  @override
+  String get notifNews => 'Nouveautés';
+
+  @override
+  String get notifNewsHelp =>
+      'Les nouveaux pays, les nouvelles fonctions de Zawapay App.';
+
+  @override
+  String get notifSoon =>
+      'Bientôt : ces alertes arriveront directement sur votre téléphone. Vos choix sont déjà enregistrés.';
+
+  @override
+  String get notifLoadFailed =>
+      'Impossible de charger vos choix. Tirez la page vers le bas pour réessayer.';
+
+  @override
+  String get kycTitle2 => 'Débloquez votre limite';
+
+  @override
+  String kycToday(String used, String limit) {
+    return 'Aujourd’hui : $used sur $limit';
+  }
+
+  @override
+  String kycBenefit1(String limit) {
+    return 'Envoyez plus de $limit par jour, sans limite.';
+  }
+
+  @override
+  String get kycBenefit2 => 'Le badge bleu « certifié » à côté de votre @.';
+
+  @override
+  String get kycBenefit3 =>
+      'Votre compte est protégé : personne ne peut se faire passer pour vous.';
+
+  @override
+  String get kycHow =>
+      'Ça prend 2 minutes : une photo de votre pièce d’identité et un selfie, directement ici.';
+
+  @override
+  String get kycButton => 'Vérifier mon identité';
+
+  @override
+  String get kycDoneTitle => 'Identité vérifiée';
+
+  @override
+  String get kycDoneText =>
+      'Votre limite est débloquée et votre @ porte le badge bleu.';
+
+  @override
+  String get kycPending =>
+      'Vérification en cours : vous recevrez la réponse ici, en général en quelques minutes.';
+
+  @override
+  String get kycUnlimited => 'Sans limite';
+
+  @override
+  String kycLimitValue(String used, String limit) {
+    return '$used sur $limit';
+  }
+
+  @override
+  String get earnSixTitle => 'Les 6 niveaux qui vous rapportent';
+
+  @override
+  String earnSixIntro(String amount) {
+    return 'Vous gagnez sur les envois des 3 niveaux en dessous de vous ET des 3 niveaux au-dessus. Voici la part de chaque niveau sur un envoi de $amount :';
+  }
+
+  @override
+  String get earnSixAbove3 => 'Niveau 3 au-dessus';
+
+  @override
+  String get earnSixAbove2 => 'Le parrain de votre parrain';
+
+  @override
+  String get earnSixAbove1 => 'Votre parrain ou marraine';
+
+  @override
+  String get earnSixYou => 'VOUS';
+
+  @override
+  String get earnSixBelow1 => 'Vos invités';
+
+  @override
+  String get earnSixBelow2 => 'Les invités de vos invités';
+
+  @override
+  String get earnSixBelow3 => 'Niveau 3 en dessous';
+
+  @override
+  String earnSixTotal(String percent) {
+    return 'Total partagé : $percent — toujours 100 % des commissions de l’envoi.';
+  }
+
+  @override
+  String get earnAboveTitle =>
+      'Vous gagnez aussi grâce aux personnes au-dessus de vous';
+
+  @override
+  String get earnAboveIntro =>
+      'Quand votre parrain (ou les niveaux au-dessus) envoie de l’argent, une part revient à ses invités. Elle est partagée à parts égales entre tous les invités de ce niveau.';
+
+  @override
+  String get earnAbove1 => 'Quand votre parrain ou marraine envoie';
+
+  @override
+  String get earnAbove2 => 'Quand le parrain de votre parrain envoie';
+
+  @override
+  String get earnAbove3 => 'Quand le niveau 3 au-dessus envoie';
+
+  @override
+  String earnAboveShared(String amount) {
+    return '$amount partagés entre ses invités';
+  }
+
+  @override
+  String earnAboveEach(String people, String amount) {
+    return 'S’ils sont $people, chacun reçoit $amount';
+  }
+
+  @override
+  String earnWhereTitle(String amount) {
+    return 'Où va l’argent d’un envoi de $amount ?';
+  }
+
+  @override
+  String get earnWhereReceived => 'La famille reçoit';
+
+  @override
+  String get earnWherePaid => 'L’expéditeur paie';
+
+  @override
+  String get earnWhereFee => 'Frais de l’envoi';
+
+  @override
+  String get earnWhereNetwork => '→ pour les parrains et filleuls';
+
+  @override
+  String get earnWhereZawapay =>
+      '→ pour Zawapay (Mobile Money, opérateurs, fonctionnement)';
+
+  @override
+  String get earnWhereNote =>
+      'Votre part vient uniquement des frais : la famille reçoit toujours la somme complète. Une place vide (pas encore de parrain ou d’invité) revient à Zawapay.';
+
+  @override
+  String get earnProofTitle => 'Comment vérifier que c’est vrai ?';
+
+  @override
+  String get earnProof =>
+      'Chaque gain apparaît dans votre « Historique des commissions » (touchez votre solde Zawapay sur l’accueil) : l’envoi, la personne, son niveau et le pourcentage exact appliqué. Les pourcentages de cette page sont ceux réellement appliqués.';
+
+  @override
+  String withdrawRate(String rate, String currency) {
+    return 'Taux de la semaine : 1 USD = $rate $currency';
+  }
+
+  @override
   String get sendConfirm => 'Confirmer';
 
   @override

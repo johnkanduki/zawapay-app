@@ -7,16 +7,20 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/zawapay_colors.dart';
 import '../../l10n/app_localizations.dart';
 
-/// White "Zawapay" balance card: one line per currency of the user's country
-/// (USD and CDF for RD Congo), the last update time, a button to hide the
-/// amounts and the country flag.
+/// White "Zawapay" balance card: the commissions balance — ONE line, in
+/// dollars, whatever the country (rule "tout en dollars") — the last update
+/// time, a button to hide the amount and the country flag.
 class BalanceCard extends StatefulWidget {
   const BalanceCard({
     super.key,
     required this.country,
     this.balances = const {},
     this.updatedAt,
+    this.onTap,
   });
+
+  /// Opens « Historique des commissions » (where every dollar comes from).
+  final VoidCallback? onTap;
 
   final Country country;
 
@@ -42,115 +46,131 @@ class _BalanceCardState extends State<BalanceCard> {
     final time = DateFormat.Hm(locale)
         .format(widget.updatedAt ?? DateTime.now());
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
-      // Stands out: white on the dark page, black on the light one.
-      decoration: BoxDecoration(
-        color: context.zc.inverse,
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 28,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        color: AppColors.red,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Icon(
-                        Icons.account_balance_wallet_rounded,
-                        size: 16,
-                        color: AppColors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Zawapay',
-                      style: TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.red,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                for (final currency in widget.country.currencies)
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: '$currency ',
-                          style: const TextStyle(color: AppColors.red),
+    return GestureDetector(
+      onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
+        // Stands out: white on the dark page, black on the light one.
+        decoration: BoxDecoration(
+          color: context.zc.inverse,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: AppColors.red,
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                        TextSpan(
-                          text: _hidden
-                              ? '••••••'
-                              : amount.format(widget.balances[currency] ?? 0),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: context.zc.onInverse,
+                        child: const Icon(
+                          Icons.account_balance_wallet_rounded,
+                          size: 16,
+                          color: AppColors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Zawapay',
+                        style: TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  for (final currency in const ['USD'])
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '$currency ',
+                            style: const TextStyle(color: AppColors.red),
                           ),
-                        ),
-                      ],
+                          TextSpan(
+                            text: _hidden
+                                ? '••••••'
+                                : amount.format(widget.balances[currency] ?? 0),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: context.zc.onInverse,
+                            ),
+                          ),
+                        ],
+                      ),
+                      style: const TextStyle(fontSize: 19, height: 1.25),
                     ),
-                    style: const TextStyle(fontSize: 19, height: 1.25),
+                  const SizedBox(height: 4),
+                  if (widget.onTap != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text(
+                        l10n.commissionsOpen,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.red,
+                        ),
+                      ),
+                    ),
+                  Text(
+                    l10n.balanceUpdatedAt(time),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.zc.isDark
+                          ? AppColors.grey
+                          : const Color(0x99FFFFFF),
+                    ),
                   ),
-                const SizedBox(height: 4),
-                Text(
-                  l10n.balanceUpdatedAt(time),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: context.zc.isDark
-                        ? AppColors.grey
-                        : const Color(0x99FFFFFF),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          // Hide / show button, with the country flag next to it.
-          Semantics(
-            button: true,
-            label: _hidden ? l10n.balanceShow : l10n.balanceHide,
-            child: GestureDetector(
-              onTap: () => setState(() => _hidden = !_hidden),
-              child: Container(
-                width: 46,
-                height: 46,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.red,
-                ),
-                child: Icon(
-                  _hidden
-                      ? Icons.visibility_rounded
-                      : Icons.visibility_off_rounded,
-                  color: AppColors.white,
+            const SizedBox(width: 12),
+            // Hide / show button, with the country flag next to it.
+            Semantics(
+              button: true,
+              label: _hidden ? l10n.balanceShow : l10n.balanceHide,
+              child: GestureDetector(
+                onTap: () => setState(() => _hidden = !_hidden),
+                child: Container(
+                  width: 46,
+                  height: 46,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.red,
+                  ),
+                  child: Icon(
+                    _hidden
+                        ? Icons.visibility_rounded
+                        : Icons.visibility_off_rounded,
+                    color: AppColors.white,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: context.zc.isDark
-                  ? AppColors.surface
-                  : const Color(0x33FFFFFF),
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: context.zc.isDark
+                    ? AppColors.surface
+                    : const Color(0x33FFFFFF),
+              ),
+              child: CircleFlag(widget.country.isoCode, size: 42),
             ),
-            child: CircleFlag(widget.country.isoCode, size: 42),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

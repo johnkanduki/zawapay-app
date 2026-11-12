@@ -10,6 +10,25 @@ void main() {
     tester,
   ) async {
     FlutterSecureStorage.setMockInitialValues({});
+    // The server: 1 USD = 2 299 CDF for the member (week's rate minus 3 %).
+    final created = <String>[];
+    final before = withdrawalApi;
+    withdrawalApi = WithdrawalApi(
+      quote: (amount, currency) async => {
+        'receive': '${(double.parse(amount) * 2299).floor()}',
+        'receiveCurrency': currency,
+      },
+      create: (amount, currency) async {
+        created.add('$amount $currency');
+        return {
+          'receive': currency == 'CDF'
+              ? '${(double.parse(amount) * 2299).floor()}'
+              : amount,
+          'receiveCurrency': currency,
+        };
+      },
+    );
+    addTearDown(() => withdrawalApi = before);
     tester.view.physicalSize = const Size(1206, 2622);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -64,19 +83,38 @@ void main() {
     await tester.pump();
     expect(find.text('Retirer 50,00 USD'), findsOneWidget);
 
-    // CDF: other currency, empty balance, the amount starts again.
+    // One balance in dollars; the member chooses to RECEIVE in CDF: the
+    // server says how many francs arrive (week's rate).
     await tester.tap(find.text('CDF'));
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
-    // French numbers use a thin space between thousands.
     expect(
-      find.textContaining(RegExp(r'^Minimum 2\s000,00 CDF$')),
+      find.textContaining(RegExp(r'^Vous recevez 114\s950 CDF')),
       findsOneWidget,
     );
-    await tester.tap(find.text('USD'));
+    // The button shows what arrives, in francs.
+    expect(
+      find.textContaining(RegExp(r'^Retirer 114\s950 CDF')),
+      findsOneWidget,
+    );
+    // Too much: the francs still show, the button stays off.
+    await tester.enterText(amount, '80');
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
+    expect(
+      find.textContaining(RegExp(r'^Vous recevez 183\s920 CDF')),
+      findsOneWidget,
+    );
+    expect(find.text('Solde insuffisant'), findsOneWidget);
+    expect(button().onPressed, isNull);
+    await tester.tap(find.text('Tout retirer'));
+    await tester.pump(const Duration(milliseconds: 400));
+    // Back to receiving dollars (the switch, not the amount's "USD").
+    await tester.tap(find.text('USD').first);
+    await tester.pump(const Duration(milliseconds: 400));
 
     await tester.enterText(amount, '20');
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.text('Retirer 20,00 USD'));
     await tester.pumpAndSettle();
 
@@ -92,6 +130,7 @@ void main() {
 
     expect(find.text('Retrait en cours'), findsOneWidget);
     expect(find.text('Envoyé à Mobile Money'), findsOneWidget);
+    expect(created, ['20.00 USD']);
 
     // Back from "in progress" goes home, never to a black screen.
     final NavigatorState nav = tester.state(find.byType(Navigator));
@@ -104,7 +143,7 @@ void main() {
     await tester.tap(find.text('Accueil'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), '5');
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.text('Retirer 5,00 USD'));
     await tester.pumpAndSettle();
     expect(find.text('Entrez votre code PIN'), findsOneWidget);

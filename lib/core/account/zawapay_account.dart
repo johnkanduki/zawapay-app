@@ -372,6 +372,113 @@ class ZawapayAccount {
           ))['transfer']
           as Map<String, dynamic>;
 
+  /// Before "Pay": what the sender pays (in their own currency, fee
+  /// included) for what the recipient receives. Nothing is created.
+  Future<Map<String, dynamic>> quote({
+    required String recipient,
+    required String currency,
+    required String amount,
+  }) async =>
+      (await _authorized(
+            'POST',
+            '/v1/zawapay/quote',
+            body: {
+              'recipient': recipient,
+              'currency': currency,
+              'amount': amount,
+            },
+          ))['quote']
+          as Map<String, dynamic>;
+
+  /// « Gagner ensemble » : the real percentages and the examples computed
+  /// with them (texts and example hypotheses set in the admin dashboard).
+  Future<Map<String, dynamic>> earnPage() async =>
+      (await _authorized('GET', '/v1/zawapay/earn'))['earn']
+          as Map<String, dynamic>;
+
+  /// « Historique des commissions »: every line of my balance and where it
+  /// comes from (transfer, person, level, real percentage), and withdrawals.
+  Future<Map<String, dynamic>> commissionHistory() async =>
+      (await _authorized('GET', '/v1/zawapay/me/commissions'))['history']
+          as Map<String, dynamic>;
+
+  /// My daily limit (null when verified) and what I sent today, in dollars.
+  Future<Map<String, dynamic>> myLimit() async =>
+      (await _authorized('GET', '/v1/zawapay/me/limit'))['limit']
+          as Map<String, dynamic>;
+
+  /// Opens an identity check at Didit: the address to show IN the app.
+  Future<String> startKyc() async =>
+      '${((await _authorized('POST', '/v1/zawapay/me/kyc'))['kyc'] as Map)['url']}';
+
+  /// The alerts I want (transfers, commissions, news).
+  Future<Map<String, dynamic>> notificationPrefs() async =>
+      (await _authorized('GET', '/v1/zawapay/me/notifications'))['prefs']
+          as Map<String, dynamic>;
+
+  Future<Map<String, dynamic>> saveNotificationPrefs(
+    Map<String, bool> prefs,
+  ) async =>
+      (await _authorized(
+            'PUT',
+            '/v1/zawapay/me/notifications',
+            body: prefs,
+          ))['prefs']
+          as Map<String, dynamic>;
+
+  /// « Appareils connectés »: my open sessions (this phone is marked).
+  Future<List<Map<String, dynamic>>> devices() async =>
+      ((await _authorized(
+                'POST',
+                '/v1/zawapay/me/devices',
+                body: {'refreshToken': ?await _readToken()},
+              ))['devices']
+              as List)
+          .cast<Map<String, dynamic>>();
+
+  /// Signs another phone out (not this one: that is "Sign out").
+  Future<void> revokeDevice(String id) async => _authorized(
+    'POST',
+    '/v1/zawapay/me/devices/$id/revoke',
+    body: {'refreshToken': ?await _readToken()},
+  );
+
+  /// My commissions balance: one, in dollars (available and pending).
+  Future<Map<String, dynamic>> myBalance() async =>
+      (await _authorized('GET', '/v1/zawapay/me/balance'))['balance']
+          as Map<String, dynamic>;
+
+  /// Before a withdrawal: what I receive on my withdrawal number, in
+  /// [currency] (RD Congo: USD or CDF), for [amount] dollars.
+  Future<Map<String, dynamic>> quoteWithdrawal({
+    required String amount,
+    required String currency,
+  }) async =>
+      (await _authorized(
+            'POST',
+            '/v1/zawapay/withdrawals/quote',
+            body: {'amount': amount, 'currency': currency},
+          ))['quote']
+          as Map<String, dynamic>;
+
+  /// Withdraws [amount] dollars to my withdrawal number, paid in [currency].
+  Future<Map<String, dynamic>> createWithdrawal({
+    required String amount,
+    required String currency,
+  }) async =>
+      (await _authorized(
+            'POST',
+            '/v1/zawapay/withdrawals',
+            body: {'amount': amount, 'currency': currency},
+          ))['withdrawal']
+          as Map<String, dynamic>;
+
+  /// All my transfers, sent and received, whatever their status (newest
+  /// first, at most 100).
+  Future<List<Map<String, dynamic>>> myTransfers() async =>
+      ((await _authorized('GET', '/v1/zawapay/transfers'))['transfers'] as List)
+          .cast<Map<String, dynamic>>();
+
   /// Where a transfer stands now (status from the server).
   Future<Map<String, dynamic>> transfer(String id) async =>
       (await _authorized('GET', '/v1/zawapay/transfers/$id'))['transfer']
@@ -580,6 +687,25 @@ class ZawapayAccount {
 
   // ---------- Internals ----------
 
+  static final String _userAgent = () {
+    String os;
+    try {
+      final version =
+          RegExp(r'[0-9]+(\.[0-9]+)*')
+              .firstMatch(Platform.operatingSystemVersion)
+              ?.group(0) ??
+          '';
+      os = Platform.isIOS
+          ? 'iOS $version'
+          : Platform.isAndroid
+          ? 'Android $version'
+          : Platform.operatingSystem;
+    } catch (_) {
+      os = 'web';
+    }
+    return 'Zawapay App/1.0.0 ($os)';
+  }();
+
   Future<void> _signIn(String path, Map<String, dynamic> body) async =>
       _keepSession(await _request('POST', path, body: body));
 
@@ -653,6 +779,8 @@ class ZawapayAccount {
       final request = http.Request(method, _base.resolve(path))
         ..headers.addAll({
           'Accept': 'application/json',
+          // « Zawapay App/1.0.0 (iOS 27.0.1) » : shown in « Appareils connectés ».
+          'User-Agent': _userAgent,
           if (body != null) 'Content-Type': 'application/json',
           if (raw != null) 'Content-Type': 'image/jpeg',
           if (token != null) 'Authorization': 'Bearer $token',

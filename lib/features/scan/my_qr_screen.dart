@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/zawapay_colors.dart';
+import '../../core/widgets/verified_badge.dart';
 import '../../core/widgets/top_notice.dart';
 import '../../l10n/app_localizations.dart';
 import '../send/recipient.dart';
@@ -151,36 +152,76 @@ class _MyQrViewState extends State<MyQrView> {
         16,
         widget.showBack ? 10 : 18,
         16,
-        widget.bottomSpace + 120,
+        widget.bottomSpace + 24,
       ),
       children: [
         FramedCard(
-          padding: const EdgeInsets.fromLTRB(20, 26, 20, 20),
+          padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
           child: Column(
             children: [
               Text(
                 l10n.scanToPay,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 24,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.6,
                   color: context.zc.text,
                 ),
               ),
-              const SizedBox(height: 18),
-              // Photo with the country flag, then the "@" and the name.
-              RecipientAvatar(recipient: me, size: 64),
-              const SizedBox(height: 10),
-              RecipientHandle(recipient: me, fontSize: 21),
-              const SizedBox(height: 2),
-              Text(
-                me.fullName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 15, color: context.zc.soft),
+              const SizedBox(height: 14),
+              // On one line: the photo (with the flag) on the left, the "@"
+              // and the name on the right — the code comes up higher.
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RecipientAvatar(recipient: me, size: 52),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Same as the home page: the name big on top, the
+                        // "@" small and grey underneath (with the badge).
+                        Text(
+                          me.fullName.isEmpty ? me.handle : me.fullName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: context.zc.text,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                me.handle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: context.zc.soft,
+                                ),
+                              ),
+                            ),
+                            if (me.certified) ...[
+                              const SizedBox(width: 5),
+                              const VerifiedBadge(size: 16),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
               // Light frame, white card, round dots, logo in the middle.
               Container(
                 padding: const EdgeInsets.all(12),
@@ -198,7 +239,7 @@ class _MyQrViewState extends State<MyQrView> {
                 ),
               ),
               if (amount != null) ...[
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 _AmountChip(
                   text: l10n.myQrAsked(
                     '${NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: amount == amount.roundToDouble() ? 0 : 2).format(amount)} $_currency',
@@ -206,7 +247,7 @@ class _MyQrViewState extends State<MyQrView> {
                   onClear: () => setState(() => _amount = null),
                 ),
               ],
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
               SizedBox(
                 width: double.infinity,
                 height: 56,

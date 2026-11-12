@@ -1,4 +1,11 @@
+import '../kyc/kyc_limit_screen.dart';
+
 import 'dart:io';
+
+import 'notifications_screen.dart';
+import '../../core/widgets/top_notice.dart';
+import 'devices_screen.dart';
+import '../withdraw/pin_sheet.dart';
 
 import 'package:circle_flags/circle_flags.dart';
 import 'package:flutter/material.dart';
@@ -137,11 +144,9 @@ class SettingsView extends StatelessWidget {
               trailing: const _Chevron(),
               onTap: onPhones,
             ),
-            _DailyLimitRow(
-              title: l10n.settingsDailyLimit,
-              value: l10n.settingsDailyLimitValue('0 \$', '100 \$'),
-              used: 0,
-            ),
+            // The real limit (or "No limit" once verified); opens the page
+            // to verify the identity inside the app.
+            const _LiveDailyLimit(),
           ],
         ),
         const SizedBox(height: 16),
@@ -178,13 +183,10 @@ class SettingsView extends StatelessWidget {
                 ),
               ),
               title: l10n.settingsNotifications,
-              value: l10n.settingsNotificationsOn,
-              trailing: Icon(
-                Icons.arrow_outward_rounded,
-                color: context.zc.soft,
-                size: 22,
+              trailing: const _Chevron(),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
               ),
-              onTap: () {},
             ),
           ],
         ),
@@ -198,16 +200,23 @@ class SettingsView extends StatelessWidget {
               ),
               title: l10n.settingsPin,
               trailing: const _Chevron(),
-              onTap: () {},
+              // Create the PIN, or change it (the current one first).
+              onTap: () async {
+                final saved = await changeWithdrawPin(context);
+                if (saved && context.mounted) {
+                  showTopNotice(context, l10n.pinSaved);
+                }
+              },
             ),
             _Row(
               leading: _Circle(
                 child: Icon(Icons.phone_iphone_rounded, color: context.zc.text),
               ),
               title: l10n.settingsDevices,
-              value: '1',
               trailing: const _Chevron(),
-              onTap: () {},
+              onTap: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const DevicesScreen())),
             ),
           ],
         ),
@@ -568,6 +577,7 @@ class _DailyLimitRow extends StatelessWidget {
     required this.title,
     required this.value,
     required this.used,
+    this.onTap,
   });
 
   final String title;
@@ -575,13 +585,14 @@ class _DailyLimitRow extends StatelessWidget {
 
   /// Share of the limit already used, from 0 to 1.
   final double used;
+  final VoidCallback? onTap;
 
   static const int _bars = 28;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
         decoration: ShapeDecoration(
@@ -658,6 +669,58 @@ class _DailyLimitRow extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// "Daily limit" with the real numbers from the server; tap: the page to
+/// unlock it (identity check inside the app).
+class _LiveDailyLimit extends StatefulWidget {
+  const _LiveDailyLimit();
+
+  @override
+  State<_LiveDailyLimit> createState() => _LiveDailyLimitState();
+}
+
+class _LiveDailyLimitState extends State<_LiveDailyLimit> {
+  Map<String, dynamic>? _limit;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final l = await loadLimit();
+      if (mounted) setState(() => _limit = l);
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final l = _limit;
+    final limit = l?['limitUsd'] as num?;
+    final used = (l?['usedTodayUsd'] as num?) ?? 0;
+    String usd(num v) =>
+        '${v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(2)} \$';
+    return _DailyLimitRow(
+      title: l10n.settingsDailyLimit,
+      value: l == null
+          ? ''
+          : limit == null
+          ? l10n.kycUnlimited
+          : l10n.kycLimitValue(usd(used), usd(limit)),
+      used: limit == null || limit == 0
+          ? 0
+          : (used / limit).clamp(0.0, 1.0).toDouble(),
+      onTap: () async {
+        await Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const KycLimitScreen()));
+        _load();
+      },
     );
   }
 }

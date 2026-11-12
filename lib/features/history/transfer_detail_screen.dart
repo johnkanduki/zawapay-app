@@ -26,6 +26,9 @@ class TransferDetailScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
     String money(double value) => formatMoney(value, transfer.currency, locale);
+    // Fee and total in the sender's currency (USD when sent abroad).
+    String paidMoney(double value) =>
+        formatMoney(value, transfer.paidCurrency, locale);
     final failed = transfer.status == TransferStatus.failed;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -104,8 +107,8 @@ class TransferDetailScreen extends StatelessWidget {
                             l10n.detailTransferAmount,
                             money(transfer.received),
                           ),
-                          _Line(l10n.detailFee, money(transfer.fee)),
-                          _Line(l10n.detailTotalPaid, money(transfer.paid)),
+                          _Line(l10n.detailFee, paidMoney(transfer.fee)),
+                          _Line(l10n.detailTotalPaid, paidMoney(transfer.paid)),
                           Divider(height: 22, color: context.zc.field),
                           Row(
                             children: [

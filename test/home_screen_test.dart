@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zawapay_app/features/invite/invite_screen.dart';
 import 'package:zawapay_app/core/widgets/verified_badge.dart';
 import 'package:zawapay_app/features/home/home_screen.dart';
 import 'package:zawapay_app/l10n/app_localizations.dart';
@@ -99,12 +100,17 @@ void main() {
     expect(find.text('Paramètres'), findsOneWidget);
     expect(find.text('Identifiant certifié'), findsOneWidget);
 
-    // "Invite friends" explains the 3 levels above and 3 below.
+    // "Invite friends" opens « Gagner ensemble » (numbers from the server;
+    // here without network: a clear message instead).
+    final before = loadEarnPage;
+    loadEarnPage = () async => throw Exception('offline');
+    addTearDown(() => loadEarnPage = before);
     await tester.tap(find.text('Inviter des amis'));
     await tester.pumpAndSettle();
-    expect(find.text('Invitez, gagnez ensemble'), findsOneWidget);
-    expect(find.text('@johnkanduki'), findsOneWidget);
-    expect(find.text('Vous'), findsOneWidget);
+    expect(
+      find.textContaining('Impossible de charger les chiffres'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Settings tab from the bottom bar, not certified', (
@@ -138,7 +144,10 @@ void main() {
         HomeScreen(
           firstName: 'John',
           lastName: 'Kanduki',
-          onRefresh: () async => refreshed++,
+          onRefresh: () async {
+            refreshed++;
+            await Future<void>.delayed(const Duration(seconds: 1));
+          },
         ),
       ),
     );
@@ -161,14 +170,20 @@ void main() {
       tester.getTopLeft(find.text('John Kanduki')).dy,
       greaterThan(header),
     );
+    final nameSize = tester.getSize(find.text('John Kanduki'));
     await gesture.up();
+    await tester.pump(const Duration(milliseconds: 400));
+    // While reloading: ONE spinner only, and the name keeps its size.
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(tester.getSize(find.text('John Kanduki')), nameSize);
+    await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();
     expect(refreshed, 1);
     // Back in place once released.
     expect(tester.getTopLeft(find.text('John Kanduki')).dy, header);
   });
 
-  testWidgets('Balance: two currencies for RD Congo, one elsewhere, can hide', (
+  testWidgets('Balance: one balance in dollars, in every country, can hide', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1206, 2622);
@@ -189,7 +204,7 @@ void main() {
     expect(find.text('Scanner pour payer'), findsOneWidget);
     expect(find.text('Zawapay'), findsOneWidget);
     expect(find.textContaining('USD', findRichText: true), findsOneWidget);
-    expect(find.textContaining('CDF', findRichText: true), findsOneWidget);
+    expect(find.textContaining('CDF', findRichText: true), findsNothing);
     expect(find.textContaining('88,75', findRichText: true), findsOneWidget);
     expect(find.text('Envoyer'), findsOneWidget);
     expect(find.text('Retirer'), findsOneWidget);
@@ -202,8 +217,8 @@ void main() {
       app(const HomeScreen(firstName: 'Amani', countryCode: 'KE')),
     );
     await tester.pump();
-    expect(find.textContaining('KES', findRichText: true), findsOneWidget);
-    expect(find.textContaining('USD', findRichText: true), findsNothing);
+    expect(find.textContaining('KES', findRichText: true), findsNothing);
+    expect(find.textContaining('USD', findRichText: true), findsOneWidget);
   });
 
   testWidgets('History rows show the "@" and open the detail of each status', (
@@ -263,5 +278,31 @@ void main() {
     expect(find.text('Scanner pour payer'), findsOneWidget);
     expect(find.text('Demander de l’argent'), findsOneWidget);
     expect(find.text('Partager le code QR'), findsOneWidget);
+  });
+
+  testWidgets('Withdraw follows the withdrawal number\'s country (Settings)', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1206, 2622);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    // Member from RD Congo who chose a withdrawal number in Uganda.
+    await tester.pumpWidget(
+      app(
+        const HomeScreen(
+          firstName: 'John',
+          lastName: 'Kanduki',
+          countryCode: 'CD',
+          withdrawPhone: '+256771234567',
+          paymentPhone: '+243812345678',
+          balances: {'USD': 50},
+        ),
+      ),
+    );
+    await tester.tap(find.text('Retirer'));
+    await tester.pumpAndSettle();
+    expect(find.text('+256771234567'), findsOneWidget);
+    // Uganda: no USD / CDF choice (that is only for RD Congo).
+    expect(find.text('CDF'), findsNothing);
   });
 }

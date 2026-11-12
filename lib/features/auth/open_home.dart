@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/account/account_error.dart';
@@ -5,32 +7,81 @@ import '../../core/account/social_sign_in.dart';
 import '../../core/account/zawapay_account.dart';
 import '../../core/widgets/top_notice.dart';
 import '../../l10n/app_localizations.dart';
+import '../history/my_transfers.dart';
+import '../history/transfer.dart';
 import '../home/home_screen.dart';
 import 'screens/social_join_screen.dart';
 
 /// The home page of the signed-in member. It follows the account: the
-/// photo appears once downloaded, new numbers show at once.
-Widget homeFor(SignedIn signedIn) => ValueListenableBuilder<SignedIn?>(
-  valueListenable: zawapayAccount.current,
-  builder: (context, now, _) {
-    final s = now ?? signedIn;
-    return ValueListenableBuilder<String?>(
-      valueListenable: zawapayAccount.photo,
-      builder: (context, photo, _) => HomeScreen(
-        firstName: s.firstName,
-        lastName: s.lastName,
-        username: s.member.handle,
-        email: s.email,
-        countryCode: s.member.country,
-        photoPath: photo ?? s.photoPath,
-        certified: s.member.certified,
-        // Withdrawals and transfers received: ONLY the withdrawal number.
-        withdrawPhone: s.member.receivePhone,
-        paymentPhone: s.member.paymentPhone,
-      ),
-    );
-  },
+/// photo appears once downloaded, new numbers show at once, and the real
+/// transfers (sent and received, whatever their status) fill the history.
+Widget homeFor(SignedIn signedIn) => _TransfersLoader(
+  child: ValueListenableBuilder<SignedIn?>(
+    valueListenable: zawapayAccount.current,
+    builder: (context, now, _) {
+      final s = now ?? signedIn;
+      return ValueListenableBuilder<String?>(
+        valueListenable: zawapayAccount.photo,
+        builder: (context, photo, _) => ValueListenableBuilder<List<Transfer>?>(
+          valueListenable: myTransfers,
+          builder: (context, transfers, _) => ValueListenableBuilder<double>(
+            valueListenable: myBalanceUsd,
+            builder: (context, balance, _) => HomeScreen(
+              // One commissions balance, in dollars.
+              balances: {'USD': balance},
+              transfers: transfers,
+              onRefresh: refreshMyTransfers,
+              firstName: s.firstName,
+              lastName: s.lastName,
+              username: s.member.handle,
+              email: s.email,
+              countryCode: s.member.country,
+              photoPath: photo ?? s.photoPath,
+              certified: s.member.certified,
+              // Withdrawals and transfers received: ONLY the withdrawal number.
+              withdrawPhone: s.member.receivePhone,
+              paymentPhone: s.member.paymentPhone,
+            ),
+          ),
+        ),
+      );
+    },
+  ),
 );
+
+/// Reads the transfers when the home page opens, then every 20 s while it
+/// is shown (a pending transfer becomes successful or failed by itself).
+class _TransfersLoader extends StatefulWidget {
+  const _TransfersLoader({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_TransfersLoader> createState() => _TransfersLoaderState();
+}
+
+class _TransfersLoaderState extends State<_TransfersLoader> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    refreshMyTransfers();
+    _timer = Timer.periodic(
+      const Duration(seconds: 20),
+      (_) => refreshMyTransfers(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
 
 /// The home page replaces every sign-in / sign-up screen.
 void openHome(BuildContext context, SignedIn signedIn) => Navigator.of(context)

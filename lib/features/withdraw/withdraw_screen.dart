@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/countries/country.dart';
+import '../../core/account/account_error.dart';
 import '../../core/account/app_rules.dart';
+import '../../core/account/zawapay_account.dart';
+import '../history/my_transfers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/country_picker.dart';
@@ -14,10 +19,28 @@ import 'pin_sheet.dart';
 import 'withdraw_pending_screen.dart';
 import 'withdraw_rules.dart';
 
-/// "Withdraw": money from the Zawapay balance to the receiving Mobile Money
-/// number given at sign-up (the payment number when the box "same number"
-/// stayed ticked). The fee, if any, is taken on top of the amount, like for
-/// sending; the 4-digit PIN confirms.
+/// The server calls of a withdrawal; tests replace them.
+class WithdrawalApi {
+  const WithdrawalApi({required this.quote, required this.create});
+
+  final Future<Map<String, dynamic>> Function(String amount, String currency)
+  quote;
+  final Future<Map<String, dynamic>> Function(String amount, String currency)
+  create;
+}
+
+WithdrawalApi withdrawalApi = WithdrawalApi(
+  quote: (amount, currency) =>
+      zawapayAccount.quoteWithdrawal(amount: amount, currency: currency),
+  create: (amount, currency) =>
+      zawapayAccount.createWithdrawal(amount: amount, currency: currency),
+);
+
+/// "Withdraw": money from the Zawapay balance — ONE balance, in dollars —
+/// to the withdrawal number. The amount is typed in dollars; the member gets
+/// the currency of their withdrawal number (RD Congo: USD or CDF, chosen
+/// here), at the week's rate given by the server. The fee, if any, is taken
+/// on top; the 4-digit PIN confirms.
 class WithdrawScreen extends StatefulWidget {
   const WithdrawScreen({
     super.key,
@@ -43,20 +66,55 @@ class WithdrawScreen extends StatefulWidget {
 class _WithdrawScreenState extends State<WithdrawScreen> {
   final _amount = TextEditingController();
   late final WithdrawRules _rules = widget.rules ?? currentWithdrawRules;
+
+  /// The currency received on the withdrawal number (RD Congo: USD or CDF).
   late String _currency = widget.country.currencies.first;
+
+  /// What the server says will arrive, in [_currency] (null: not asked yet).
+  Map<String, dynamic>? _quote;
+  String? _quoteError;
+  Timer? _quoteTimer;
+  int _quoteSeq = 0;
+  bool _busy = false;
 
   @override
   void dispose() {
+    _quoteTimer?.cancel();
     _amount.dispose();
     super.dispose();
+  }
+
+  /// Asks the server what arrives on the number, once the user stops typing.
+  void _askQuote() {
+    _quoteTimer?.cancel();
+    final seq = ++_quoteSeq;
+    setState(() {
+      _quote = null;
+      _quoteError = null;
+    });
+    // Even when the balance is too small, show what WOULD arrive (the
+    // button stays off).
+    if (_value <= 0 || _belowMinimum) return;
+    final amount = _value.toStringAsFixed(2);
+    _quoteTimer = Timer(const Duration(milliseconds: 350), () async {
+      try {
+        final q = await withdrawalApi.quote(amount, _currency);
+        if (mounted && seq == _quoteSeq) setState(() => _quote = q);
+      } catch (error) {
+        if (mounted && seq == _quoteSeq) {
+          setState(() => _quoteError = accountErrorText(context, error));
+        }
+      }
+    });
   }
 
   double get _value =>
       double.tryParse(_amount.text.replaceAll(',', '.').replaceAll(' ', '')) ??
       0;
-  double get _balance => widget.balances[_currency] ?? 0;
+  // Everything is counted in dollars (rule "tout en dollars").
+  double get _balance => widget.balances['USD'] ?? 0;
   double get _fee => _rules.feeFor(_value);
-  double get _minimum => _rules.minimumFor(_currency);
+  double get _minimum => _rules.minimumFor('USD');
 
   bool get _belowMinimum => _value > 0 && _value < _minimum;
   bool get _tooMuch => _value > 0 && _value + _fee > _balance;
@@ -66,10 +124,8 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
   /// Changing the currency starts the amount again from 0.
   void _selectCurrency(String currency) {
     if (currency == _currency) return;
-    setState(() {
-      _currency = currency;
-      _amount.clear();
-    });
+    setState(() => _currency = currency);
+    _askQuote();
   }
 
   /// The whole balance, minus the fee taken on top.
@@ -77,6 +133,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
     final rate = _rules.feeRate;
     final all = (_balance / (1 + rate) * 100).floorToDouble() / 100;
     setState(() => _amount.text = all <= 0 ? '' : _plain(all));
+    _askQuote();
   }
 
   static String _plain(double v) =>
@@ -85,16 +142,29 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
   Future<void> _withdraw() async {
     FocusManager.instance.primaryFocus?.unfocus();
     if (!await askWithdrawPin(context) || !mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => WithdrawPendingScreen(
-          amount: _value,
-          fee: _fee,
-          currency: _currency,
-          phone: widget.phone!,
+    setState(() => _busy = true);
+    try {
+      final w = await withdrawalApi.create(
+        _value.toStringAsFixed(2),
+        _currency,
+      );
+      refreshMyTransfers(); // the balance goes down at once
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => WithdrawPendingScreen(
+            amount: double.tryParse('${w['receive']}') ?? _value,
+            fee: 0,
+            currency: '${w['receiveCurrency'] ?? _currency}',
+            phone: widget.phone!,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (error) {
+      if (mounted) showAccountError(context, error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
@@ -105,7 +175,13 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       locale: locale,
       decimalDigits: 2,
     );
-    String amount(double v) => '${money.format(v)} $_currency';
+    // The balance, the amount and the fee are in dollars.
+    String amount(double v) => '${money.format(v)} USD';
+    final receive = _currency == 'USD'
+        ? (_value > 0 ? '${money.format(_value)} USD' : null)
+        : _quote == null
+        ? null
+        : '${NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 0).format(double.tryParse('${_quote!['receive']}') ?? 0)} $_currency';
     final warning = _tooMuch
         ? l10n.sendInsufficient
         : _belowMinimum
@@ -227,7 +303,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                               ],
                               AmountBox(
                                 label: l10n.withdrawAmount,
-                                symbol: _currency,
+                                symbol: 'USD',
                                 child: TextField(
                                   onTapOutside: (_) => FocusManager
                                       .instance
@@ -235,7 +311,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                                       ?.unfocus(),
                                   controller: _amount,
                                   autofocus: true,
-                                  onChanged: (_) => setState(() {}),
+                                  onChanged: (_) => _askQuote(),
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
                                         decimal: true,
@@ -341,23 +417,71 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                                 ),
                               ),
                               const SizedBox(height: 10),
-                              // Not enough money, or below the minimum.
-                              SizedBox(
-                                height: 22,
-                                child: Center(
-                                  child: Text(
-                                    warning ??
-                                        l10n.withdrawMinimum(amount(_minimum)),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: warning == null
-                                          ? FontWeight.w400
-                                          : FontWeight.w600,
-                                      color: warning == null
-                                          ? context.zc.soft
-                                          : AppColors.red,
+                              // What arrives on the number (week's rate), then
+                              // "Solde insuffisant" or the minimum, in red.
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  minHeight: 44,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (receive != null)
+                                      Text(
+                                        l10n.withdrawYouReceive(receive),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: context.zc.text,
+                                        ),
+                                      ),
+                                    // The week's rate used (other currencies).
+                                    if (_currency != 'USD' && _quote != null)
+                                      Text(
+                                        l10n.withdrawRate(
+                                          NumberFormat.decimalPatternDigits(
+                                            locale: locale,
+                                            decimalDigits: 0,
+                                          ).format(
+                                            double.tryParse(
+                                                  '${_quote!['rate']}',
+                                                ) ??
+                                                0,
+                                          ),
+                                          _currency,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: context.zc.soft,
+                                        ),
+                                      ),
+                                    Text(
+                                      warning ??
+                                          _quoteError ??
+                                          (receive == null
+                                              ? l10n.withdrawMinimum(
+                                                  amount(_minimum),
+                                                )
+                                              : ''),
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight:
+                                            warning == null &&
+                                                _quoteError == null
+                                            ? FontWeight.w400
+                                            : FontWeight.w600,
+                                        color:
+                                            warning == null &&
+                                                _quoteError == null
+                                            ? context.zc.soft
+                                            : AppColors.red,
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ),
                               const Spacer(),
@@ -365,7 +489,13 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                               SizedBox(
                                 height: 60,
                                 child: FilledButton(
-                                  onPressed: _canWithdraw ? _withdraw : null,
+                                  onPressed:
+                                      _canWithdraw &&
+                                          !_busy &&
+                                          _quoteError == null &&
+                                          (_currency == 'USD' || _quote != null)
+                                      ? _withdraw
+                                      : null,
                                   style: FilledButton.styleFrom(
                                     backgroundColor: AppColors.red,
                                     disabledBackgroundColor: AppColors.red
@@ -382,10 +512,16 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                                     ),
                                   ),
                                   child: Text(
-                                    _value > 0
+                                    // The button shows what ARRIVES on the
+                                    // number, in the chosen currency.
+                                    _value <= 0
+                                        ? l10n.homeWithdraw
+                                        : _currency == 'USD'
                                         ? l10n.withdrawButton(
                                             amount(_value + _fee),
                                           )
+                                        : receive != null
+                                        ? l10n.withdrawButton(receive)
                                         : l10n.homeWithdraw,
                                   ),
                                 ),

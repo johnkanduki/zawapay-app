@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:circle_flags/circle_flags.dart';
 import 'package:flutter/material.dart';
 
@@ -17,20 +19,34 @@ class Recipient {
     required this.phone,
     this.certified = false,
     this.photoUrl,
+    this.photoFile,
   });
 
   /// A member found on the server. [phone] is its WITHDRAWAL number: the
   /// money sent always arrives there, never on the payment number.
   factory Recipient.fromMember(ZawapayMember member) {
     final full = member.receivePhone ?? '';
-    final dial = supportedCountries
-        .where((c) => c.isoCode == member.country)
-        .firstOrNull
-        ?.dialCode;
+    // The country of the WITHDRAWAL number (where the money arrives), not
+    // the sign-up country: a member may receive in another country.
+    final byPhone = supportedCountries
+        .where((c) => full.startsWith(c.dialCode))
+        .fold<Country?>(
+          null,
+          (best, c) => best == null || c.dialCode.length > best.dialCode.length
+              ? c
+              : best,
+        );
+    final country = byPhone?.isoCode ?? member.country;
+    final dial =
+        byPhone?.dialCode ??
+        supportedCountries
+            .where((c) => c.isoCode == member.country)
+            .firstOrNull
+            ?.dialCode;
     return Recipient(
       username: member.handle,
       fullName: member.name,
-      countryCode: member.country,
+      countryCode: country,
       phone: dial != null && full.startsWith(dial)
           ? full.substring(dial.length)
           : full.replaceFirst('+', ''),
@@ -60,6 +76,9 @@ class Recipient {
 
   /// Profile photo; the initials are shown without it.
   final String? photoUrl;
+
+  /// My own photo, already on the phone (shown on my payment QR code).
+  final String? photoFile;
 
   /// True when the money goes to a typed number, not to an account.
   bool get isNumber => username.isEmpty;
@@ -149,12 +168,15 @@ class RecipientAvatar extends StatelessWidget {
             ),
             alignment: Alignment.center,
             clipBehavior: Clip.antiAlias,
-            foregroundDecoration: recipient.photoUrl == null
+            foregroundDecoration:
+                recipient.photoFile == null && recipient.photoUrl == null
                 ? null
                 : BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
-                      image: NetworkImage(recipient.photoUrl!),
+                      image: recipient.photoFile != null
+                          ? FileImage(File(recipient.photoFile!))
+                          : NetworkImage(recipient.photoUrl!),
                       fit: BoxFit.cover,
                     ),
                   ),

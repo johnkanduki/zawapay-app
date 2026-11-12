@@ -2,19 +2,17 @@ import 'package:flutter/foundation.dart';
 
 import 'zawapay_account.dart';
 
-/// A country the sender (in RD Congo) can send to: the recipient gets its
-/// currency, the sender pays in dollars with the fee included. Opened and
-/// priced in the admin dashboard (Pays et taux); the server always computes
-/// the real amounts itself.
+/// A country (and currency) open in the admin dashboard: its members can
+/// send AND receive between the 12 countries. RD Congo is always open (USD
+/// and CDF). The server alone knows the rates and fees: the amount page asks
+/// it for a quote ([fetchQuote]).
 class Destination {
   const Destination({
     required this.country,
     required this.currency,
-    required this.clientRate,
-    required this.feePercent,
-    required this.minFeeUsd,
     required this.min,
     required this.max,
+    this.decimals = 0,
   });
 
   factory Destination.fromJson(Map<String, dynamic> json) {
@@ -22,44 +20,33 @@ class Destination {
     return Destination(
       country: '${json['country']}',
       currency: '${json['currency']}',
-      clientRate: n(json['clientRate']),
-      feePercent: n(json['feePercent']),
-      minFeeUsd: n(json['minFeeUsd']),
       min: n(json['min']),
       max: n(json['max']),
+      decimals: json['decimals'] is int ? json['decimals'] as int : 0,
     );
   }
 
   final String country;
   final String currency;
 
-  /// Local currency for 1 USD, as given to the customer.
-  final double clientRate;
-  final double feePercent;
-  final double minFeeUsd;
-
-  /// What the recipient may receive in one send, in the local currency.
+  /// What the recipient may receive in one send, in [currency].
   final double min;
   final double max;
 
-  /// The recipient receives [received] (local currency): what the sender
-  /// pays in USD, as the server computes it (cents rounded up).
-  ({double value, double fee, double paid}) quote(double received) {
-    double cents(double usd) => (usd * 100 - 1e-9).ceil() / 100;
-    final value = cents(received / clientRate);
-    final fee = [
-      cents(minFeeUsd),
-      cents(value * feePercent / 100),
-    ].reduce((a, b) => a > b ? a : b);
-    return (value: value, fee: fee, paid: ((value + fee) * 100).round() / 100);
-  }
+  /// 0 (UGX, XOF…) or 2 (USD, ZMW…).
+  final int decimals;
 }
 
 /// Open countries, refreshed from the server; empty without network.
 final destinations = ValueNotifier<List<Destination>>(const []);
 
+/// The first open currency of a country (null: closed).
 Destination? destinationFor(String country) =>
     destinations.value.where((d) => d.country == country).firstOrNull;
+
+/// Every open currency of a country (RD Congo: USD and CDF).
+List<Destination> destinationsFor(String country) =>
+    destinations.value.where((d) => d.country == country).toList();
 
 Future<void> refreshDestinations() async {
   // Only for a signed-in member (the list is not public).
@@ -72,3 +59,52 @@ Future<void> refreshDestinations() async {
     // Offline or signed out: the last known list stays.
   }
 }
+
+/// What the server answers before "Pay": the sender pays [paid] (fee
+/// included) in [currency], the recipient gets [destAmount] [destCurrency].
+class Quote {
+  const Quote({
+    required this.currency,
+    required this.fee,
+    required this.paid,
+    required this.destCurrency,
+    required this.destAmount,
+    required this.rate,
+  });
+
+  factory Quote.fromJson(Map<String, dynamic> j) {
+    double n(Object? v) => double.tryParse('${v ?? ''}') ?? 0;
+    return Quote(
+      currency: '${j['currency']}',
+      fee: n(j['fee']),
+      paid: n(j['paid']),
+      destCurrency: '${j['destCurrency']}',
+      destAmount: n(j['destAmount']),
+      rate: n(j['rate']),
+    );
+  }
+
+  final String currency;
+  final double fee;
+  final double paid;
+  final String destCurrency;
+  final double destAmount;
+
+  /// What the recipient gets for 1 unit paid (fee left out).
+  final double rate;
+}
+
+/// Asks the server for a quote; tests replace it.
+Future<Quote> Function({
+  required String recipient,
+  required String currency,
+  required String amount,
+})
+fetchQuote = ({required recipient, required currency, required amount}) async =>
+    Quote.fromJson(
+      await zawapayAccount.quote(
+        recipient: recipient,
+        currency: currency,
+        amount: amount,
+      ),
+    );

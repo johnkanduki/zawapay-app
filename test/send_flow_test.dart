@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zawapay_app/core/account/destinations.dart';
+import 'package:zawapay_app/core/account/zawapay_account.dart';
 import 'package:zawapay_app/core/countries/country.dart';
 import 'package:zawapay_app/features/send/recipient.dart';
 import 'package:zawapay_app/features/send/send_amount_screen.dart';
@@ -56,19 +57,25 @@ void main() {
     );
     // Once Senegal is open, her card shows.
     destinations.value = const [
-      Destination(
-        country: 'SN',
-        currency: 'XOF',
-        clientRate: 590,
-        feePercent: 3.38,
-        minFeeUsd: 0.5,
-        min: 100,
-        max: 2000000,
-      ),
+      Destination(country: 'SN', currency: 'XOF', min: 100, max: 2000000),
     ];
     addTearDown(() => destinations.value = const []);
     await tester.pumpAndSettle();
     expect(find.text('Amina Diallo'), findsOneWidget);
+
+    // Tapping the photo enlarges it (still round); "Confirm" stays visible.
+    final small = tester.getSize(find.byType(RecipientAvatar).first).width;
+    await tester.tap(find.byType(RecipientAvatar).first);
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSize(find.byType(RecipientAvatar).first).width,
+      greaterThan(small * 2),
+    );
+    final confirm = tester.getRect(find.text('Confirmer'));
+    expect(confirm.bottom, lessThan(tester.view.physicalSize.height / 3));
+    await tester.tap(find.byType(RecipientAvatar).first);
+    await tester.pumpAndSettle();
+    expect(tester.getSize(find.byType(RecipientAvatar).first).width, small);
 
     // By number: NO account is looked up, the money goes straight to the
     // typed number (even an unknown one).
@@ -156,53 +163,68 @@ void main() {
     expect(find.text('Retour à l’accueil'), findsOneWidget);
   });
 
-  testWidgets(
-    'Abroad: "Il reçoit 400 000 UGX", the button shows what to pay in dollars',
-    (tester) async {
-      tester.view.physicalSize = const Size(1206, 2622);
-      tester.view.devicePixelRatio = 3;
-      addTearDown(tester.view.reset);
-      destinations.value = const [
-        Destination(
-          country: 'UG',
-          currency: 'UGX',
-          clientRate: 4003.19,
-          feePercent: 3.38,
-          minFeeUsd: 0.5,
-          min: 500,
-          max: 5000000,
+  testWidgets('Between countries: the server quote fills "Payer … \$"', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1206, 2622);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    destinations.value = const [
+      Destination(country: 'UG', currency: 'UGX', min: 500, max: 5000000),
+    ];
+    addTearDown(() => destinations.value = const []);
+    final asked = <String>[];
+    final before = fetchQuote;
+    fetchQuote =
+        ({required recipient, required currency, required amount}) async {
+          asked.add('$recipient $currency $amount');
+          if (amount == '100') {
+            throw const AccountException(
+              'Montant entre 500 et 5000000 UGX.',
+              status: 400,
+            );
+          }
+          return const Quote(
+            currency: 'USD',
+            fee: 3.38,
+            paid: 103.31,
+            destCurrency: 'UGX',
+            destAmount: 400000,
+            rate: 4003.19,
+          );
+        };
+    addTearDown(() => fetchQuote = before);
+
+    await tester.pumpWidget(
+      app(
+        SendAmountScreen(
+          recipient: Recipient.number('UG', '771234567'),
+          senderCountry: congo,
         ),
-      ];
-      addTearDown(() => destinations.value = const []);
+      ),
+    );
+    // No USD / CDF choice: the recipient gets UGX.
+    expect(find.text('CDF'), findsNothing);
+    expect(find.text('UGX'), findsOneWidget);
 
-      await tester.pumpWidget(
-        app(
-          SendAmountScreen(
-            recipient: Recipient.number('UG', '771234567'),
-            senderCountry: congo,
-          ),
-        ),
-      );
-      // No USD / CDF choice: the recipient gets UGX, the rate is shown.
-      expect(find.text('CDF'), findsNothing);
-      expect(find.text('UGX'), findsOneWidget);
-      expect(find.text('1 USD = 4 003 UGX'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).first, '400000');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+    expect(asked.last, '+256771234567 UGX 400000');
+    expect(find.text('3,38 \$'), findsOneWidget);
+    expect(find.text('Payer 103,31 \$'), findsOneWidget);
+    expect(find.text('1 USD = 4\u202f003 UGX'), findsOneWidget);
 
-      await tester.enterText(find.byType(TextField).first, '400000');
-      await tester.pump();
-      expect(find.text('3,38 \$'), findsOneWidget);
-      expect(find.text('Payer 103,31 \$'), findsOneWidget);
-
-      // Outside the limits: the button waits, the limits are shown.
-      await tester.enterText(find.byType(TextField).first, '100');
-      await tester.pump();
-      expect(find.textContaining('Entre 500 et'), findsOneWidget);
-      expect(
-        tester
-            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Payer'))
-            .onPressed,
-        isNull,
-      );
-    },
-  );
+    // Refused by the server (limits): the message shows, "Pay" waits.
+    await tester.enterText(find.byType(TextField).first, '100');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+    expect(find.text('Montant entre 500 et 5000000 UGX.'), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Payer'))
+          .onPressed,
+      isNull,
+    );
+  });
 }

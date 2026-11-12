@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 
 import '../../core/account/app_rules.dart';
 import '../../core/account/destinations.dart';
+import '../history/my_transfers.dart';
+import '../commissions/commission_history_screen.dart';
 import '../../core/account/withdraw_pin.dart';
 import '../../core/account/zawapay_account.dart';
 import '../../core/countries/country.dart';
@@ -114,14 +116,22 @@ class _HomeScreenState extends State<HomeScreen> {
     countryCode: country.isoCode,
     phone: '',
     certified: widget.certified,
+    // My own photo, shown on my payment QR code.
+    photoFile: widget.photoPath,
   );
+
+  /// The country of a number from Settings → Phone numbers ("+256…" →
+  /// Uganda), or [fallback] when there is none yet.
+  Country _countryOf(String? phone, Country fallback) =>
+      splitPhone(phone).$1 ?? fallback;
 
   void _openScan(Country country, String fullName, String username) {
     final me = _me(country, fullName, username);
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ScanScreen(
-          senderCountry: country,
+          // Paying: the country (and currency) of the PAYMENT number.
+          senderCountry: _countryOf(widget.paymentPhone, country),
           me: me,
           balances: widget.balances,
         ),
@@ -250,7 +260,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   email: widget.email,
                   photoPath: widget.photoPath,
                   certified: widget.certified,
-                  countryCode: widget.countryCode,
+                  // The flag follows the payment number (Settings → numbers).
+                  countryCode:
+                      splitPhone(widget.paymentPhone).$1?.isoCode ??
+                      widget.countryCode,
                   phone: widget.paymentPhone,
                   onPhones: () => Navigator.of(context).push(
                     MaterialPageRoute(
@@ -278,6 +291,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Closed on the server and on the phone.
                     zawapayAccount.signOut();
                     withdrawPin.forget();
+                    myTransfers.value = null;
+                    myBalanceUsd.value = 0;
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
                         builder: (_) => const OnboardingScreen(),
@@ -291,7 +306,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 bottom: false,
                 child: Stack(
                   children: [
-                    // Spinner revealed above the header while pulling down.
+                    // The ONLY spinner: it fills up while the page is pulled
+                    // down, then turns while the page reloads.
                     Positioned(
                       top: 6,
                       left: 0,
@@ -300,153 +316,197 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: ValueListenableBuilder<double>(
                           valueListenable: _pull,
                           builder: (_, pull, _) => _PullSpinner(
-                            progress: (pull / _refreshPull).clamp(0.0, 1.0),
+                            progress: _refreshing
+                                ? null
+                                : (pull / _refreshPull).clamp(0.0, 1.0),
                           ),
                         ),
                       ),
                     ),
-                    Column(
-                      children: [
-                        // Pushing the page up: photo, name and username stay fixed and
-                        // the rest scrolls underneath. Pulling it down: the header
-                        // comes down with the whole page, to refresh it.
-                        ValueListenableBuilder<double>(
-                          valueListenable: _pull,
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-                            child: _ProfileHeader(
-                              refreshing: _refreshing,
-                              onScan: () =>
-                                  _openScan(country, fullName, username),
-                              fullName: fullName,
-                              username: username,
-                              photoPath: widget.photoPath,
-                              initialSource: name,
-                              certified: widget.certified,
-                              // Certified: the profile leads to Settings. Not yet:
-                              // it opens the identity check (KYC).
-                              onTap: widget.certified
-                                  ? () => setState(() => _tab = _settingsTab)
-                                  : () => _openKyc(fullName, username),
+                    // While reloading, the whole page stays a little lower
+                    // so the spinner shows above the header; then it goes
+                    // back up. The header itself never changes size.
+                    AnimatedPadding(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOut,
+                      padding: EdgeInsets.only(top: _refreshing ? 38 : 0),
+                      child: Column(
+                        children: [
+                          // Pushing the page up: photo, name and username stay fixed and
+                          // the rest scrolls underneath. Pulling it down: the header
+                          // comes down with the whole page, to refresh it.
+                          ValueListenableBuilder<double>(
+                            valueListenable: _pull,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                12,
+                                16,
+                                14,
+                              ),
+                              child: _ProfileHeader(
+                                onScan: () =>
+                                    _openScan(country, fullName, username),
+                                fullName: fullName,
+                                username: username,
+                                photoPath: widget.photoPath,
+                                initialSource: name,
+                                certified: widget.certified,
+                                // Certified: the profile leads to Settings. Not yet:
+                                // it opens the identity check (KYC).
+                                onTap: widget.certified
+                                    ? () => setState(() => _tab = _settingsTab)
+                                    : () => _openKyc(fullName, username),
+                              ),
+                            ),
+                            builder: (_, pull, child) => Transform.translate(
+                              offset: Offset(0, pull),
+                              child: child,
                             ),
                           ),
-                          builder: (_, pull, child) => Transform.translate(
-                            offset: Offset(0, pull),
-                            child: child,
-                          ),
-                        ),
-                        Expanded(
-                          child: ClipRect(
-                            child: NotificationListener<ScrollNotification>(
-                              onNotification: _onScroll,
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  // Room taken by the floating bar at the bottom.
-                                  final barSpace =
-                                      MediaQuery.paddingOf(context).bottom + 12;
-                                  // Balance, then the only two actions.
-                                  final money = Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      BalanceCard(
-                                        country: country,
-                                        balances: widget.balances,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      SendWithdrawButtons(
-                                        onSend: () =>
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (_) =>
-                                                    SendRecipientScreen(
-                                                      senderCountry: country,
-                                                      balances: widget.balances,
-                                                      recents: const [],
-                                                      myUsername: username,
-                                                    ),
-                                              ),
-                                            ),
-                                        onWithdraw: () =>
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (_) => WithdrawScreen(
-                                                  country: country,
-                                                  phone: widget.withdrawPhone,
-                                                  balances: widget.balances,
+                          Expanded(
+                            child: ClipRect(
+                              child: NotificationListener<ScrollNotification>(
+                                onNotification: _onScroll,
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    // Room taken by the floating bar at the bottom.
+                                    final barSpace =
+                                        MediaQuery.paddingOf(context).bottom +
+                                        12;
+                                    // Balance, then the only two actions.
+                                    final money = Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        BalanceCard(
+                                          country: country,
+                                          balances: widget.balances,
+                                          // Where every dollar comes from.
+                                          onTap: () => Navigator.of(context)
+                                              .push(
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      CommissionHistoryScreen(
+                                                        username: username,
+                                                      ),
                                                 ),
                                               ),
-                                            ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        SendWithdrawButtons(
+                                          onSend: () => Navigator.of(context)
+                                              .push(
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      SendRecipientScreen(
+                                                        // The country and currency
+                                                        // of the PAYMENT number.
+                                                        senderCountry:
+                                                            _countryOf(
+                                                              widget
+                                                                  .paymentPhone,
+                                                              country,
+                                                            ),
+                                                        balances:
+                                                            widget.balances,
+                                                        recents: const [],
+                                                        myUsername: username,
+                                                      ),
+                                                ),
+                                              ),
+                                          onWithdraw: () =>
+                                              Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      WithdrawScreen(
+                                                        // The flag, number and
+                                                        // currency of the
+                                                        // WITHDRAWAL number.
+                                                        country: _countryOf(
+                                                          widget.withdrawPhone,
+                                                          country,
+                                                        ),
+                                                        phone: widget
+                                                            .withdrawPhone,
+                                                        balances:
+                                                            widget.balances,
+                                                      ),
+                                                ),
+                                              ),
+                                        ),
+                                      ],
+                                    );
+                                    final history = _ActivityCard(
+                                      transfers: _last3(
+                                        widget.transfers ?? const <Transfer>[],
                                       ),
-                                    ],
-                                  );
-                                  final history = _ActivityCard(
-                                    transfers: _last3(
-                                      widget.transfers ?? const <Transfer>[],
-                                    ),
-                                    open: _activityOpen,
-                                    onToggle: () => setState(
-                                      () => _activityOpen = !_activityOpen,
-                                    ),
-                                    onSeeAll: () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => HistoryScreen(
-                                          transfers:
-                                              widget.transfers ??
-                                              const <Transfer>[],
+                                      open: _activityOpen,
+                                      onToggle: () => setState(
+                                        () => _activityOpen = !_activityOpen,
+                                      ),
+                                      onSeeAll: () =>
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) => HistoryScreen(
+                                                transfers:
+                                                    widget.transfers ??
+                                                    const <Transfer>[],
+                                              ),
+                                            ),
+                                          ),
+                                    );
+                                    // The page can be pulled, but it always springs back,
+                                    // so the history card stays just above the bottom bar.
+                                    const physics = BouncingScrollPhysics(
+                                      parent: AlwaysScrollableScrollPhysics(),
+                                    );
+                                    const padding = EdgeInsets.fromLTRB(
+                                      16,
+                                      10,
+                                      16,
+                                      0,
+                                    );
+
+                                    // Fills the screen when everything fits
+                                    // (history just above the bar); on a
+                                    // small phone the page simply scrolls.
+                                    return SingleChildScrollView(
+                                      controller: _scroll,
+                                      physics: physics,
+                                      padding: padding,
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          minHeight:
+                                              constraints.maxHeight -
+                                              padding.top,
+                                        ),
+                                        // At least the screen height: the
+                                        // free space goes between the buttons
+                                        // and the history card.
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            money,
+                                            Column(
+                                              children: [
+                                                const SizedBox(height: 14),
+                                                history,
+                                                SizedBox(height: barSpace + 12),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ),
-                                  );
-                                  // The page can be pulled, but it always springs back,
-                                  // so the history card stays just above the bottom bar.
-                                  const physics = BouncingScrollPhysics(
-                                    parent: AlwaysScrollableScrollPhysics(),
-                                  );
-                                  const padding = EdgeInsets.fromLTRB(
-                                    16,
-                                    10,
-                                    16,
-                                    0,
-                                  );
-
-                                  // Fills the screen when everything fits
-                                  // (history just above the bar); on a
-                                  // small phone the page simply scrolls.
-                                  return SingleChildScrollView(
-                                    controller: _scroll,
-                                    physics: physics,
-                                    padding: padding,
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        minHeight:
-                                            constraints.maxHeight - padding.top,
-                                      ),
-                                      // At least the screen height: the
-                                      // free space goes between the buttons
-                                      // and the history card.
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          money,
-                                          Column(
-                                            children: [
-                                              const SizedBox(height: 14),
-                                              history,
-                                              SizedBox(height: barSpace + 12),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -470,12 +530,10 @@ class _ProfileHeader extends StatelessWidget {
     required this.certified,
     required this.onTap,
     required this.onScan,
-    this.refreshing = false,
   });
 
   final VoidCallback onScan;
 
-  final bool refreshing;
   final String fullName;
   final String username;
   final String? photoPath;
@@ -543,17 +601,6 @@ class _ProfileHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          // Shown only while the page reloads after a pull down.
-          if (refreshing) ...[
-            const SizedBox.square(
-              dimension: 22,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: AppColors.red,
-              ),
-            ),
-            const SizedBox(width: 10),
-          ],
           ScanToPayButton(onTap: onScan),
         ],
       ),
@@ -561,17 +608,18 @@ class _ProfileHeader extends StatelessWidget {
   }
 }
 
-/// Red ring that fills up as the page is pulled down.
+/// Red ring that fills up as the page is pulled down; null: it turns
+/// (the page is reloading).
 class _PullSpinner extends StatelessWidget {
   const _PullSpinner({required this.progress});
 
-  final double progress;
+  final double? progress;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Opacity(
-        opacity: progress,
+        opacity: progress ?? 1,
         child: SizedBox.square(
           dimension: 26,
           child: CircularProgressIndicator(

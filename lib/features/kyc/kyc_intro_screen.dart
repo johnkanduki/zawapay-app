@@ -8,6 +8,7 @@ import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/verified_badge.dart';
 import '../../l10n/app_localizations.dart';
+import 'kyc_limit_screen.dart';
 
 /// Opened from the home page when the account is not certified yet.
 ///
@@ -130,7 +131,13 @@ class KycIntroScreen extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                child: PrimaryButton(label: l10n.kycStart, onPressed: () {}),
+                // The same check as Settings → Daily limit (Didit, in the app).
+                child: PrimaryButton(
+                  label: l10n.kycStart,
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const KycLimitScreen()),
+                  ),
+                ),
               ),
             ],
           ),

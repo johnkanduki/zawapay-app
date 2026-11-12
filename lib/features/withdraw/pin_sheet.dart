@@ -23,6 +23,31 @@ Future<bool> askWithdrawPin(BuildContext context, {WithdrawPin? pins}) async {
   return ok ?? false;
 }
 
+/// Settings → Security → "Code PIN": creates it (typed twice) when there is
+/// none; otherwise the current one first, then the new one twice. The old
+/// PIN stays until the new one is fully confirmed. True once saved.
+Future<bool> changeWithdrawPin(
+  BuildContext context, {
+  WithdrawPin? pins,
+}) async {
+  final store = pins ?? withdrawPin;
+  if (await store.exists()) {
+    if (!context.mounted || !await askWithdrawPin(context, pins: store)) {
+      return false;
+    }
+    final next = WithdrawPin(key: 'zawapay.withdraw_pin.next');
+    await next.forget();
+    if (!context.mounted || !await askWithdrawPin(context, pins: next)) {
+      await next.forget();
+      return false;
+    }
+    await store.takeFrom(next);
+    return true;
+  }
+  if (!context.mounted) return false;
+  return askWithdrawPin(context, pins: store);
+}
+
 class _PinForm extends StatefulWidget {
   const _PinForm({required this.store, required this.create});
 

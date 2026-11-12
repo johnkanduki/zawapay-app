@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -64,24 +66,74 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
   /// Pay with the Zawapay balance instead of Mobile Money.
   bool _fromBalance = false;
 
-  /// Another country: the recipient gets its currency (typed here), the
-  /// sender pays in dollars with the fee included.
-  late final Destination? _dest =
-      widget.recipient.countryCode == widget.senderCountry.isoCode
-      ? null
-      : destinationFor(widget.recipient.countryCode);
+  /// Every send between the 12 countries except RD Congo → RD Congo: the
+  /// server gives the quote (the sender pays in THEIR currency, fee
+  /// included; the recipient gets the currency of their country).
+  late final bool _quoted =
+      !(widget.recipient.countryCode == 'CD' &&
+          widget.senderCountry.isoCode == 'CD');
 
-  late String _currency = _dest != null
-      ? _dest.currency
+  /// Currencies the recipient can get (RD Congo: USD and CDF).
+  late final List<Destination> _options = destinationsFor(
+    widget.recipient.countryCode,
+  );
+
+  late String _currency = _quoted
+      ? (_options.any((d) => d.currency == widget.initialCurrency)
+            ? widget.initialCurrency!
+            : _options.firstOrNull?.currency ?? 'USD')
       : widget.senderCountry.currencies.contains(widget.initialCurrency)
       ? widget.initialCurrency!
       : widget.senderCountry.currencies.first;
 
+  Destination? get _dest => _quoted
+      ? _options.where((d) => d.currency == _currency).firstOrNull
+      : null;
+
+  /// The latest quote from the server, and its error (limits…).
+  Quote? _quote;
+  String? _quoteError;
+  Timer? _quoteTimer;
+  int _quoteSeq = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_quoted && _received > 0) _askQuote();
+  }
+
   @override
   void dispose() {
+    _quoteTimer?.cancel();
     _amount.dispose();
     _note.dispose();
     super.dispose();
+  }
+
+  /// Asks the server what the sender pays, once the user stops typing.
+  void _askQuote() {
+    _quoteTimer?.cancel();
+    final seq = ++_quoteSeq;
+    setState(() {
+      _quote = null;
+      _quoteError = null;
+    });
+    if (_received <= 0) return;
+    final amount = _amount.text.trim().replaceAll(',', '.').replaceAll(' ', '');
+    _quoteTimer = Timer(const Duration(milliseconds: 350), () async {
+      try {
+        final q = await fetchQuote(
+          recipient: widget.recipient.address,
+          currency: _currency,
+          amount: amount,
+        );
+        if (mounted && seq == _quoteSeq) setState(() => _quote = q);
+      } catch (error) {
+        if (mounted && seq == _quoteSeq) {
+          setState(() => _quoteError = accountErrorText(context, error));
+        }
+      }
+    });
   }
 
   /// What the other person receives: the only amount the user types.
@@ -103,6 +155,8 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
     setState(() {
       _currency = currency;
       _amount.clear();
+      _quote = null;
+      _quoteError = null;
     });
   }
 
@@ -134,10 +188,10 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
             recipient: widget.recipient,
             paid: num('paid'),
             // Abroad: what the recipient gets in their currency.
-            received: _dest != null ? num('destAmount') : num('received'),
+            received: _quoted ? num('destAmount') : num('received'),
             fee: num('fee'),
             currency: _currency,
-            payCurrency: _dest != null ? 'USD' : null,
+            payCurrency: _quoted ? '${t['currency']}' : null,
             note: _note.text.trim(),
             transferId: t['id'] as String?,
             reference: t['reference'] as String?,
@@ -160,19 +214,28 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
       decimalDigits: 2,
     );
     final dest = _dest;
-    final quote = dest?.quote(_received);
-    final fee = quote?.fee ?? feeFor(_received, serviceFeeRate);
-    final paid = quote?.paid ?? _received + fee;
+    final quoted = _quoted;
+    final quote = _quote;
+    final fee = quoted ? quote?.fee ?? 0 : feeFor(_received, serviceFeeRate);
+    final paid = quoted ? quote?.paid ?? 0 : _received + fee;
     final symbol = _currency;
-    // Abroad the sender pays in dollars.
-    final paySymbol = dest != null ? '\$' : symbol;
+    // Between countries the sender pays in their own currency.
+    final paySymbol = quoted ? currencySymbol(quote?.currency ?? '') : symbol;
     final whole = NumberFormat.decimalPatternDigits(
       locale: locale,
       decimalDigits: 0,
     );
-    final inLimits =
-        dest == null || (_received >= dest.min && _received <= dest.max);
-    final canSend = _received > 0 && inLimits;
+    final rateFormat = NumberFormat.decimalPatternDigits(
+      locale: locale,
+      decimalDigits: (quote?.rate ?? 0) < 10 ? 4 : 0,
+    );
+    final canSend = _received > 0 && (!quoted || quote != null);
+    // XOF, UGX, RWF… have no cents; USD, ZMW and SLE have two.
+    String payMoney(double v) {
+      final cur = quoted ? quote?.currency ?? '' : _currency;
+      final cents = !quoted || const {'USD', 'ZMW', 'SLE'}.contains(cur);
+      return (cents ? money : whole).format(v);
+    }
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: context.zc.isDark
@@ -252,11 +315,14 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                               // only the currency is chosen (USD / CDF).
                               // A requested amount keeps its currency.
                               if (!widget.isRequest &&
-                                  dest == null &&
-                                  widget.senderCountry.currencies.length >
-                                      1) ...[
+                                  (quoted
+                                      ? _options.length > 1
+                                      : widget.senderCountry.currencies.length >
+                                            1)) ...[
                                 CurrencySwitch(
-                                  currencies: widget.senderCountry.currencies,
+                                  currencies: quoted
+                                      ? [for (final o in _options) o.currency]
+                                      : widget.senderCountry.currencies,
                                   selected: _currency,
                                   onChanged: _selectCurrency,
                                 ),
@@ -283,7 +349,8 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                                   enableInteractiveSelection: !widget.isRequest,
                                   showCursor: !widget.isRequest,
                                   autofocus: !widget.isRequest,
-                                  onChanged: (_) => setState(() {}),
+                                  onChanged: (_) =>
+                                      quoted ? _askQuote() : setState(() {}),
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
                                         decimal: true,
@@ -292,7 +359,9 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                                     // Abroad: whole amounts only (UGX…).
                                     FilteringTextInputFormatter.allow(
                                       RegExp(
-                                        dest != null ? r'[0-9]' : r'[0-9.,]',
+                                        (dest?.decimals ?? 2) == 0
+                                            ? r'[0-9]'
+                                            : r'[0-9.,]',
                                       ),
                                     ),
                                     LengthLimitingTextInputFormatter(12),
@@ -335,7 +404,9 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                                     ),
                                     const SizedBox(width: 12),
                                     Text(
-                                      '${money.format(fee)} $paySymbol',
+                                      quoted && quote == null
+                                          ? '—'
+                                          : '${payMoney(fee)} $paySymbol',
                                       style: TextStyle(
                                         fontSize: 17,
                                         fontWeight: FontWeight.w600,
@@ -346,22 +417,31 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                                 ),
                               ),
                               // Abroad: the rate given, and the limits.
-                              if (dest != null) ...[
+                              if (quoted &&
+                                  (quote != null ||
+                                      _quoteError != null ||
+                                      dest != null)) ...[
                                 const SizedBox(height: 10),
                                 Text(
-                                  _received > 0 && !inLimits
-                                      ? l10n.sendLimits(
-                                          whole.format(dest.min),
-                                          whole.format(dest.max),
-                                          dest.currency,
-                                        )
-                                      : l10n.sendRate(
-                                          whole.format(dest.clientRate),
-                                          dest.currency,
-                                        ),
+                                  _quoteError ??
+                                      (quote != null &&
+                                              quote.currency !=
+                                                  quote.destCurrency
+                                          ? l10n.sendRateFrom(
+                                              quote.currency,
+                                              rateFormat.format(quote.rate),
+                                              quote.destCurrency,
+                                            )
+                                          : dest != null
+                                          ? l10n.sendLimits(
+                                              whole.format(dest.min),
+                                              whole.format(dest.max),
+                                              dest.currency,
+                                            )
+                                          : ''),
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: _received > 0 && !inLimits
+                                    color: _quoteError != null
                                         ? AppColors.red
                                         : context.zc.soft,
                                   ),
@@ -370,7 +450,7 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                               const SizedBox(height: 12),
                               // Pay with Mobile Money or the Zawapay balance
                               // (abroad: Mobile Money only for now).
-                              if (dest == null)
+                              if (!quoted)
                                 _SourcePicker(
                                   currency: _currency,
                                   balance: _balance,
@@ -448,7 +528,7 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
                                       : Text(
                                           canSend
                                               ? l10n.sendPayAmount(
-                                                  '${money.format(paid)} $paySymbol',
+                                                  '${payMoney(paid)} $paySymbol',
                                                 )
                                               : l10n.sendPay,
                                         ),

@@ -77,7 +77,10 @@ class _SignUpNumbersScreenState extends State<SignUpNumbersScreen> {
   String? _full(TextEditingController field, Country? country) {
     var digits = field.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (digits.isEmpty) return null;
-    digits = digits.replaceFirst(RegExp('^0+'), '');
+    // Côte d'Ivoire, Benin, Congo, Gabon: the leading 0 is part of the number.
+    if (!keepsLeadingZero.contains((country ?? _homeCountry).isoCode)) {
+      digits = digits.replaceFirst(RegExp('^0+'), '');
+    }
     return '${(country ?? _homeCountry).dialCode}$digits';
   }
 

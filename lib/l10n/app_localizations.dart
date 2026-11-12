@@ -2102,6 +2102,882 @@ abstract class AppLocalizations {
   /// **'Value in dollars'**
   String get sendValue;
 
+  /// No description provided for @sendRateFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'1 {from} = {rate} {to}'**
+  String sendRateFrom(String from, String rate, String to);
+
+  /// No description provided for @withdrawYouReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'You receive {amount} on your number.'**
+  String withdrawYouReceive(String amount);
+
+  /// No description provided for @earnPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} per month'**
+  String earnPerMonth(String amount);
+
+  /// No description provided for @earnPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} per week'**
+  String earnPerWeek(String amount);
+
+  /// No description provided for @earnPerYear.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} per year'**
+  String earnPerYear(String amount);
+
+  /// No description provided for @earnBigNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Real example: a team of {people} people, calculated with Zawapay\'s real percentages.'**
+  String earnBigNote(String people);
+
+  /// No description provided for @earnStepsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How it works, in 3 steps'**
+  String get earnStepsTitle;
+
+  /// No description provided for @earnStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your sponsor invitation: it is your @.'**
+  String get earnStep1;
+
+  /// No description provided for @earnStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Your people sign up for free and send money to their family, as usual.'**
+  String get earnStep2;
+
+  /// No description provided for @earnStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'On every transfer they make, you get a share. Automatically.'**
+  String get earnStep3;
+
+  /// No description provided for @earnPerSendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'On every transfer of {amount}'**
+  String earnPerSendTitle(String amount);
+
+  /// No description provided for @earnFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer fee ({percent})'**
+  String earnFee(String percent);
+
+  /// No description provided for @earnPool.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared between sponsors and invitees ({percent} of the fee)'**
+  String earnPool(String percent);
+
+  /// No description provided for @earnWhoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Who gets how much?'**
+  String get earnWhoTitle;
+
+  /// No description provided for @earnLevel1.
+  ///
+  /// In en, this message translates to:
+  /// **'When your friend sends (level 1)'**
+  String get earnLevel1;
+
+  /// No description provided for @earnLevel2.
+  ///
+  /// In en, this message translates to:
+  /// **'When your friend\'s friend sends (level 2)'**
+  String get earnLevel2;
+
+  /// No description provided for @earnLevel3.
+  ///
+  /// In en, this message translates to:
+  /// **'The next level (level 3)'**
+  String get earnLevel3;
+
+  /// No description provided for @earnLevelSponsor.
+  ///
+  /// In en, this message translates to:
+  /// **'When your sponsor sends'**
+  String get earnLevelSponsor;
+
+  /// No description provided for @earnYouGet.
+  ///
+  /// In en, this message translates to:
+  /// **'you get {amount}'**
+  String earnYouGet(String amount);
+
+  /// No description provided for @earnExamplesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple examples'**
+  String get earnExamplesTitle;
+
+  /// No description provided for @earnEx1.
+  ///
+  /// In en, this message translates to:
+  /// **'Your friend sends {amount} to their family, once.'**
+  String earnEx1(String amount);
+
+  /// No description provided for @earnEx2.
+  ///
+  /// In en, this message translates to:
+  /// **'They send {times} times a week.'**
+  String earnEx2(String times);
+
+  /// No description provided for @earnEx3.
+  ///
+  /// In en, this message translates to:
+  /// **'They keep going for a month.'**
+  String get earnEx3;
+
+  /// No description provided for @earnEx4.
+  ///
+  /// In en, this message translates to:
+  /// **'They keep going all year.'**
+  String get earnEx4;
+
+  /// No description provided for @earnTeamTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your team grows, so do your earnings'**
+  String get earnTeamTitle;
+
+  /// No description provided for @earnTeamIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'You invite {direct} friends. Each of them invites {each}. Everyone sends {amount}, {times} times a week.'**
+  String earnTeamIntro(String direct, String each, String amount, String times);
+
+  /// No description provided for @earnTeamLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level}: {people} people ({percent})'**
+  String earnTeamLevel(String level, String people, String percent);
+
+  /// No description provided for @earnTeamTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Your whole team: {people} people'**
+  String earnTeamTotal(String people);
+
+  /// No description provided for @earnMoneyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your money'**
+  String get earnMoneyTitle;
+
+  /// No description provided for @earnMoney1.
+  ///
+  /// In en, this message translates to:
+  /// **'Your earnings land on your Zawapay balance, in dollars.'**
+  String get earnMoney1;
+
+  /// No description provided for @earnMoney2.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw them to your withdrawal number: dollars or francs in DR Congo, your country\'s currency elsewhere.'**
+  String get earnMoney2;
+
+  /// No description provided for @earnMoney3.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawals from {amount}.'**
+  String earnMoney3(String amount);
+
+  /// No description provided for @earnMoneyFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawals are free.'**
+  String get earnMoneyFree;
+
+  /// No description provided for @earnMoneyFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawal fee: {percent}.'**
+  String earnMoneyFee(String percent);
+
+  /// No description provided for @earnFaqTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions'**
+  String get earnFaqTitle;
+
+  /// No description provided for @earnQ1.
+  ///
+  /// In en, this message translates to:
+  /// **'Do I have to pay to earn?'**
+  String get earnQ1;
+
+  /// No description provided for @earnA1.
+  ///
+  /// In en, this message translates to:
+  /// **'No. Signing up and inviting are free.'**
+  String get earnA1;
+
+  /// No description provided for @earnQ2.
+  ///
+  /// In en, this message translates to:
+  /// **'Do I have to sell anything?'**
+  String get earnQ2;
+
+  /// No description provided for @earnA2.
+  ///
+  /// In en, this message translates to:
+  /// **'No. Your people send money to their family, as they already do. You get a share of the fee.'**
+  String get earnA2;
+
+  /// No description provided for @earnQ3.
+  ///
+  /// In en, this message translates to:
+  /// **'When do I get my earnings?'**
+  String get earnQ3;
+
+  /// No description provided for @earnA3.
+  ///
+  /// In en, this message translates to:
+  /// **'As soon as the money has reached the recipient.'**
+  String get earnA3;
+
+  /// No description provided for @earnQ4.
+  ///
+  /// In en, this message translates to:
+  /// **'Does my share reduce the money sent to the family?'**
+  String get earnQ4;
+
+  /// No description provided for @earnA4.
+  ///
+  /// In en, this message translates to:
+  /// **'No. Your share comes from Zawapay\'s fee, never from the money sent.'**
+  String get earnA4;
+
+  /// No description provided for @earnHonest.
+  ///
+  /// In en, this message translates to:
+  /// **'These numbers use Zawapay\'s real percentages, updated automatically. The examples assume your team sends money regularly: your real earnings depend on their real transfers.'**
+  String get earnHonest;
+
+  /// No description provided for @earnShareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start now'**
+  String get earnShareTitle;
+
+  /// No description provided for @earnShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Send your @ to your people. They type it in “Sponsor invitation” when they sign up.'**
+  String get earnShareText;
+
+  /// No description provided for @earnShareButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Share my invitation'**
+  String get earnShareButton;
+
+  /// No description provided for @earnShareMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Join me on Zawapay App to send money to your family. When you sign up, type my sponsor invitation: {handle}'**
+  String earnShareMessage(String handle);
+
+  /// No description provided for @earnLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The numbers could not be loaded. Pull the page down to try again.'**
+  String get earnLoadFailed;
+
+  /// No description provided for @commissionsOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'See where my earnings come from ›'**
+  String get commissionsOpen;
+
+  /// No description provided for @commissionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Commissions history'**
+  String get commissionsTitle;
+
+  /// No description provided for @commissionsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get commissionsAvailable;
+
+  /// No description provided for @commissionsPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending: {amount}'**
+  String commissionsPending(String amount);
+
+  /// No description provided for @commissionsEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'Total earned'**
+  String get commissionsEarned;
+
+  /// No description provided for @commissionsWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Total withdrawn'**
+  String get commissionsWithdrawn;
+
+  /// No description provided for @commissionsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Every earning comes from a real transfer of your team. The percentage shown is exactly the one applied.'**
+  String get commissionsIntro;
+
+  /// No description provided for @commissionsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No commission yet. They come as soon as someone in your team sends money.'**
+  String get commissionsEmpty;
+
+  /// No description provided for @commissionsInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite my people'**
+  String get commissionsInvite;
+
+  /// No description provided for @commissionsSent.
+  ///
+  /// In en, this message translates to:
+  /// **'@{handle} sent {amount}'**
+  String commissionsSent(String handle, String amount);
+
+  /// No description provided for @commissionsUp1.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invitee (level 1)'**
+  String get commissionsUp1;
+
+  /// No description provided for @commissionsUp2.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invitee\'s invitee (level 2)'**
+  String get commissionsUp2;
+
+  /// No description provided for @commissionsUp3.
+  ///
+  /// In en, this message translates to:
+  /// **'Your team, level 3'**
+  String get commissionsUp3;
+
+  /// No description provided for @commissionsDown1.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sponsor'**
+  String get commissionsDown1;
+
+  /// No description provided for @commissionsDown2.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sponsor\'s sponsor'**
+  String get commissionsDown2;
+
+  /// No description provided for @commissionsDown3.
+  ///
+  /// In en, this message translates to:
+  /// **'Above, level 3'**
+  String get commissionsDown3;
+
+  /// No description provided for @commissionsShare.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent} of this transfer\'s commissions ({pool})'**
+  String commissionsShare(String percent, String pool);
+
+  /// No description provided for @commissionsShared.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent} shared between {count} people'**
+  String commissionsShared(String percent, String count);
+
+  /// No description provided for @commissionsStatusAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get commissionsStatusAvailable;
+
+  /// No description provided for @commissionsStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for confirmation'**
+  String get commissionsStatusPending;
+
+  /// No description provided for @commissionsStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled (transfer failed)'**
+  String get commissionsStatusCancelled;
+
+  /// No description provided for @commissionsWithdrawal.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawal to your number'**
+  String get commissionsWithdrawal;
+
+  /// No description provided for @commissionsWithdrawalGot.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} to {phone}'**
+  String commissionsWithdrawalGot(String amount, String phone);
+
+  /// No description provided for @commissionsWithdrawalFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawal fee'**
+  String get commissionsWithdrawalFee;
+
+  /// No description provided for @commissionsReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawal failed: money returned'**
+  String get commissionsReturned;
+
+  /// No description provided for @commissionsWdDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get commissionsWdDone;
+
+  /// No description provided for @commissionsWdPending.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get commissionsWdPending;
+
+  /// No description provided for @commissionsWdFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get commissionsWdFailed;
+
+  /// No description provided for @commissionsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The history could not be loaded. Pull the page down to try again.'**
+  String get commissionsLoadFailed;
+
+  /// No description provided for @commissionsRef.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get commissionsRef;
+
+  /// No description provided for @commissionsSentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get commissionsSentLabel;
+
+  /// No description provided for @commissionsReceivedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Received by the recipient'**
+  String get commissionsReceivedLabel;
+
+  /// No description provided for @commissionsPoolLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Commissions of this transfer'**
+  String get commissionsPoolLabel;
+
+  /// No description provided for @commissionsPercentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your percentage'**
+  String get commissionsPercentLabel;
+
+  /// No description provided for @pinSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN saved.'**
+  String get pinSaved;
+
+  /// No description provided for @pinOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get pinOn;
+
+  /// No description provided for @pinToCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'To create'**
+  String get pinToCreate;
+
+  /// No description provided for @devicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected devices'**
+  String get devicesTitle;
+
+  /// No description provided for @devicesIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'The phones signed in to your account. If you do not recognise a device, sign it out.'**
+  String get devicesIntro;
+
+  /// No description provided for @devicesThis.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get devicesThis;
+
+  /// No description provided for @devicesSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in since {date}'**
+  String devicesSince(String date);
+
+  /// No description provided for @devicesSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get devicesSignOut;
+
+  /// No description provided for @devicesConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign this device out? It will have to sign in again with your password.'**
+  String get devicesConfirm;
+
+  /// No description provided for @devicesDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Device signed out.'**
+  String get devicesDone;
+
+  /// No description provided for @devicesCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get devicesCancel;
+
+  /// No description provided for @devicesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No other device.'**
+  String get devicesEmpty;
+
+  /// No description provided for @devicesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The devices could not be loaded. Pull the page down to try again.'**
+  String get devicesLoadFailed;
+
+  /// No description provided for @notifOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings → Zawapay App → Notifications on your phone.'**
+  String get notifOpenFailed;
+
+  /// No description provided for @notifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifTitle;
+
+  /// No description provided for @notifIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the alerts you want to get.'**
+  String get notifIntro;
+
+  /// No description provided for @notifTransfers.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers sent and received'**
+  String get notifTransfers;
+
+  /// No description provided for @notifTransfersHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'“You received \$50”, “Your transfer arrived”.'**
+  String get notifTransfersHelp;
+
+  /// No description provided for @notifCommissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Commissions and withdrawals'**
+  String get notifCommissions;
+
+  /// No description provided for @notifCommissionsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'“+\$0.78 commission”, “Withdrawal paid”.'**
+  String get notifCommissionsHelp;
+
+  /// No description provided for @notifNews.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get notifNews;
+
+  /// No description provided for @notifNewsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'New countries and new features of Zawapay App.'**
+  String get notifNewsHelp;
+
+  /// No description provided for @notifSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Soon: these alerts will come straight to your phone. Your choices are already saved.'**
+  String get notifSoon;
+
+  /// No description provided for @notifLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your choices could not be loaded. Pull the page down to try again.'**
+  String get notifLoadFailed;
+
+  /// No description provided for @kycTitle2.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock your limit'**
+  String get kycTitle2;
+
+  /// No description provided for @kycToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today: {used} of {limit}'**
+  String kycToday(String used, String limit);
+
+  /// No description provided for @kycBenefit1.
+  ///
+  /// In en, this message translates to:
+  /// **'Send more than {limit} a day, with no limit.'**
+  String kycBenefit1(String limit);
+
+  /// No description provided for @kycBenefit2.
+  ///
+  /// In en, this message translates to:
+  /// **'The blue “verified” badge next to your @.'**
+  String get kycBenefit2;
+
+  /// No description provided for @kycBenefit3.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is protected: nobody can pretend to be you.'**
+  String get kycBenefit3;
+
+  /// No description provided for @kycHow.
+  ///
+  /// In en, this message translates to:
+  /// **'It takes 2 minutes: a photo of your ID and a selfie, right here.'**
+  String get kycHow;
+
+  /// No description provided for @kycButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify my identity'**
+  String get kycButton;
+
+  /// No description provided for @kycDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity verified'**
+  String get kycDoneTitle;
+
+  /// No description provided for @kycDoneText.
+  ///
+  /// In en, this message translates to:
+  /// **'Your limit is unlocked and your @ has the blue badge.'**
+  String get kycDoneText;
+
+  /// No description provided for @kycPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification in progress: the answer comes here, usually within minutes.'**
+  String get kycPending;
+
+  /// No description provided for @kycUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'No limit'**
+  String get kycUnlimited;
+
+  /// No description provided for @kycLimitValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} of {limit}'**
+  String kycLimitValue(String used, String limit);
+
+  /// No description provided for @earnSixTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The 6 levels that earn you money'**
+  String get earnSixTitle;
+
+  /// No description provided for @earnSixIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'You earn on the transfers of the 3 levels below you AND the 3 levels above. Here is each level\'s share of a {amount} transfer:'**
+  String earnSixIntro(String amount);
+
+  /// No description provided for @earnSixAbove3.
+  ///
+  /// In en, this message translates to:
+  /// **'Level 3 above'**
+  String get earnSixAbove3;
+
+  /// No description provided for @earnSixAbove2.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sponsor\'s sponsor'**
+  String get earnSixAbove2;
+
+  /// No description provided for @earnSixAbove1.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sponsor'**
+  String get earnSixAbove1;
+
+  /// No description provided for @earnSixYou.
+  ///
+  /// In en, this message translates to:
+  /// **'YOU'**
+  String get earnSixYou;
+
+  /// No description provided for @earnSixBelow1.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invitees'**
+  String get earnSixBelow1;
+
+  /// No description provided for @earnSixBelow2.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invitees\' invitees'**
+  String get earnSixBelow2;
+
+  /// No description provided for @earnSixBelow3.
+  ///
+  /// In en, this message translates to:
+  /// **'Level 3 below'**
+  String get earnSixBelow3;
+
+  /// No description provided for @earnSixTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total shared: {percent} — always 100% of the transfer\'s commissions.'**
+  String earnSixTotal(String percent);
+
+  /// No description provided for @earnAboveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You also earn thanks to the people above you'**
+  String get earnAboveTitle;
+
+  /// No description provided for @earnAboveIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'When your sponsor (or the levels above) sends money, a share goes to their invitees. It is split equally between all the invitees of that level.'**
+  String get earnAboveIntro;
+
+  /// No description provided for @earnAbove1.
+  ///
+  /// In en, this message translates to:
+  /// **'When your sponsor sends'**
+  String get earnAbove1;
+
+  /// No description provided for @earnAbove2.
+  ///
+  /// In en, this message translates to:
+  /// **'When your sponsor\'s sponsor sends'**
+  String get earnAbove2;
+
+  /// No description provided for @earnAbove3.
+  ///
+  /// In en, this message translates to:
+  /// **'When level 3 above sends'**
+  String get earnAbove3;
+
+  /// No description provided for @earnAboveShared.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} shared between their invitees'**
+  String earnAboveShared(String amount);
+
+  /// No description provided for @earnAboveEach.
+  ///
+  /// In en, this message translates to:
+  /// **'If there are {people}, each one gets {amount}'**
+  String earnAboveEach(String people, String amount);
+
+  /// No description provided for @earnWhereTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where does the money of a {amount} transfer go?'**
+  String earnWhereTitle(String amount);
+
+  /// No description provided for @earnWhereReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'The family receives'**
+  String get earnWhereReceived;
+
+  /// No description provided for @earnWherePaid.
+  ///
+  /// In en, this message translates to:
+  /// **'The sender pays'**
+  String get earnWherePaid;
+
+  /// No description provided for @earnWhereFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer fee'**
+  String get earnWhereFee;
+
+  /// No description provided for @earnWhereNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'→ for sponsors and invitees'**
+  String get earnWhereNetwork;
+
+  /// No description provided for @earnWhereZawapay.
+  ///
+  /// In en, this message translates to:
+  /// **'→ for Zawapay (Mobile Money, operators, running costs)'**
+  String get earnWhereZawapay;
+
+  /// No description provided for @earnWhereNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your share only comes from the fee: the family always gets the full amount. An empty place (no sponsor or invitee yet) goes to Zawapay.'**
+  String get earnWhereNote;
+
+  /// No description provided for @earnProofTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How can I check it is true?'**
+  String get earnProofTitle;
+
+  /// No description provided for @earnProof.
+  ///
+  /// In en, this message translates to:
+  /// **'Every earning appears in your “Commissions history” (tap your Zawapay balance on the home page): the transfer, the person, their level and the exact percentage applied. The percentages on this page are the ones really applied.'**
+  String get earnProof;
+
+  /// No description provided for @withdrawRate.
+  ///
+  /// In en, this message translates to:
+  /// **'This week\'s rate: 1 USD = {rate} {currency}'**
+  String withdrawRate(String rate, String currency);
+
   /// No description provided for @sendConfirm.
   ///
   /// In en, this message translates to:

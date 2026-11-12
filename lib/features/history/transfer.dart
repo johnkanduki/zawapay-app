@@ -23,6 +23,8 @@ class Transfer {
     this.paidAt,
     this.failedAt,
     this.confirmedAt,
+    this.payCurrency,
+    this.paidAmount,
   });
 
   final String id;
@@ -49,8 +51,16 @@ class Transfer {
   /// Confirmed by the recipient: the transfer is complete.
   final DateTime? confirmedAt;
 
-  /// What the sender paid: amount received + fee.
-  double get paid => received + fee;
+  /// Abroad the sender pays in another currency (USD) than the one the
+  /// recipient gets (UGX…): [fee] and [paid] are then in [payCurrency].
+  final String? payCurrency;
+  final double? paidAmount;
+
+  /// What the sender paid: amount received + fee (or the server's total).
+  double get paid => paidAmount ?? received + fee;
+
+  /// Currency of [fee] and [paid].
+  String get paidCurrency => payCurrency ?? currency;
 
   int get daysAgo => DateTime.now().difference(sentAt).inDays;
 
