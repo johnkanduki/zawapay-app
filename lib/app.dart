@@ -48,7 +48,14 @@ class _ZawapayAppState extends State<ZawapayApp> {
           supportedLocales: AppLocalizations.supportedLocales,
           // Tapping an empty area anywhere closes the keyboard, on every
           // page, sheet and dialog (they all live under this builder).
-          builder: (context, child) => KeyboardDismisser(child: child!),
+          // All text is drawn at 90 %, on top of the phone's own text size
+          // (someone who enlarges the text still gets it larger).
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: AppTextScaler(MediaQuery.textScalerOf(context)),
+            ),
+            child: KeyboardDismisser(child: child!),
+          ),
           // Signed in: the home page. Otherwise country and language are
           // asked only the first time.
           home: widget.signedIn != null

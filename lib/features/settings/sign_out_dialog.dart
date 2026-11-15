@@ -6,21 +6,42 @@ import '../../l10n/app_localizations.dart';
 
 /// "Sign out of Zawapay App?": dark rounded card in the middle of the screen,
 /// red "Sign out" and grey "Cancel". True when the user confirms.
-Future<bool> confirmSignOut(BuildContext context) async {
+Future<bool> confirmSignOut(BuildContext context) => _confirm(
+  context,
+  (l10n) => (l10n.signOutTitle, l10n.signOutBody, l10n.signOutConfirm),
+);
+
+/// "Delete your account?": the same card, with what is erased and kept.
+Future<bool> confirmDeleteAccount(BuildContext context) => _confirm(
+  context,
+  (l10n) => (
+    l10n.deleteAccountTitle,
+    l10n.deleteAccountBody,
+    l10n.deleteAccountConfirm,
+  ),
+);
+
+Future<bool> _confirm(
+  BuildContext context,
+  (String, String, String) Function(AppLocalizations l10n) texts,
+) async {
   final yes = await showDialog<bool>(
     context: context,
     barrierColor: const Color(0x99000000),
-    builder: (_) => const _SignOutDialog(),
+    builder: (_) => _ConfirmDialog(texts: texts),
   );
   return yes ?? false;
 }
 
-class _SignOutDialog extends StatelessWidget {
-  const _SignOutDialog();
+class _ConfirmDialog extends StatelessWidget {
+  const _ConfirmDialog({required this.texts});
+
+  final (String, String, String) Function(AppLocalizations l10n) texts;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final (title, body, confirm) = texts(l10n);
 
     return Dialog(
       backgroundColor: context.zc.isDark
@@ -35,7 +56,7 @@ class _SignOutDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              l10n.signOutTitle,
+              title,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 20,
@@ -45,7 +66,7 @@ class _SignOutDialog extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             Text(
-              l10n.signOutBody,
+              body,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
@@ -63,12 +84,12 @@ class _SignOutDialog extends StatelessWidget {
                   foregroundColor: AppColors.white,
                   shape: const StadiumBorder(),
                   textStyle: const TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: 'PlusJakartaSans',
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                child: Text(l10n.signOutConfirm),
+                child: Text(confirm),
               ),
             ),
             const SizedBox(height: 10),
@@ -81,7 +102,7 @@ class _SignOutDialog extends StatelessWidget {
                   foregroundColor: context.zc.text,
                   shape: const StadiumBorder(),
                   textStyle: const TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: 'PlusJakartaSans',
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),

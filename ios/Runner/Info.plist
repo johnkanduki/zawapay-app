@@ -2,26 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSCameraUsageDescription</key>
-	<string>Zawapay App utilise la caméra pour votre photo de profil et pour scanner les codes QR de paiement.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Zawapay App enregistre votre code QR de paiement dans vos photos.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Zawapay App ouvre vos photos pour lire un code QR de paiement.</string>
-	<!-- "Continue with Google": Zawapay App's iOS client (Google Cloud, project zawapay-app). -->
-	<key>GIDClientID</key>
-	<string>1002693321533-bmbg04fh8m6b5vqh6fm9lj31u5a81itp.apps.googleusercontent.com</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.1002693321533-bmbg04fh8m6b5vqh6fm9lj31u5a81itp</string>
-			</array>
-		</dict>
-	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -42,10 +22,31 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.1002693321533-bmbg04fh8m6b5vqh6fm9lj31u5a81itp</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>GIDClientID</key>
+	<string>1002693321533-bmbg04fh8m6b5vqh6fm9lj31u5a81itp.apps.googleusercontent.com</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Zawapay App utilise la caméra pour votre photo de profil et pour scanner les codes QR de paiement.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Zawapay App enregistre votre code QR de paiement dans vos photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Zawapay App ouvre vos photos pour lire un code QR de paiement.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

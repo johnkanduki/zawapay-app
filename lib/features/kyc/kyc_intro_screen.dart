@@ -8,6 +8,7 @@ import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/app_buttons.dart';
 import '../../core/widgets/verified_badge.dart';
 import '../../l10n/app_localizations.dart';
+import '../send/send_ui.dart';
 import 'kyc_limit_screen.dart';
 
 /// Opened from the home page when the account is not certified yet.
@@ -45,7 +46,7 @@ class KycIntroScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: _RoundIconButton(
+                  child: RoundIconButton(
                     icon: Icons.arrow_back_rounded,
                     onTap: () => Navigator.of(context).pop(),
                   ),
@@ -327,29 +328,6 @@ class _Step extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _RoundIconButton extends StatelessWidget {
-  const _RoundIconButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: context.zc.field,
-        ),
-        child: Icon(icon, color: context.zc.text),
       ),
     );
   }

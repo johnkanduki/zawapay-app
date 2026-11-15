@@ -239,7 +239,7 @@ class _KycLimitScreenState extends State<KycLimitScreen>
                         ),
                         shape: const StadiumBorder(),
                         textStyle: const TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: 'PlusJakartaSans',
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                         ),

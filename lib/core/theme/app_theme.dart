@@ -30,9 +30,9 @@ abstract final class AppText {
       TextStyle(fontSize: 14, color: context.zc.soft);
 
   // The family is set here too: a button's own style replaces the theme's,
-  // so without it buttons would use the phone's font instead of Inter.
+  // so without it buttons would use the phone's font instead of ours.
   static const TextStyle button = TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'PlusJakartaSans',
     fontSize: 16,
     fontWeight: FontWeight.w600,
     letterSpacing: -0.2,
@@ -52,7 +52,7 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       // One professional font everywhere, on iPhone and Android alike.
-      fontFamily: 'Inter',
+      fontFamily: 'PlusJakartaSans',
       scaffoldBackgroundColor: AppColors.white,
       extensions: const [ZawapayColors.light],
       colorScheme: const ColorScheme.light(
@@ -91,4 +91,27 @@ abstract final class AppTheme {
       ),
     );
   }
+}
+
+/// Zawapay's text size: 90 % of what the phone asks for (Plus Jakarta Sans
+/// is compact and bold; the app's sizes were set for a larger look).
+class AppTextScaler extends TextScaler {
+  const AppTextScaler(this.phone, {this.factor = 0.9});
+
+  final TextScaler phone;
+  final double factor;
+
+  @override
+  double scale(double fontSize) => phone.scale(fontSize) * factor;
+
+  @override
+  // ignore: deprecated_member_use
+  double get textScaleFactor => phone.textScaleFactor * factor;
+
+  @override
+  bool operator ==(Object other) =>
+      other is AppTextScaler && other.phone == phone && other.factor == factor;
+
+  @override
+  int get hashCode => Object.hash(phone, factor);
 }

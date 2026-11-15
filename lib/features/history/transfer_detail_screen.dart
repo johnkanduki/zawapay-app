@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/widgets/glass_header_page.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/top_notice.dart';
@@ -38,135 +39,145 @@ class TransferDetailScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: context.zc.page,
         body: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: RoundIconButton(
-                  icon: Icons.arrow_back_rounded,
-                  onTap: () => Navigator.of(context).pop(),
+          child: GlassHeaderPage(
+            compact: true,
+            header: Align(
+              alignment: Alignment.centerLeft,
+              child: RoundIconButton(
+                icon: Icons.arrow_back_rounded,
+                onTap: () => Navigator.of(context).pop(),
+              ),
+            ),
+            body: (top) => ListView(
+              padding: EdgeInsets.fromLTRB(16, top, 16, 24),
+              children: [
+                _StatusHeader(
+                  transfer: transfer,
+                  amount: money(transfer.received),
                 ),
-              ),
-              const SizedBox(height: 18),
-              _StatusHeader(
-                transfer: transfer,
-                amount: money(transfer.received),
-              ),
-              const SizedBox(height: 16),
-              FramedCard(
-                padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SectionTitle(l10n.detailStatusTitle),
-                    const SizedBox(height: 16),
-                    ..._steps(context),
-                    const _Divider(),
-                    _SectionTitle(
-                      transfer.outgoing
-                          ? l10n.detailRecipient
-                          : l10n.detailSender,
-                    ),
-                    const SizedBox(height: 14),
-                    _PersonRow(person: transfer.other),
-                    const SizedBox(height: 14),
-                    GestureDetector(
-                      onTap: () {},
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              l10n.detailSeeAllWith(transfer.other.handle),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.red,
+                const SizedBox(height: 16),
+                FramedCard(
+                  padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SectionTitle(l10n.detailStatusTitle),
+                      const SizedBox(height: 16),
+                      ..._steps(context),
+                      const _Divider(),
+                      _SectionTitle(
+                        transfer.outgoing
+                            ? l10n.detailRecipient
+                            : l10n.detailSender,
+                      ),
+                      const SizedBox(height: 14),
+                      _PersonRow(person: transfer.other),
+                      const SizedBox(height: 14),
+                      GestureDetector(
+                        onTap: () {},
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                l10n.detailSeeAllWith(transfer.other.handle),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.red,
+                                ),
                               ),
                             ),
-                          ),
-                          const Icon(
-                            Icons.chevron_right_rounded,
-                            color: AppColors.red,
-                          ),
-                        ],
+                            const Icon(
+                              Icons.chevron_right_rounded,
+                              color: AppColors.red,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const _Divider(),
-                    _SectionTitle(l10n.detailAmountTitle),
-                    const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-                      decoration: BoxDecoration(
-                        color: context.zc.field,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Column(
-                        children: [
-                          _Line(
-                            l10n.detailTransferAmount,
-                            money(transfer.received),
-                          ),
-                          _Line(l10n.detailFee, paidMoney(transfer.fee)),
-                          _Line(l10n.detailTotalPaid, paidMoney(transfer.paid)),
-                          Divider(height: 22, color: context.zc.field),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  l10n.detailTotalReceived,
+                      const _Divider(),
+                      _SectionTitle(l10n.detailAmountTitle),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+                        decoration: BoxDecoration(
+                          color: context.zc.field,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Column(
+                          children: [
+                            _Line(
+                              l10n.detailTransferAmount,
+                              money(transfer.received),
+                            ),
+                            _Line(l10n.detailFee, paidMoney(transfer.fee)),
+                            _Line(
+                              l10n.detailTotalPaid,
+                              paidMoney(transfer.paid),
+                            ),
+                            Divider(height: 22, color: context.zc.field),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    l10n.detailTotalReceived,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: context.zc.text,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  money(transfer.received),
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
                                     color: context.zc.text,
                                   ),
                                 ),
-                              ),
-                              Text(
-                                money(transfer.received),
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: context.zc.text,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const _Divider(),
-                    _SectionTitle(l10n.detailInfoTitle),
-                    const SizedBox(height: 14),
-                    _Line(
-                      wideValue: true,
-                      l10n.detailSentOn,
-                      DateFormat.yMMMd(locale).add_Hm().format(transfer.sentAt),
-                    ),
-                    _CopyLine(label: l10n.detailTransferId, value: transfer.id),
-                    _CopyLine(
-                      label: l10n.detailReferenceId,
-                      value: transfer.reference,
-                    ),
-                    const SizedBox(height: 18),
-                    if (failed) ...[
+                      const _Divider(),
+                      _SectionTitle(l10n.detailInfoTitle),
+                      const SizedBox(height: 14),
+                      _Line(
+                        wideValue: true,
+                        l10n.detailSentOn,
+                        DateFormat.yMMMd(locale)
+                            .add_Hm()
+                            .format(transfer.sentAt),
+                      ),
+                      _CopyLine(
+                        label: l10n.detailTransferId,
+                        value: transfer.id,
+                      ),
+                      _CopyLine(
+                        label: l10n.detailReferenceId,
+                        value: transfer.reference,
+                      ),
+                      const SizedBox(height: 18),
+                      if (failed) ...[
+                        _WideButton(
+                          label: l10n.detailTryAgain,
+                          icon: Icons.refresh_rounded,
+                          primary: true,
+                          onTap: () {},
+                        ),
+                        const SizedBox(height: 10),
+                      ],
                       _WideButton(
-                        label: l10n.detailTryAgain,
-                        icon: Icons.refresh_rounded,
-                        primary: true,
-                        onTap: () {},
+                        label: l10n.detailGetHelp,
+                        icon: Icons.headset_mic_rounded,
+                        primary: false,
+                        onTap: () => showContactSheet(context),
                       ),
-                      const SizedBox(height: 10),
                     ],
-                    _WideButton(
-                      label: l10n.detailGetHelp,
-                      icon: Icons.headset_mic_rounded,
-                      primary: false,
-                      onTap: () => showContactSheet(context),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -622,7 +633,7 @@ class _WideButton extends StatelessWidget {
           foregroundColor: context.zc.text,
           shape: const StadiumBorder(),
           textStyle: const TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'PlusJakartaSans',
             fontSize: 17,
             fontWeight: FontWeight.w700,
           ),

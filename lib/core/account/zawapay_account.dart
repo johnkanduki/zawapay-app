@@ -365,6 +365,9 @@ class ZawapayAccount {
     required String currency,
     required String amount,
     String? note,
+    // « Solde Zawapay »: paid with the commissions (PIN required); the
+    // server gives NO commission on such a transfer.
+    String? balancePin,
   }) async =>
       (await _authorized(
             'POST',
@@ -374,6 +377,10 @@ class ZawapayAccount {
               'currency': currency,
               'amount': amount,
               if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+              if (balancePin != null) ...{
+                'fromBalance': true,
+                'pin': balancePin,
+              },
             },
           ))['transfer']
           as Map<String, dynamic>;
@@ -448,6 +455,11 @@ class ZawapayAccount {
   /// Checks the PIN on the server (wrong attempts are counted there).
   Future<void> checkPin(String pin) async =>
       _authorized('POST', '/v1/zawapay/me/pin/check', body: {'pin': pin});
+
+  /// « Supprimer le compte »: the server checks the PIN, moves the referrals
+  /// under the sponsor and erases the personal data.
+  Future<void> deleteAccount(String pin) async =>
+      _authorized('POST', '/v1/zawapay/me/delete', body: {'pin': pin});
 
   /// « Code PIN oublié »: a code is sent to the account's e-mail.
   Future<String> startPinReset() async =>

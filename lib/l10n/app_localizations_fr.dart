@@ -1403,6 +1403,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get commissionsReturned => 'Retrait échoué : argent rendu';
 
   @override
+  String get commissionsPaidSend => 'Envoi payé avec le solde';
+
+  @override
+  String commissionsPaidSendTo(String to, String received) {
+    return 'À $to · reçu $received';
+  }
+
+  @override
   String get commissionsWdDone => 'Versé';
 
   @override
@@ -1755,6 +1763,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aboutDeleteAccount => 'Supprimer le compte';
+
+  @override
+  String get deleteAccountTitle => 'Supprimer votre compte ?';
+
+  @override
+  String get deleteAccountBody =>
+      'Votre nom, votre e-mail, vos numéros, votre photo et votre code PIN seront effacés pour toujours. Vos filleuls passeront sous votre parrain ou votre marraine. Retirez d’abord vos commissions : un reste sous le minimum de retrait est perdu. Vos anciens envois restent, sans votre nom, comme la loi l’exige.';
+
+  @override
+  String get deleteAccountConfirm => 'Supprimer mon compte';
+
+  @override
+  String get deleteAccountDone => 'Votre compte Zawapay App a été supprimé.';
 
   @override
   String get aboutVersion => 'Version';

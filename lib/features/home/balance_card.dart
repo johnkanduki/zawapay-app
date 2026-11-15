@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/countries/country.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/zawapay_colors.dart';
+import '../../core/widgets/glass.dart';
 import '../../l10n/app_localizations.dart';
 
 /// White "Zawapay" balance card: the commissions balance — ONE line, in
@@ -200,6 +201,7 @@ class SendWithdrawButtons extends StatelessWidget {
             color: AppColors.red,
             iconBackground: const Color(0x33FFFFFF),
             foreground: AppColors.white,
+            tinted: true,
             onTap: onSend,
           ),
         ),
@@ -230,8 +232,11 @@ class _ActionButton extends StatelessWidget {
     required this.iconBackground,
     required this.foreground,
     required this.onTap,
+    this.tinted = false,
   });
 
+  /// True: the glass takes [color] (the red "Send").
+  final bool tinted;
   final String label;
   final IconData icon;
   final Color color;
@@ -247,40 +252,40 @@ class _ActionButton extends StatelessWidget {
       button: true,
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
-          height: 58,
-          padding: const EdgeInsets.fromLTRB(5, 5, 14, 5),
-          decoration: ShapeDecoration(
-            color: color,
-            shape: const StadiumBorder(),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: iconBackground,
+        // Glass: red glass for "Send", clear glass for "Withdraw".
+        child: GlassSurface(
+          tint: tinted ? color : null,
+          child: Container(
+            height: 58,
+            padding: const EdgeInsets.fromLTRB(5, 5, 14, 5),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: iconBackground,
+                  ),
+                  child: Icon(icon, color: foreground, size: 24),
                 ),
-                child: Icon(icon, color: foreground, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: foreground,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: foreground,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

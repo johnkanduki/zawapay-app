@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../core/widgets/bar_spinner.dart';
+import '../send/send_ui.dart';
+import '../../core/widgets/glass_header_page.dart';
 import '../../core/account/zawapay_account.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/zawapay_colors.dart';
@@ -86,24 +89,7 @@ class _InviteScreenState extends State<InviteScreen> {
     String text(Object? map) =>
         map is Map ? '${map[lang] ?? map['fr'] ?? ''}' : '';
 
-    final children = <Widget>[
-      Align(
-        alignment: Alignment.centerLeft,
-        child: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: context.zc.field,
-            ),
-            child: Icon(Icons.arrow_back_rounded, color: context.zc.text),
-          ),
-        ),
-      ),
-      const SizedBox(height: 16),
-    ];
+    final children = <Widget>[];
 
     if (page == null) {
       children.add(
@@ -383,7 +369,7 @@ class _InviteScreenState extends State<InviteScreen> {
                 foregroundColor: AppColors.white,
                 shape: const StadiumBorder(),
                 textStyle: const TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: 'PlusJakartaSans',
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                 ),
@@ -401,15 +387,25 @@ class _InviteScreenState extends State<InviteScreen> {
       child: Scaffold(
         backgroundColor: context.zc.page,
         body: SafeArea(
-          child: RefreshIndicator(
-            color: AppColors.red,
-            onRefresh: _load,
-            child: ListView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
+          child: GlassHeaderPage(
+            compact: true,
+            header: Align(
+              alignment: Alignment.centerLeft,
+              child: RoundIconButton(
+                icon: Icons.arrow_back_rounded,
+                onTap: () => Navigator.of(context).pop(),
               ),
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
-              children: children,
+            ),
+            body: (top) => BarPullRefresh(
+              top: top,
+              onRefresh: _load,
+              child: ListView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                padding: EdgeInsets.fromLTRB(16, top, 16, 40),
+                children: children,
+              ),
             ),
           ),
         ),

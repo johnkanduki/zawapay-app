@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Zawapay red, behind the white "Z" of the Android 8+ icon. -->
+    <color name="ic_launcher_background">#E30613</color>
+</resources>

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zawapay_app/features/auth/screens/sign_in_screen.dart';
@@ -34,5 +35,24 @@ void main() {
     await tester.enterText(find.byType(TextField).last, 'Zawapay2026!');
     await tester.pump();
     expect(enabled(), isTrue);
+  });
+
+  testWidgets('Android: no "Continue with Apple" button', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    tester.view.physicalSize = const Size(1206, 2622);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('fr'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const SignInScreen(),
+      ),
+    );
+    expect(find.byIcon(Icons.apple), findsNothing);
+    expect(find.text('Google'), findsOneWidget);
+    debugDefaultTargetPlatformOverride = null;
   });
 }

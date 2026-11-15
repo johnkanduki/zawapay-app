@@ -4,6 +4,7 @@ import 'package:circle_flags/circle_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/widgets/glass_header_page.dart';
 import '../../core/account/account_error.dart';
 import '../../core/account/app_rules.dart';
 import '../../core/account/destinations.dart';
@@ -219,130 +220,133 @@ class _SendRecipientScreenState extends State<SendRecipientScreen> {
       child: Scaffold(
         backgroundColor: context.zc.page,
         body: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: RoundIconButton(
-                  icon: Icons.arrow_back_rounded,
-                  onTap: () => Navigator.of(context).pop(),
-                ),
+          child: GlassHeaderPage(
+            compact: true,
+            header: Align(
+              alignment: Alignment.centerLeft,
+              child: RoundIconButton(
+                icon: Icons.arrow_back_rounded,
+                onTap: () => Navigator.of(context).pop(),
               ),
-              const SizedBox(height: 22),
-              FramedCard(
-                padding: const EdgeInsets.fromLTRB(16, 22, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4),
-                      child: Text(
-                        l10n.sendTitle,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.8,
-                          color: context.zc.text,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _SearchSwitch(by: _by, onChanged: _switchTo),
-                    const SizedBox(height: 12),
-                    if (_by == _SearchBy.username)
-                      _InputBox(
-                        prefix: Text(
-                          '@',
+            ),
+            body: (top) => ListView(
+              padding: EdgeInsets.fromLTRB(16, top, 16, 24),
+              children: [
+                FramedCard(
+                  padding: const EdgeInsets.fromLTRB(16, 22, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Text(
+                          l10n.sendTitle,
                           style: TextStyle(
-                            fontSize: 19,
+                            fontSize: 24,
                             fontWeight: FontWeight.w700,
+                            letterSpacing: -0.8,
                             color: context.zc.text,
                           ),
                         ),
-                        child: _textField(
-                          hint: l10n.sendUsernameHint,
-                          keyboard: TextInputType.visiblePassword,
-                          formatters: [
-                            FilteringTextInputFormatter.allow(
-                              RegExp('[a-zA-Z0-9_-]'),
-                            ),
-                            LengthLimitingTextInputFormatter(30),
-                          ],
-                        ),
-                      )
-                    else
-                      Row(
-                        children: [
-                          _CountryButton(
-                            country: _phoneCountry,
-                            onTap: () async {
-                              final picked = await showCountryPicker(
-                                context,
-                                selected: _phoneCountry,
-                              );
-                              if (picked != null) {
-                                setState(() => _phoneCountry = picked);
-                                _search();
-                              }
-                            },
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _InputBox(
-                              child: _textField(
-                                hint: l10n.sendWithdrawNumberHint,
-                                keyboard: TextInputType.phone,
-                                formatters: [
-                                  FilteringTextInputFormatter.allow(
-                                    RegExp(r'[0-9 ]'),
-                                  ),
-                                  LengthLimitingTextInputFormatter(15),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
-                    // The account appears only when it matches exactly.
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOut,
-                      alignment: Alignment.topCenter,
-                      child: found != null
-                          ? Padding(
-                              padding: const EdgeInsets.only(top: 12),
-                              child: _FoundAccount(
-                                recipient: found,
-                                onConfirm: () => _open(found),
+                      const SizedBox(height: 16),
+                      _SearchSwitch(by: _by, onChanged: _switchTo),
+                      const SizedBox(height: 12),
+                      if (_by == _SearchBy.username)
+                        _InputBox(
+                          prefix: Text(
+                            '@',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w700,
+                              color: context.zc.text,
+                            ),
+                          ),
+                          child: _textField(
+                            hint: l10n.sendUsernameHint,
+                            keyboard: TextInputType.visiblePassword,
+                            formatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp('[a-zA-Z0-9_-]'),
                               ),
-                            )
-                          : message != null
-                          ? Padding(
-                              padding: const EdgeInsets.fromLTRB(6, 12, 6, 0),
-                              child: Text(
-                                message,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: context.zc.soft,
+                              LengthLimitingTextInputFormatter(30),
+                            ],
+                          ),
+                        )
+                      else
+                        Row(
+                          children: [
+                            _CountryButton(
+                              country: _phoneCountry,
+                              onTap: () async {
+                                final picked = await showCountryPicker(
+                                  context,
+                                  selected: _phoneCountry,
+                                );
+                                if (picked != null) {
+                                  setState(() => _phoneCountry = picked);
+                                  _search();
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _InputBox(
+                                child: _textField(
+                                  hint: l10n.sendWithdrawNumberHint,
+                                  keyboard: TextInputType.phone,
+                                  formatters: [
+                                    FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9 ]'),
+                                    ),
+                                    LengthLimitingTextInputFormatter(15),
+                                  ],
                                 ),
                               ),
-                            )
-                          : const SizedBox(width: double.infinity),
-                    ),
-                  ],
+                            ),
+                          ],
+                        ),
+                      // The account appears only when it matches exactly.
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOut,
+                        alignment: Alignment.topCenter,
+                        child: found != null
+                            ? Padding(
+                                padding: const EdgeInsets.only(top: 12),
+                                child: _FoundAccount(
+                                  recipient: found,
+                                  onConfirm: () => _open(found),
+                                ),
+                              )
+                            : message != null
+                            ? Padding(
+                                padding: const EdgeInsets.fromLTRB(6, 12, 6, 0),
+                                child: Text(
+                                  message,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: context.zc.soft,
+                                  ),
+                                ),
+                              )
+                            : const SizedBox(width: double.infinity),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              if (widget.recents.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _Recents(
-                  recents: widget.recents,
-                  open: _recentsOpen,
-                  onToggle: () => setState(() => _recentsOpen = !_recentsOpen),
-                  onSelect: _open,
-                ),
+                if (widget.recents.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _Recents(
+                    recents: widget.recents,
+                    open: _recentsOpen,
+                    onToggle: () =>
+                        setState(() => _recentsOpen = !_recentsOpen),
+                    onSelect: _open,
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -651,7 +655,7 @@ class _FoundAccountState extends State<_FoundAccount> {
                 foregroundColor: AppColors.white,
                 shape: const StadiumBorder(),
                 textStyle: const TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: 'PlusJakartaSans',
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),

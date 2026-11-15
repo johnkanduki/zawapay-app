@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/zawapay_colors.dart';
 import '../../core/widgets/top_notice.dart';
 import '../../l10n/app_localizations.dart';
-import '../support/contact_sheet.dart';
+import 'delete_account.dart';
 
 /// Version shown in Settings and in "About" (same as pubspec.yaml).
 const appVersion = '1.0.0';
@@ -210,8 +211,19 @@ Future<void> showAboutSheet(BuildContext context) => showSettingsSheet(
   context,
   card: (context) {
     final l10n = AppLocalizations.of(context);
-    void soon() =>
+    // The public pages on app.zawapay.com, in the app's language.
+    Future<void> page(String fr, String en) async {
+      final english = Localizations.localeOf(context).languageCode == 'en';
+      final uri = Uri.parse('https://app.zawapay.com${english ? en : fr}');
+      final opened = await launchUrl(
+        uri,
+        mode: LaunchMode.inAppBrowserView,
+      ).catchError((_) => false);
+      if (!opened && context.mounted) {
         showTopNotice(context, l10n.contactSoon, icon: Icons.info_rounded);
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -227,16 +239,21 @@ Future<void> showAboutSheet(BuildContext context) => showSettingsSheet(
             ),
           ),
         ),
-        SheetPill(title: l10n.aboutPrivacy, onTap: soon),
+        SheetPill(
+          title: l10n.aboutPrivacy,
+          onTap: () => page('/confidentialite', '/en/privacy'),
+        ),
         const SizedBox(height: 10),
-        SheetPill(title: l10n.aboutTerms, onTap: soon),
+        SheetPill(
+          title: l10n.aboutTerms,
+          onTap: () => page('/conditions', '/en/terms'),
+        ),
         const SizedBox(height: 10),
-        // Deleting goes through the support for now (it needs a decision
-        // for the sponsor tree: who takes the filleuls).
+        // Erased on the server; the referrals move under the sponsor.
         SheetPill(
           title: l10n.aboutDeleteAccount,
           titleColor: AppColors.red,
-          onTap: () => showContactSheet(context),
+          onTap: () => deleteAccountFlow(context),
         ),
       ],
     );

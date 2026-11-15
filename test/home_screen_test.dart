@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zawapay_app/core/widgets/bar_spinner.dart';
 import 'package:zawapay_app/features/invite/invite_screen.dart';
 import 'package:zawapay_app/core/widgets/verified_badge.dart';
 import 'package:zawapay_app/features/home/home_screen.dart';
@@ -159,22 +160,26 @@ void main() {
 
     // A long pull, then release: refresh.
     final header = tester.getTopLeft(find.text('John Kanduki')).dy;
+    final send = tester.getTopLeft(find.text('Envoyer')).dy;
     final gesture = await tester.startGesture(
       tester.getCenter(find.text('Envoyer')),
     );
     await gesture.moveBy(const Offset(0, 100));
     await gesture.moveBy(const Offset(0, 100));
     await tester.pump();
-    // The header comes down with the page.
-    expect(
-      tester.getTopLeft(find.text('John Kanduki')).dy,
-      greaterThan(header),
-    );
+    // Only the page under the header comes down; the header never moves.
+    expect(tester.getTopLeft(find.text('Envoyer')).dy, greaterThan(send));
+    expect(tester.getTopLeft(find.text('John Kanduki')).dy, header);
     final nameSize = tester.getSize(find.text('John Kanduki'));
     await gesture.up();
     await tester.pump(const Duration(milliseconds: 400));
-    // While reloading: ONE spinner only, and the name keeps its size.
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    // While reloading: ONE spinner only, under the header, which stays put.
+    expect(find.byType(BarSpinner), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.byType(BarSpinner)).dy,
+      greaterThan(tester.getBottomLeft(find.text('@johnkanduki')).dy),
+    );
+    expect(tester.getTopLeft(find.text('John Kanduki')).dy, header);
     expect(tester.getSize(find.text('John Kanduki')), nameSize);
     await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();

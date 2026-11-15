@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/widgets/bar_spinner.dart';
+import '../../core/widgets/glass_header_page.dart';
 import '../../core/account/zawapay_account.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/zawapay_colors.dart';
@@ -56,32 +59,31 @@ class _CommissionHistoryScreenState extends State<CommissionHistoryScreen> {
     String usd(Object? v) =>
         '${NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: 2).format(n(v))} USD';
 
-    final children = <Widget>[
-      Row(
-        children: [
-          RoundIconButton(
-            icon: Icons.arrow_back_rounded,
-            onTap: () => Navigator.of(context).pop(),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                l10n.commissionsTitle,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: context.zc.text,
-                ),
+    final header = Row(
+      children: [
+        RoundIconButton(
+          icon: Icons.arrow_back_rounded,
+          onTap: () => Navigator.of(context).pop(),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              l10n.commissionsTitle,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: context.zc.text,
               ),
             ),
           ),
-        ],
-      ),
-      const SizedBox(height: 18),
-    ];
+        ),
+      ],
+    );
+
+    final children = <Widget>[const SizedBox(height: 18)];
 
     if (h == null) {
       children.add(
@@ -140,7 +142,7 @@ class _CommissionHistoryScreenState extends State<CommissionHistoryScreen> {
                 foregroundColor: AppColors.white,
                 shape: const StadiumBorder(),
                 textStyle: const TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: 'PlusJakartaSans',
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
@@ -163,15 +165,18 @@ class _CommissionHistoryScreenState extends State<CommissionHistoryScreen> {
       child: Scaffold(
         backgroundColor: context.zc.page,
         body: SafeArea(
-          child: RefreshIndicator(
-            color: AppColors.red,
-            onRefresh: _load,
-            child: ListView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
+          child: GlassHeaderPage(
+            header: header,
+            body: (top) => BarPullRefresh(
+              top: top,
+              onRefresh: _load,
+              child: ListView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                padding: EdgeInsets.fromLTRB(16, top, 16, 32),
+                children: children,
               ),
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-              children: children,
             ),
           ),
         ),
@@ -374,6 +379,17 @@ class _LineState extends State<_Line> {
         };
         details.add((l10n.commissionsRef, '${w['reference']}'));
       }
+    } else if (kind == 'transfer_payment') {
+      // A transfer paid with the commissions (no commission given on it).
+      final t = item['sent'] as Map<String, dynamic>?;
+      title = l10n.commissionsPaidSend;
+      subtitle = t == null
+          ? ''
+          : l10n.commissionsPaidSendTo(
+              '${t['to'] ?? ''}',
+              local(t['received'], t['receivedCurrency']),
+            );
+      if (t != null) details.add((l10n.commissionsRef, '${t['reference']}'));
     } else {
       title = l10n.commissionsReturned;
       subtitle = '';

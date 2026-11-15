@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/widgets/glass_header_page.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/zawapay_colors.dart';
 import '../../l10n/app_localizations.dart';
@@ -48,113 +49,115 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: Scaffold(
         backgroundColor: context.zc.page,
         body: SafeArea(
-          child: ListView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: RoundIconButton(
-                  icon: Icons.arrow_back_rounded,
-                  onTap: () => Navigator.of(context).pop(),
-                ),
+          child: GlassHeaderPage(
+            compact: true,
+            header: Align(
+              alignment: Alignment.centerLeft,
+              child: RoundIconButton(
+                icon: Icons.arrow_back_rounded,
+                onTap: () => Navigator.of(context).pop(),
               ),
-              const SizedBox(height: 18),
-              FramedCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 16, 12, 12),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              l10n.homeActivity,
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.6,
-                                color: context.zc.text,
-                              ),
-                            ),
-                          ),
-                          _FilterButton(active: active, onTap: _openFilter),
-                        ],
-                      ),
-                    ),
-                    // Results line with "Clear", only while filtering.
-                    if (active > 0)
+            ),
+            body: (top) => ListView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              padding: EdgeInsets.fromLTRB(16, top, 16, 24),
+              children: [
+                FramedCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 0, 20, 10),
+                        padding: const EdgeInsets.fromLTRB(24, 16, 12, 12),
                         child: Row(
                           children: [
                             Expanded(
                               child: Text(
-                                l10n.historyResults(shown.length),
+                                l10n.homeActivity,
                                 style: TextStyle(
-                                  fontSize: 14,
-                                  color: context.zc.soft,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.6,
+                                  color: context.zc.text,
                                 ),
                               ),
                             ),
-                            GestureDetector(
-                              onTap: () => setState(
-                                () => _filter = const HistoryFilter(),
-                              ),
-                              child: Text(
-                                l10n.historyClear,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.red,
-                                ),
-                              ),
-                            ),
+                            _FilterButton(active: active, onTap: _openFilter),
                           ],
                         ),
                       ),
-                    Divider(height: 1, color: context.zc.card),
-                    const SizedBox(height: 6),
-                    if (shown.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 40,
-                        ),
-                        child: Text(
-                          widget.transfers.isEmpty
-                              ? l10n.homeNoTransfers
-                              : l10n.historyEmpty,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: context.zc.soft,
+                      // Results line with "Clear", only while filtering.
+                      if (active > 0)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 0, 20, 10),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  l10n.historyResults(shown.length),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: context.zc.soft,
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => setState(
+                                  () => _filter = const HistoryFilter(),
+                                ),
+                                child: Text(
+                                  l10n.historyClear,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.red,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      )
-                    else
-                      for (final transfer in shown)
+                      Divider(height: 1, color: context.zc.card),
+                      const SizedBox(height: 6),
+                      if (shown.isEmpty)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: TransferRow(
-                            transfer: transfer,
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    TransferDetailScreen(transfer: transfer),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 40,
+                          ),
+                          child: Text(
+                            widget.transfers.isEmpty
+                                ? l10n.homeNoTransfers
+                                : l10n.historyEmpty,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: context.zc.soft,
+                            ),
+                          ),
+                        )
+                      else
+                        for (final transfer in shown)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: TransferRow(
+                              transfer: transfer,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      TransferDetailScreen(transfer: transfer),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                    const SizedBox(height: 10),
-                  ],
+                      const SizedBox(height: 10),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/account/account_error.dart';
@@ -101,15 +102,19 @@ class _SignInScreenState extends State<SignInScreen> {
         const SizedBox(height: 20),
         Row(
           children: [
-            Expanded(
-              child: SecondaryButton(
-                label: l10n.apple,
-                bold: false,
-                leading: Icon(Icons.apple, size: 30, color: context.zc.text),
-                onPressed: _busy ? null : () => _social(google: false),
+            // Sign in with Apple: iPhone only (on Android it needs a web
+            // set-up at Apple that Zawapay does not use).
+            if (defaultTargetPlatform != TargetPlatform.android) ...[
+              Expanded(
+                child: SecondaryButton(
+                  label: l10n.apple,
+                  bold: false,
+                  leading: Icon(Icons.apple, size: 30, color: context.zc.text),
+                  onPressed: _busy ? null : () => _social(google: false),
+                ),
               ),
-            ),
-            const SizedBox(width: 14),
+              const SizedBox(width: 14),
+            ],
             Expanded(
               child: SecondaryButton(
                 label: l10n.google,

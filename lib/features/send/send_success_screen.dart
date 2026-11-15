@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/widgets/glass_header_page.dart';
 import '../../core/account/app_rules.dart';
 import '../../core/account/zawapay_account.dart';
 import '../../core/theme/app_colors.dart';
@@ -181,213 +182,217 @@ class _SendSuccessScreenState extends State<SendSuccessScreen> {
         child: Scaffold(
           backgroundColor: context.zc.page,
           body: SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                    children: [
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: RoundIconButton(
-                          icon: Icons.close_rounded,
-                          onTap: () =>
-                              Navigator.of(context)
-                                  .popUntil((route) => route.isFirst),
-                        ),
-                      ),
-                      const Center(child: SentMark()),
-                      const SizedBox(height: 22),
-                      Text(
-                        _steps.$1 == TransferStepState.failed ||
-                                _steps.$2 == TransferStepState.failed
-                            ? l10n.sentFailedTitle
-                            : _status == 'paid_out' || _status == 'confirmed'
-                            ? l10n.sentDoneTitle
-                            : l10n.sentTitle,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          color: context.zc.soft,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          amount(widget.received),
+            child: GlassHeaderPage(
+              compact: true,
+              header: Align(
+                alignment: Alignment.centerRight,
+                child: RoundIconButton(
+                  icon: Icons.close_rounded,
+                  onTap: () =>
+                      Navigator.of(context).popUntil((route) => route.isFirst),
+                ),
+              ),
+              body: (top) => Column(
+                children: [
+                  Expanded(
+                    child: ListView(
+                      padding: EdgeInsets.fromLTRB(16, top, 16, 16),
+                      children: [
+                        const Center(child: SentMark()),
+                        const SizedBox(height: 22),
+                        Text(
+                          _steps.$1 == TransferStepState.failed ||
+                                  _steps.$2 == TransferStepState.failed
+                              ? l10n.sentFailedTitle
+                              : _status == 'paid_out' || _status == 'confirmed'
+                              ? l10n.sentDoneTitle
+                              : l10n.sentTitle,
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 38,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -1,
-                            color: context.zc.text,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            color: context.zc.soft,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '${l10n.sentTo} ',
+                        const SizedBox(height: 6),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            amount(widget.received),
                             style: TextStyle(
-                              fontSize: 17,
-                              color: context.zc.soft,
+                              fontSize: 38,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -1,
+                              color: context.zc.text,
                             ),
                           ),
-                          Flexible(
-                            child: RecipientHandle(recipient: widget.recipient),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 26),
-                      FramedCard(
-                        padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
-                        child: Column(
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Row(
-                              children: [
-                                RecipientAvatar(
-                                  recipient: widget.recipient,
-                                  size: 44,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        widget.recipient.isNumber
-                                            ? widget.recipient.fullPhone
-                                            : widget.recipient.fullName,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: context.zc.text,
-                                        ),
-                                      ),
-                                      if (!widget.recipient.isNumber)
+                            Text(
+                              '${l10n.sentTo} ',
+                              style: TextStyle(
+                                fontSize: 17,
+                                color: context.zc.soft,
+                              ),
+                            ),
+                            Flexible(
+                              child: RecipientHandle(
+                                recipient: widget.recipient,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 26),
+                        FramedCard(
+                          padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  RecipientAvatar(
+                                    recipient: widget.recipient,
+                                    size: 44,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
                                         Text(
-                                          widget.recipient.fullPhone,
+                                          widget.recipient.isNumber
+                                              ? widget.recipient.fullPhone
+                                              : widget.recipient.fullName,
                                           style: TextStyle(
-                                            fontSize: 14,
-                                            color: context.zc.soft,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: context.zc.text,
                                           ),
                                         ),
-                                    ],
+                                        if (!widget.recipient.isNumber)
+                                          Text(
+                                            widget.recipient.fullPhone,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: context.zc.soft,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            Divider(height: 28, color: context.zc.field),
-                            ReceiptLine(
-                              l10n.sendYouPay,
-                              paidAmount(widget.paid),
-                            ),
-                            ReceiptLine(
-                              feeLabel(
-                                context,
-                                send: true,
-                                fallback: l10n.sentFee,
+                                ],
                               ),
-                              paidAmount(widget.fee),
-                            ),
-                            ReceiptLine(
-                              l10n.sendReceives,
-                              amount(widget.received),
-                              strong: true,
-                            ),
-                            if (widget.note.isNotEmpty)
-                              ReceiptLine(l10n.sentNote, widget.note),
-                            ReceiptLine(l10n.sentReference, _reference),
-                            ReceiptLine(l10n.sentDate, date),
-                          ],
+                              Divider(height: 28, color: context.zc.field),
+                              ReceiptLine(
+                                l10n.sendYouPay,
+                                paidAmount(widget.paid),
+                              ),
+                              ReceiptLine(
+                                feeLabel(
+                                  context,
+                                  send: true,
+                                  fallback: l10n.sentFee,
+                                ),
+                                paidAmount(widget.fee),
+                              ),
+                              ReceiptLine(
+                                l10n.sendReceives,
+                                amount(widget.received),
+                                strong: true,
+                              ),
+                              if (widget.note.isNotEmpty)
+                                ReceiptLine(l10n.sentNote, widget.note),
+                              ReceiptLine(l10n.sentReference, _reference),
+                              ReceiptLine(l10n.sentDate, date),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 14),
-                      FramedCard(
-                        padding: const EdgeInsets.fromLTRB(18, 18, 18, 6),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            StatusStep(
-                              state: _steps.$1,
-                              title: widget.fromBalance
-                                  ? l10n.sentStepBalance
-                                  : l10n.sentStepPayment,
-                              body: switch (_steps.$1) {
-                                TransferStepState.failed =>
-                                  l10n.sentStepPaymentFailed,
-                                TransferStepState.done =>
-                                  l10n.sentStepPaymentDone,
-                                _ =>
-                                  widget.fromBalance
-                                      ? l10n.sentStepBalanceBody
-                                      : l10n.sentStepPaymentBody,
-                              },
-                            ),
-                            StatusStep(
-                              state: _steps.$2,
-                              title: l10n.sentStepPayout,
-                              body: switch (_steps.$2) {
-                                TransferStepState.failed =>
-                                  l10n.sentStepPayoutFailed,
-                                TransferStepState.done =>
-                                  l10n.sentStepPayoutDone(
+                        const SizedBox(height: 14),
+                        FramedCard(
+                          padding: const EdgeInsets.fromLTRB(18, 18, 18, 6),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              StatusStep(
+                                state: _steps.$1,
+                                title: widget.fromBalance
+                                    ? l10n.sentStepBalance
+                                    : l10n.sentStepPayment,
+                                body: switch (_steps.$1) {
+                                  TransferStepState.failed =>
+                                    l10n.sentStepPaymentFailed,
+                                  TransferStepState.done =>
+                                    l10n.sentStepPaymentDone,
+                                  _ =>
+                                    widget.fromBalance
+                                        ? l10n.sentStepBalanceBody
+                                        : l10n.sentStepPaymentBody,
+                                },
+                              ),
+                              StatusStep(
+                                state: _steps.$2,
+                                title: l10n.sentStepPayout,
+                                body: switch (_steps.$2) {
+                                  TransferStepState.failed =>
+                                    l10n.sentStepPayoutFailed,
+                                  TransferStepState.done =>
+                                    l10n.sentStepPayoutDone(
+                                      widget.recipient.handle,
+                                    ),
+                                  _ => l10n.sentStepPayoutBody(
                                     widget.recipient.handle,
                                   ),
-                                _ => l10n.sentStepPayoutBody(
-                                  widget.recipient.handle,
-                                ),
-                              },
-                              // To a number nobody confirms: the payout ends it.
-                              last: widget.recipient.isNumber,
-                            ),
-                            if (!widget.recipient.isNumber)
-                              StatusStep(
-                                state: _steps.$3,
-                                title: l10n.sentStepConfirm,
-                                body: _steps.$3 == TransferStepState.done
-                                    ? l10n.sentStepConfirmDone(
-                                        widget.recipient.handle,
-                                      )
-                                    : l10n.sentStepConfirmBody(
-                                        widget.recipient.handle,
-                                      ),
-                                last: true,
+                                },
+                                // To a number nobody confirms: the payout ends it.
+                                last: widget.recipient.isNumber,
                               ),
-                          ],
+                              if (!widget.recipient.isNumber)
+                                StatusStep(
+                                  state: _steps.$3,
+                                  title: l10n.sentStepConfirm,
+                                  body: _steps.$3 == TransferStepState.done
+                                      ? l10n.sentStepConfirmDone(
+                                          widget.recipient.handle,
+                                        )
+                                      : l10n.sentStepConfirmBody(
+                                          widget.recipient.handle,
+                                        ),
+                                  last: true,
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 58,
-                    child: FilledButton(
-                      onPressed: () =>
-                          Navigator.of(context)
-                              .popUntil((route) => route.isFirst),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.red,
-                        foregroundColor: AppColors.white,
-                        shape: const StadiumBorder(),
-                        textStyle: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      child: Text(l10n.sentBackHome),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 58,
+                      child: FilledButton(
+                        onPressed: () =>
+                            Navigator.of(context)
+                                .popUntil((route) => route.isFirst),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.red,
+                          foregroundColor: AppColors.white,
+                          shape: const StadiumBorder(),
+                          textStyle: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        child: Text(l10n.sentBackHome),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
