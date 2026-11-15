@@ -2546,6 +2546,18 @@ abstract class AppLocalizations {
   /// **'Withdrawal failed: money returned'**
   String get commissionsReturned;
 
+  /// No description provided for @commissionsPaidSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer paid with the balance'**
+  String get commissionsPaidSend;
+
+  /// No description provided for @commissionsPaidSendTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To {to} · received {received}'**
+  String commissionsPaidSendTo(String to, String received);
+
   /// No description provided for @commissionsWdDone.
   ///
   /// In en, this message translates to:
@@ -3157,6 +3169,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete account'**
   String get aboutDeleteAccount;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account?'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name, e-mail, numbers, photo and PIN code will be erased for good. Your referrals will move under your sponsor. Withdraw your commissions first: anything below the withdrawal minimum is lost. Your past transfers stay, without your name, as the law requires.'**
+  String get deleteAccountBody;
+
+  /// No description provided for @deleteAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete my account'**
+  String get deleteAccountConfirm;
+
+  /// No description provided for @deleteAccountDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Zawapay App account has been deleted.'**
+  String get deleteAccountDone;
 
   /// No description provided for @aboutVersion.
   ///

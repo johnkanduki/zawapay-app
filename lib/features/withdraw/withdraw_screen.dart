@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/widgets/glass_header_page.dart';
 import '../../core/countries/country.dart';
 import '../../core/account/account_error.dart';
 import '../../core/account/app_rules.dart';
@@ -205,346 +206,348 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       child: Scaffold(
         backgroundColor: context.zc.page,
         body: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          RoundIconButton(
-                            icon: Icons.arrow_back_rounded,
-                            onTap: () => Navigator.of(context).pop(),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                l10n.withdrawTitle,
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                  color: context.zc.text,
+          child: GlassHeaderPage(
+            header: Row(
+              children: [
+                RoundIconButton(
+                  icon: Icons.arrow_back_rounded,
+                  onTap: () => Navigator.of(context).pop(),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      l10n.withdrawTitle,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: context.zc.text,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            body: (top) => CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(16, top, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Where the money goes: the receiving number.
+                        FramedCard(
+                          padding: const EdgeInsets.fromLTRB(12, 12, 16, 12),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 46,
+                                height: 46,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: context.zc.field,
+                                ),
+                                child: RoundFlag(
+                                  country: widget.country,
+                                  size: 30,
                                 ),
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
-                      // Where the money goes: the receiving number.
-                      FramedCard(
-                        padding: const EdgeInsets.fromLTRB(12, 12, 16, 12),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 46,
-                              height: 46,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: context.zc.field,
-                              ),
-                              child: RoundFlag(
-                                country: widget.country,
-                                size: 30,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.withdrawTo,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: context.zc.soft,
-                                    ),
-                                  ),
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      widget.phone ?? l10n.withdrawNoNumber,
-                                      style: TextStyle(
-                                        fontSize: widget.phone == null
-                                            ? 15
-                                            : 18,
-                                        fontWeight: FontWeight.w600,
-                                        color: context.zc.text,
-                                      ),
-                                    ),
-                                  ),
-                                  if (widget.phone != null)
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                                     Text(
-                                      l10n.withdrawToHelp,
+                                      l10n.withdrawTo,
                                       style: TextStyle(
                                         fontSize: 13,
                                         color: context.zc.soft,
                                       ),
                                     ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      Expanded(
-                        child: FramedCard(
-                          padding: const EdgeInsets.all(14),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              if (widget.country.currencies.length > 1) ...[
-                                CurrencySwitch(
-                                  currencies: widget.country.currencies,
-                                  selected: _currency,
-                                  onChanged: _selectCurrency,
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                              AmountBox(
-                                label: l10n.withdrawAmount,
-                                symbol: 'USD',
-                                child: TextField(
-                                  onTapOutside: (_) => FocusManager
-                                      .instance
-                                      .primaryFocus
-                                      ?.unfocus(),
-                                  controller: _amount,
-                                  autofocus: true,
-                                  onChanged: (_) => _askQuote(),
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                        decimal: true,
-                                      ),
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.allow(
-                                      RegExp(r'[0-9.,]'),
-                                    ),
-                                    LengthLimitingTextInputFormatter(12),
-                                  ],
-                                  cursorColor: AppColors.red,
-                                  style: bigAmountStyle(context),
-                                  decoration: InputDecoration.collapsed(
-                                    hintText: '0',
-                                    hintStyle: bigAmountStyle(context)
-                                        .copyWith(color: context.zc.faint),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              // What is available, and "Withdraw all".
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: FittedBox(
+                                    FittedBox(
                                       fit: BoxFit.scaleDown,
                                       alignment: Alignment.centerLeft,
                                       child: Text(
-                                        l10n.withdrawAvailable(
-                                          amount(_balance),
-                                        ),
+                                        widget.phone ?? l10n.withdrawNoNumber,
                                         style: TextStyle(
-                                          fontSize: 15,
-                                          color: context.zc.soft,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  GestureDetector(
-                                    onTap: _balance > 0 ? _withdrawAll : null,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 9,
-                                      ),
-                                      decoration: ShapeDecoration(
-                                        color: AppColors.red.withValues(
-                                          alpha: _balance > 0 ? 0.18 : 0.08,
-                                        ),
-                                        shape: const StadiumBorder(),
-                                      ),
-                                      child: Text(
-                                        l10n.withdrawAll,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                          color: _balance > 0
-                                              ? AppColors.red
-                                              : context.zc.soft,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 18,
-                                  vertical: 14,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: context.zc.field,
-                                  borderRadius: BorderRadius.circular(22),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        feeLabel(
-                                          context,
-                                          send: false,
-                                          fallback: l10n.withdrawFee,
-                                        ),
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: context.zc.text,
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      _rules.feeRate == 0
-                                          ? l10n.withdrawFree
-                                          : amount(_fee),
-                                      style: TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w600,
-                                        color: context.zc.text,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              // What arrives on the number (week's rate), then
-                              // "Solde insuffisant" or the minimum, in red.
-                              ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  minHeight: 44,
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    if (receive != null)
-                                      Text(
-                                        l10n.withdrawYouReceive(receive),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 14,
+                                          fontSize: widget.phone == null
+                                              ? 15
+                                              : 18,
                                           fontWeight: FontWeight.w600,
                                           color: context.zc.text,
                                         ),
                                       ),
-                                    // The week's rate used (other currencies).
-                                    if (_currency != 'USD' && _quote != null)
+                                    ),
+                                    if (widget.phone != null)
                                       Text(
-                                        l10n.withdrawRate(
-                                          NumberFormat.decimalPatternDigits(
-                                            locale: locale,
-                                            decimalDigits: 0,
-                                          ).format(
-                                            double.tryParse(
-                                                  '${_quote!['rate']}',
-                                                ) ??
-                                                0,
-                                          ),
-                                          _currency,
-                                        ),
-                                        textAlign: TextAlign.center,
+                                        l10n.withdrawToHelp,
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: context.zc.soft,
                                         ),
                                       ),
-                                    Text(
-                                      warning ??
-                                          _quoteError ??
-                                          (receive == null
-                                              ? l10n.withdrawMinimum(
-                                                  amount(_minimum),
-                                                )
-                                              : ''),
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight:
-                                            warning == null &&
-                                                _quoteError == null
-                                            ? FontWeight.w400
-                                            : FontWeight.w600,
-                                        color:
-                                            warning == null &&
-                                                _quoteError == null
-                                            ? context.zc.soft
-                                            : AppColors.red,
-                                      ),
-                                    ),
                                   ],
-                                ),
-                              ),
-                              const Spacer(),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                height: 60,
-                                child: FilledButton(
-                                  onPressed:
-                                      _canWithdraw &&
-                                          !_busy &&
-                                          _quoteError == null &&
-                                          (_currency == 'USD' || _quote != null)
-                                      ? _withdraw
-                                      : null,
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: AppColors.red,
-                                    disabledBackgroundColor: AppColors.red
-                                        .withValues(alpha: 0.35),
-                                    foregroundColor: AppColors.white,
-                                    disabledForegroundColor: const Color(
-                                      0x99FFFFFF,
-                                    ),
-                                    shape: const StadiumBorder(),
-                                    textStyle: const TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    // The button shows what ARRIVES on the
-                                    // number, in the chosen currency.
-                                    _value <= 0
-                                        ? l10n.homeWithdraw
-                                        : _currency == 'USD'
-                                        ? l10n.withdrawButton(
-                                            amount(_value + _fee),
-                                          )
-                                        : receive != null
-                                        ? l10n.withdrawButton(receive)
-                                        : l10n.homeWithdraw,
-                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 14),
+                        Expanded(
+                          child: FramedCard(
+                            padding: const EdgeInsets.all(14),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (widget.country.currencies.length > 1) ...[
+                                  CurrencySwitch(
+                                    currencies: widget.country.currencies,
+                                    selected: _currency,
+                                    onChanged: _selectCurrency,
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                                AmountBox(
+                                  label: l10n.withdrawAmount,
+                                  symbol: 'USD',
+                                  child: TextField(
+                                    onTapOutside: (_) => FocusManager
+                                        .instance
+                                        .primaryFocus
+                                        ?.unfocus(),
+                                    controller: _amount,
+                                    autofocus: true,
+                                    onChanged: (_) => _askQuote(),
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                        RegExp(r'[0-9.,]'),
+                                      ),
+                                      LengthLimitingTextInputFormatter(12),
+                                    ],
+                                    cursorColor: AppColors.red,
+                                    style: bigAmountStyle(context),
+                                    decoration: InputDecoration.collapsed(
+                                      hintText: '0',
+                                      hintStyle: bigAmountStyle(context)
+                                          .copyWith(color: context.zc.faint),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                // What is available, and "Withdraw all".
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          l10n.withdrawAvailable(
+                                            amount(_balance),
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            color: context.zc.soft,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    GestureDetector(
+                                      onTap: _balance > 0 ? _withdrawAll : null,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 9,
+                                        ),
+                                        decoration: ShapeDecoration(
+                                          color: AppColors.red.withValues(
+                                            alpha: _balance > 0 ? 0.18 : 0.08,
+                                          ),
+                                          shape: const StadiumBorder(),
+                                        ),
+                                        child: Text(
+                                          l10n.withdrawAll,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: _balance > 0
+                                                ? AppColors.red
+                                                : context.zc.soft,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 18,
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: context.zc.field,
+                                    borderRadius: BorderRadius.circular(22),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          feeLabel(
+                                            context,
+                                            send: false,
+                                            fallback: l10n.withdrawFee,
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: context.zc.text,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        _rules.feeRate == 0
+                                            ? l10n.withdrawFree
+                                            : amount(_fee),
+                                        style: TextStyle(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w600,
+                                          color: context.zc.text,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                // What arrives on the number (week's rate), then
+                                // "Solde insuffisant" or the minimum, in red.
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    minHeight: 44,
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      if (receive != null)
+                                        Text(
+                                          l10n.withdrawYouReceive(receive),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: context.zc.text,
+                                          ),
+                                        ),
+                                      // The week's rate used (other currencies).
+                                      if (_currency != 'USD' && _quote != null)
+                                        Text(
+                                          l10n.withdrawRate(
+                                            NumberFormat.decimalPatternDigits(
+                                              locale: locale,
+                                              decimalDigits: 0,
+                                            ).format(
+                                              double.tryParse(
+                                                    '${_quote!['rate']}',
+                                                  ) ??
+                                                  0,
+                                            ),
+                                            _currency,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: context.zc.soft,
+                                          ),
+                                        ),
+                                      Text(
+                                        warning ??
+                                            _quoteError ??
+                                            (receive == null
+                                                ? l10n.withdrawMinimum(
+                                                    amount(_minimum),
+                                                  )
+                                                : ''),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight:
+                                              warning == null &&
+                                                  _quoteError == null
+                                              ? FontWeight.w400
+                                              : FontWeight.w600,
+                                          color:
+                                              warning == null &&
+                                                  _quoteError == null
+                                              ? context.zc.soft
+                                              : AppColors.red,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Spacer(),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  height: 60,
+                                  child: FilledButton(
+                                    onPressed:
+                                        _canWithdraw &&
+                                            !_busy &&
+                                            _quoteError == null &&
+                                            (_currency == 'USD' ||
+                                                _quote != null)
+                                        ? _withdraw
+                                        : null,
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: AppColors.red,
+                                      disabledBackgroundColor: AppColors.red
+                                          .withValues(alpha: 0.35),
+                                      foregroundColor: AppColors.white,
+                                      disabledForegroundColor: const Color(
+                                        0x99FFFFFF,
+                                      ),
+                                      shape: const StadiumBorder(),
+                                      textStyle: const TextStyle(
+                                        fontFamily: 'PlusJakartaSans',
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      // The button shows what ARRIVES on the
+                                      // number, in the chosen currency.
+                                      _value <= 0
+                                          ? l10n.homeWithdraw
+                                          : _currency == 'USD'
+                                          ? l10n.withdrawButton(
+                                              amount(_value + _fee),
+                                            )
+                                          : receive != null
+                                          ? l10n.withdrawButton(receive)
+                                          : l10n.homeWithdraw,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zawapay_app/core/account/withdraw_pin.dart';
+import 'package:zawapay_app/core/widgets/code_input.dart';
 import 'package:zawapay_app/core/countries/country.dart';
 import 'package:zawapay_app/features/scan/my_qr_screen.dart';
 import 'package:zawapay_app/features/send/recipient.dart';
@@ -7,6 +9,8 @@ import 'package:zawapay_app/features/send/send_amount_screen.dart';
 import 'package:zawapay_app/l10n/app_localizations.dart';
 
 import 'test_data.dart';
+
+import 'fake_pin.dart';
 
 void main() {
   final congo = supportedCountries.first;
@@ -96,12 +100,15 @@ void main() {
     expect(find.text('500,00 USD'), findsOneWidget);
     await tester.tap(find.text('Solde Zawapay'));
     await tester.pump();
+    final pins = withdrawPin;
+    addTearDown(() => withdrawPin = pins);
+    withdrawPin = FakePin('2580');
     await tester.tap(find.text('Payer 106,00 USD'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
-    // Paying from the balance comes later: a notice, no fake receipt.
-    expect(find.text('Bientôt disponible'), findsOneWidget);
-    expect(find.text('Payé avec votre solde Zawapay'), findsNothing);
+    // Paying from the balance: the PIN is asked first (no "coming soon").
+    expect(find.text('Bientôt disponible'), findsNothing);
+    expect(find.byType(CodeInput), findsOneWidget);
     await tester.pump(const Duration(seconds: 5));
   });
 }

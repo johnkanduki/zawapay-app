@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -6,7 +7,9 @@ import 'package:photo_manager/photo_manager.dart';
 /// The latest photos of the phone, in a row under the scanner (like
 /// WhatsApp). Tapping one gives its file path, to read a QR code from it.
 ///
-/// Shows nothing when photo access is refused or the gallery is empty.
+/// Shows nothing when photo access is refused or the gallery is empty, and
+/// never on Android: Google Play forbids the broad photo access it needs
+/// there (the "Galerie" button uses the system photo picker instead).
 class RecentPhotosStrip extends StatefulWidget {
   const RecentPhotosStrip({super.key, required this.onPicked});
 
@@ -29,6 +32,7 @@ class _RecentPhotosStripState extends State<RecentPhotosStrip> {
   }
 
   Future<void> _load() async {
+    if (Platform.isAndroid) return;
     try {
       final permission = await PhotoManager.requestPermissionExtend();
       if (!permission.hasAccess) return;

@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/widgets/glass_header_page.dart';
 import '../../core/account/app_rules.dart';
 import '../../core/account/account_error.dart';
 import '../../core/account/destinations.dart';
 import '../../core/account/zawapay_account.dart';
-import '../../core/widgets/top_notice.dart';
 import '../../core/countries/country.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/zawapay_colors.dart';
@@ -16,6 +16,17 @@ import '../../l10n/app_localizations.dart';
 import 'recipient.dart';
 import 'send_success_screen.dart';
 import 'send_ui.dart';
+import '../withdraw/pin_sheet.dart';
+
+/// The server call of "Pay"; tests replace it.
+Future<Map<String, dynamic>> Function({
+  required String recipient,
+  required String currency,
+  required String amount,
+  String? note,
+  String? balancePin,
+})
+createTransferCall = zawapayAccount.createTransfer;
 
 /// Service fee rate, set in the admin dashboard (Tarifs); 6 % to start.
 double get serviceFeeRate => appRules.value.serviceFeeRate;
@@ -164,21 +175,24 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
 
   /// "Pay": the server recomputes everything and sends the USSD request to
   /// the PAYMENT number; the page that follows shows the transfer live.
+  /// With the Zawapay balance (the commissions): the PIN first, no USSD,
+  /// and the server gives NO commission on this transfer.
   Future<void> _send() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    final l10n = AppLocalizations.of(context);
-    if (_fromBalance && _balanceEnough) {
-      // Paying from the commissions balance comes next.
-      showTopNotice(context, l10n.contactSoon, icon: Icons.info_rounded);
-      return;
+    final fromBalance = _fromBalance && _balanceEnough;
+    String? pin;
+    if (fromBalance) {
+      pin = await askWithdrawPin(context);
+      if (pin == null || !mounted) return;
     }
     setState(() => _busy = true);
     try {
-      final t = await zawapayAccount.createTransfer(
+      final t = await createTransferCall(
         recipient: widget.recipient.address,
         currency: _currency,
         amount: _amount.text.trim().replaceAll(',', '.').replaceAll(' ', ''),
         note: _note.text,
+        balancePin: pin,
       );
       if (!mounted) return;
       double num(String key) => double.tryParse('${t[key]}') ?? 0;
@@ -195,6 +209,7 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
             note: _note.text.trim(),
             transferId: t['id'] as String?,
             reference: t['reference'] as String?,
+            fromBalance: fromBalance,
           ),
         ),
       );
@@ -246,303 +261,310 @@ class _SendAmountScreenState extends State<SendAmountScreen> {
         body: SafeArea(
           // Fills the screen; when the keyboard is open the page scrolls,
           // so the fields and "Send" stay reachable.
-          child: CustomScrollView(
-            slivers: [
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          RoundIconButton(
-                            icon: Icons.arrow_back_rounded,
-                            onTap: () => Navigator.of(context).pop(),
-                          ),
-                          const Spacer(),
-                          RoundIconButton(
-                            icon: Icons.close_rounded,
-                            onTap: () =>
-                                Navigator.of(context)
-                                    .popUntil((route) => route.isFirst),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
-                      // Who receives, with a pencil to change the person.
-                      FramedCard(
-                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                        child: Row(
-                          children: [
-                            RecipientAvatar(recipient: widget.recipient),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  RecipientHandle(recipient: widget.recipient),
-                                  if (widget.recipient.details.isNotEmpty)
-                                    Text(
-                                      widget.recipient.details,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: context.zc.soft,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            // A request is tied to its person: no change.
-                            if (!widget.isRequest)
-                              RoundIconButton(
-                                icon: Icons.edit_rounded,
-                                size: 46,
-                                onTap: () => Navigator.of(context).pop(),
-                              ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      Expanded(
-                        child: FramedCard(
-                          padding: const EdgeInsets.all(14),
-                          child: Column(
+          child: GlassHeaderPage(
+            compact: true,
+            header: Row(
+              children: [
+                RoundIconButton(
+                  icon: Icons.arrow_back_rounded,
+                  onTap: () => Navigator.of(context).pop(),
+                ),
+                const Spacer(),
+                RoundIconButton(
+                  icon: Icons.close_rounded,
+                  onTap: () =>
+                      Navigator.of(context).popUntil((route) => route.isFirst),
+                ),
+              ],
+            ),
+            body: (top) => CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(16, top, 16, 16),
+                    child: Column(
+                      children: [
+                        // Who receives, with a pencil to change the person.
+                        FramedCard(
+                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+                          child: Row(
                             children: [
-                              // The money always comes from Mobile Money:
-                              // only the currency is chosen (USD / CDF).
-                              // A requested amount keeps its currency.
-                              if (!widget.isRequest &&
-                                  (quoted
-                                      ? _options.length > 1
-                                      : widget.senderCountry.currencies.length >
-                                            1)) ...[
-                                CurrencySwitch(
-                                  currencies: quoted
-                                      ? [for (final o in _options) o.currency]
-                                      : widget.senderCountry.currencies,
-                                  selected: _currency,
-                                  onChanged: _selectCurrency,
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                              // The only amount you type: what the
-                              // other person receives. The sender pays
-                              // every fee on top.
-                              AmountBox(
-                                label: widget.isRequest
-                                    ? l10n.sendRequested
-                                    : l10n.sendReceives,
-                                locked: widget.isRequest,
-                                symbol: symbol,
-                                child: TextField(
-                                  // Tapping anywhere outside the field closes the keyboard.
-                                  onTapOutside: (_) => FocusManager
-                                      .instance
-                                      .primaryFocus
-                                      ?.unfocus(),
-                                  controller: _amount,
-                                  // Requested: shown, but never editable.
-                                  readOnly: widget.isRequest,
-                                  enableInteractiveSelection: !widget.isRequest,
-                                  showCursor: !widget.isRequest,
-                                  autofocus: !widget.isRequest,
-                                  onChanged: (_) =>
-                                      quoted ? _askQuote() : setState(() {}),
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                        decimal: true,
-                                      ),
-                                  inputFormatters: [
-                                    // Abroad: whole amounts only (UGX…).
-                                    FilteringTextInputFormatter.allow(
-                                      RegExp(
-                                        (dest?.decimals ?? 2) == 0
-                                            ? r'[0-9]'
-                                            : r'[0-9.,]',
-                                      ),
-                                    ),
-                                    LengthLimitingTextInputFormatter(12),
-                                  ],
-                                  cursorColor: AppColors.red,
-                                  style: bigAmountStyle(context),
-                                  decoration: InputDecoration.collapsed(
-                                    hintText: '0',
-                                    hintStyle: bigAmountStyle(context)
-                                        .copyWith(color: context.zc.faint),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 18,
-                                  vertical: 14,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: context.zc.field,
-                                  borderRadius: BorderRadius.circular(22),
-                                ),
-                                child: Row(
+                              RecipientAvatar(recipient: widget.recipient),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Just "Frais" (the word is set in
-                                    // the admin dashboard → Tarifs).
-                                    Expanded(
-                                      child: Text(
-                                        feeLabel(
-                                          context,
-                                          send: true,
-                                          fallback: l10n.sendFee,
-                                        ),
+                                    RecipientHandle(
+                                      recipient: widget.recipient,
+                                    ),
+                                    if (widget.recipient.details.isNotEmpty)
+                                      Text(
+                                        widget.recipient.details,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          fontSize: 16,
-                                          color: context.zc.text,
+                                          fontSize: 14,
+                                          color: context.zc.soft,
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      quoted && quote == null
-                                          ? '—'
-                                          : '${payMoney(fee)} $paySymbol',
-                                      style: TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w600,
-                                        color: context.zc.text,
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ),
-                              // Abroad: the rate given, and the limits.
-                              if (quoted &&
-                                  (quote != null ||
-                                      _quoteError != null ||
-                                      dest != null)) ...[
-                                const SizedBox(height: 10),
-                                Text(
-                                  _quoteError ??
-                                      (quote != null &&
-                                              quote.currency !=
-                                                  quote.destCurrency
-                                          ? l10n.sendRateFrom(
-                                              quote.currency,
-                                              rateFormat.format(quote.rate),
-                                              quote.destCurrency,
-                                            )
-                                          : dest != null
-                                          ? l10n.sendLimits(
-                                              whole.format(dest.min),
-                                              whole.format(dest.max),
-                                              dest.currency,
-                                            )
-                                          : ''),
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: _quoteError != null
-                                        ? AppColors.red
-                                        : context.zc.soft,
-                                  ),
+                              // A request is tied to its person: no change.
+                              if (!widget.isRequest)
+                                RoundIconButton(
+                                  icon: Icons.edit_rounded,
+                                  size: 46,
+                                  onTap: () => Navigator.of(context).pop(),
                                 ),
-                              ],
-                              const SizedBox(height: 12),
-                              // Pay with Mobile Money or the Zawapay balance
-                              // (abroad: Mobile Money only for now).
-                              if (!quoted)
-                                _SourcePicker(
-                                  currency: _currency,
-                                  balance: _balance,
-                                  balanceEnough: _balanceEnough,
-                                  hasAmount: canSend,
-                                  fromBalance: _fromBalance && _balanceEnough,
-                                  onChanged: (v) =>
-                                      setState(() => _fromBalance = v),
-                                ),
-                              const Spacer(),
-                              const SizedBox(height: 16),
-                              Container(
-                                height: 54,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 18,
-                                ),
-                                decoration: ShapeDecoration(
-                                  color: context.zc.field,
-                                  shape: StadiumBorder(),
-                                ),
-                                alignment: Alignment.centerLeft,
-                                child: TextField(
-                                  // Tapping anywhere outside the field closes the keyboard.
-                                  onTapOutside: (_) => FocusManager
-                                      .instance
-                                      .primaryFocus
-                                      ?.unfocus(),
-                                  controller: _note,
-                                  maxLength: 60,
-                                  cursorColor: AppColors.red,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: context.zc.text,
-                                  ),
-                                  decoration: InputDecoration.collapsed(
-                                    hintText: l10n.sendNoteHint,
-                                    hintStyle: TextStyle(
-                                      fontSize: 16,
-                                      color: context.zc.soft,
-                                    ),
-                                  ).copyWith(counterText: ''),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              // The total sent to the Mobile Money (USSD)
-                              // request is shown right in the button.
-                              SizedBox(
-                                width: double.infinity,
-                                height: 60,
-                                child: FilledButton(
-                                  onPressed: canSend && !_busy ? _send : null,
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: AppColors.red,
-                                    disabledBackgroundColor: AppColors.red
-                                        .withValues(alpha: 0.35),
-                                    foregroundColor: AppColors.white,
-                                    disabledForegroundColor: const Color(
-                                      0x99FFFFFF,
-                                    ),
-                                    shape: const StadiumBorder(),
-                                    textStyle: const TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  child: _busy
-                                      ? const SizedBox.square(
-                                          dimension: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2.6,
-                                            color: AppColors.white,
-                                          ),
-                                        )
-                                      : Text(
-                                          canSend
-                                              ? l10n.sendPayAmount(
-                                                  '${payMoney(paid)} $paySymbol',
-                                                )
-                                              : l10n.sendPay,
-                                        ),
-                                ),
-                              ),
                             ],
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 14),
+                        Expanded(
+                          child: FramedCard(
+                            padding: const EdgeInsets.all(14),
+                            child: Column(
+                              children: [
+                                // The money always comes from Mobile Money:
+                                // only the currency is chosen (USD / CDF).
+                                // A requested amount keeps its currency.
+                                if (!widget.isRequest &&
+                                    (quoted
+                                        ? _options.length > 1
+                                        : widget
+                                                  .senderCountry
+                                                  .currencies
+                                                  .length >
+                                              1)) ...[
+                                  CurrencySwitch(
+                                    currencies: quoted
+                                        ? [for (final o in _options) o.currency]
+                                        : widget.senderCountry.currencies,
+                                    selected: _currency,
+                                    onChanged: _selectCurrency,
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                                // The only amount you type: what the
+                                // other person receives. The sender pays
+                                // every fee on top.
+                                AmountBox(
+                                  label: widget.isRequest
+                                      ? l10n.sendRequested
+                                      : l10n.sendReceives,
+                                  locked: widget.isRequest,
+                                  symbol: symbol,
+                                  child: TextField(
+                                    // Tapping anywhere outside the field closes the keyboard.
+                                    onTapOutside: (_) => FocusManager
+                                        .instance
+                                        .primaryFocus
+                                        ?.unfocus(),
+                                    controller: _amount,
+                                    // Requested: shown, but never editable.
+                                    readOnly: widget.isRequest,
+                                    enableInteractiveSelection:
+                                        !widget.isRequest,
+                                    showCursor: !widget.isRequest,
+                                    autofocus: !widget.isRequest,
+                                    onChanged: (_) =>
+                                        quoted ? _askQuote() : setState(() {}),
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    inputFormatters: [
+                                      // Abroad: whole amounts only (UGX…).
+                                      FilteringTextInputFormatter.allow(
+                                        RegExp(
+                                          (dest?.decimals ?? 2) == 0
+                                              ? r'[0-9]'
+                                              : r'[0-9.,]',
+                                        ),
+                                      ),
+                                      LengthLimitingTextInputFormatter(12),
+                                    ],
+                                    cursorColor: AppColors.red,
+                                    style: bigAmountStyle(context),
+                                    decoration: InputDecoration.collapsed(
+                                      hintText: '0',
+                                      hintStyle: bigAmountStyle(context)
+                                          .copyWith(color: context.zc.faint),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 18,
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: context.zc.field,
+                                    borderRadius: BorderRadius.circular(22),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      // Just "Frais" (the word is set in
+                                      // the admin dashboard → Tarifs).
+                                      Expanded(
+                                        child: Text(
+                                          feeLabel(
+                                            context,
+                                            send: true,
+                                            fallback: l10n.sendFee,
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: context.zc.text,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        quoted && quote == null
+                                            ? '—'
+                                            : '${payMoney(fee)} $paySymbol',
+                                        style: TextStyle(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w600,
+                                          color: context.zc.text,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Abroad: the rate given, and the limits.
+                                if (quoted &&
+                                    (quote != null ||
+                                        _quoteError != null ||
+                                        dest != null)) ...[
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    _quoteError ??
+                                        (quote != null &&
+                                                quote.currency !=
+                                                    quote.destCurrency
+                                            ? l10n.sendRateFrom(
+                                                quote.currency,
+                                                rateFormat.format(quote.rate),
+                                                quote.destCurrency,
+                                              )
+                                            : dest != null
+                                            ? l10n.sendLimits(
+                                                whole.format(dest.min),
+                                                whole.format(dest.max),
+                                                dest.currency,
+                                              )
+                                            : ''),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: _quoteError != null
+                                          ? AppColors.red
+                                          : context.zc.soft,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 12),
+                                // Pay with Mobile Money or the Zawapay balance
+                                // (abroad: Mobile Money only for now).
+                                if (!quoted)
+                                  _SourcePicker(
+                                    currency: _currency,
+                                    balance: _balance,
+                                    balanceEnough: _balanceEnough,
+                                    hasAmount: canSend,
+                                    fromBalance: _fromBalance && _balanceEnough,
+                                    onChanged: (v) =>
+                                        setState(() => _fromBalance = v),
+                                  ),
+                                const Spacer(),
+                                const SizedBox(height: 16),
+                                Container(
+                                  height: 54,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 18,
+                                  ),
+                                  decoration: ShapeDecoration(
+                                    color: context.zc.field,
+                                    shape: StadiumBorder(),
+                                  ),
+                                  alignment: Alignment.centerLeft,
+                                  child: TextField(
+                                    // Tapping anywhere outside the field closes the keyboard.
+                                    onTapOutside: (_) => FocusManager
+                                        .instance
+                                        .primaryFocus
+                                        ?.unfocus(),
+                                    controller: _note,
+                                    maxLength: 60,
+                                    cursorColor: AppColors.red,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: context.zc.text,
+                                    ),
+                                    decoration: InputDecoration.collapsed(
+                                      hintText: l10n.sendNoteHint,
+                                      hintStyle: TextStyle(
+                                        fontSize: 16,
+                                        color: context.zc.soft,
+                                      ),
+                                    ).copyWith(counterText: ''),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                // The total sent to the Mobile Money (USSD)
+                                // request is shown right in the button.
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 60,
+                                  child: FilledButton(
+                                    onPressed: canSend && !_busy ? _send : null,
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: AppColors.red,
+                                      disabledBackgroundColor: AppColors.red
+                                          .withValues(alpha: 0.35),
+                                      foregroundColor: AppColors.white,
+                                      disabledForegroundColor: const Color(
+                                        0x99FFFFFF,
+                                      ),
+                                      shape: const StadiumBorder(),
+                                      textStyle: const TextStyle(
+                                        fontFamily: 'PlusJakartaSans',
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    child: _busy
+                                        ? const SizedBox.square(
+                                            dimension: 24,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2.6,
+                                              color: AppColors.white,
+                                            ),
+                                          )
+                                        : Text(
+                                            canSend
+                                                ? l10n.sendPayAmount(
+                                                    '${payMoney(paid)} $paySymbol',
+                                                  )
+                                                : l10n.sendPay,
+                                          ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

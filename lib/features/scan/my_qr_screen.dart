@@ -260,7 +260,7 @@ class _MyQrViewState extends State<MyQrView> {
                     foregroundColor: context.zc.text,
                     shape: const StadiumBorder(),
                     textStyle: const TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: 'PlusJakartaSans',
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -278,7 +278,7 @@ class _MyQrViewState extends State<MyQrView> {
                     foregroundColor: AppColors.white,
                     shape: const StadiumBorder(),
                     textStyle: const TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: 'PlusJakartaSans',
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
@@ -546,7 +546,7 @@ class _AmountSheetState extends State<_AmountSheet> {
                   disabledForegroundColor: context.zc.soft,
                   shape: const StadiumBorder(),
                   textStyle: const TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: 'PlusJakartaSans',
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                   ),
@@ -566,7 +566,7 @@ class _AmountSheetState extends State<_AmountSheet> {
                     foregroundColor: context.zc.text,
                     shape: const StadiumBorder(),
                     textStyle: const TextStyle(
-                      fontFamily: 'Inter',
+                      fontFamily: 'PlusJakartaSans',
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),

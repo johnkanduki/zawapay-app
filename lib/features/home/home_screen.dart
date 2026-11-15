@@ -14,6 +14,8 @@ import '../../core/countries/country.dart';
 import '../../core/settings/app_settings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/zawapay_colors.dart';
+import '../../core/widgets/bar_spinner.dart';
+import '../../core/widgets/glass.dart';
 import '../../core/widgets/verified_badge.dart';
 import '../../l10n/app_localizations.dart';
 import '../invite/invite_screen.dart';
@@ -97,6 +99,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   /// Only the 3 latest transfers on the home page; History has them all.
   static List<Transfer> _last3(List<Transfer> all) => all.take(3).toList();
+
+  /// Height kept at the top for the glass header (8 + 78 + 6).
+  static const double _headerSpace = 92;
 
   /// How far the page must be pulled down to refresh it.
   static const double _refreshPull = 80;
@@ -306,65 +311,34 @@ class _HomeScreenState extends State<HomeScreen> {
                 bottom: false,
                 child: Stack(
                   children: [
-                    // The ONLY spinner: it fills up while the page is pulled
-                    // down, then turns while the page reloads.
-                    Positioned(
-                      top: 6,
-                      left: 0,
-                      right: 0,
-                      child: IgnorePointer(
-                        child: ValueListenableBuilder<double>(
-                          valueListenable: _pull,
-                          builder: (_, pull, _) => _PullSpinner(
-                            progress: _refreshing
-                                ? null
-                                : (pull / _refreshPull).clamp(0.0, 1.0),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // While reloading, the whole page stays a little lower
-                    // so the spinner shows above the header; then it goes
-                    // back up. The header itself never changes size.
-                    AnimatedPadding(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOut,
-                      padding: EdgeInsets.only(top: _refreshing ? 38 : 0),
-                      child: Column(
+                    Positioned.fill(
+                      child: Stack(
                         children: [
-                          // Pushing the page up: photo, name and username stay fixed and
-                          // the rest scrolls underneath. Pulling it down: the header
-                          // comes down with the whole page, to refresh it.
-                          ValueListenableBuilder<double>(
-                            valueListenable: _pull,
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                16,
-                                12,
-                                16,
-                                14,
+                          // The ONLY spinner, just under the header: it
+                          // fills up while the page is pulled down, then
+                          // turns while the page reloads.
+                          Positioned(
+                            top: _headerSpace + 6,
+                            left: 0,
+                            right: 0,
+                            child: IgnorePointer(
+                              child: ValueListenableBuilder<double>(
+                                valueListenable: _pull,
+                                builder: (_, pull, _) => _PullSpinner(
+                                  progress: _refreshing
+                                      ? null
+                                      : (pull / _refreshPull).clamp(0.0, 1.0),
+                                ),
                               ),
-                              child: _ProfileHeader(
-                                onScan: () =>
-                                    _openScan(country, fullName, username),
-                                fullName: fullName,
-                                username: username,
-                                photoPath: widget.photoPath,
-                                initialSource: name,
-                                certified: widget.certified,
-                                // Certified: the profile leads to Settings. Not yet:
-                                // it opens the identity check (KYC).
-                                onTap: widget.certified
-                                    ? () => setState(() => _tab = _settingsTab)
-                                    : () => _openKyc(fullName, username),
-                              ),
-                            ),
-                            builder: (_, pull, child) => Transform.translate(
-                              offset: Offset(0, pull),
-                              child: child,
                             ),
                           ),
-                          Expanded(
+                          // While reloading, the page stays a little
+                          // lower so the spinner shows; then it goes
+                          // back up.
+                          AnimatedPadding(
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeOut,
+                            padding: EdgeInsets.only(top: _refreshing ? 38 : 0),
                             child: ClipRect(
                               child: NotificationListener<ScrollNotification>(
                                 onNotification: _onScroll,
@@ -461,9 +435,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const physics = BouncingScrollPhysics(
                                       parent: AlwaysScrollableScrollPhysics(),
                                     );
+                                    // The page starts under the glass
+                                    // header and scrolls behind it.
                                     const padding = EdgeInsets.fromLTRB(
                                       16,
-                                      10,
+                                      _headerSpace + 6,
                                       16,
                                       0,
                                     );
@@ -506,6 +482,36 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                    // Photo, name, username and "Scan to pay": always
+                    // fixed, on frosted glass. Only the page behind moves,
+                    // scrolled up or pulled down to refresh.
+                    Positioned(
+                      top: 8,
+                      left: 12,
+                      right: 12,
+                      child: GlassSurface(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(10, 10, 14, 10),
+                          child: _ProfileHeader(
+                            onScan: () =>
+                                _openScan(country, fullName, username),
+                            fullName: fullName,
+                            username: username,
+                            photoPath: widget.photoPath,
+                            initialSource: name,
+                            certified: widget.certified,
+                            // Certified: the profile leads to Settings. Not yet:
+                            // it opens the identity check (KYC).
+                            onTap: widget.certified
+                                ? () => setState(() => _tab = _settingsTab)
+                                : () => _openKyc(fullName, username),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -615,22 +621,11 @@ class _PullSpinner extends StatelessWidget {
 
   final double? progress;
 
+  /// The bar wheel: bars appear one by one while pulling, then turn.
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Opacity(
-        opacity: progress ?? 1,
-        child: SizedBox.square(
-          dimension: 26,
-          child: CircularProgressIndicator(
-            value: progress,
-            strokeWidth: 2.5,
-            color: AppColors.red,
-            backgroundColor: context.zc.cardStrong,
-          ),
-        ),
-      ),
-    );
+    if (progress == 0) return const SizedBox(height: 30);
+    return Center(child: BarSpinner(progress: progress));
   }
 }
 
@@ -877,69 +872,66 @@ class _BottomBar extends StatelessWidget {
       minimum: const EdgeInsets.only(bottom: 12),
       child: Center(
         heightFactor: 1,
-        child: Container(
-          width: 300,
-          height: 72,
-          decoration: ShapeDecoration(
-            color: Color.alphaBlend(context.zc.cardStrong, context.zc.page),
-            shape: const StadiumBorder(),
-          ),
-          // No inner margin: the selected pill fills the whole height and,
-          // on the ends, follows the bar's own rounded edge.
-          clipBehavior: Clip.antiAlias,
-          child: Stack(
-            children: [
-              // The pill slides to the selected button.
-              AnimatedAlign(
-                duration: const Duration(milliseconds: 260),
-                curve: Curves.easeOutCubic,
-                alignment: Alignment(
-                  -1 + selected * 2 / (_icons.length - 1),
-                  0,
-                ),
-                child: FractionallySizedBox(
-                  widthFactor: 1 / _icons.length,
-                  heightFactor: 1,
-                  child: DecoratedBox(
-                    decoration: ShapeDecoration(
-                      color: AppColors.red.withValues(alpha: 0.18),
-                      shape: const StadiumBorder(
-                        side: BorderSide(color: AppColors.red, width: 1.5),
+        // Frosted glass: the page shows, blurred, through the bar.
+        child: GlassSurface(
+          child: SizedBox(
+            width: 300,
+            height: 72,
+            // No inner margin: the selected pill fills the whole height and,
+            // on the ends, follows the bar's own rounded edge.
+            child: Stack(
+              children: [
+                // The pill slides to the selected button.
+                AnimatedAlign(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  alignment: Alignment(
+                    -1 + selected * 2 / (_icons.length - 1),
+                    0,
+                  ),
+                  child: FractionallySizedBox(
+                    widthFactor: 1 / _icons.length,
+                    heightFactor: 1,
+                    // A soft red tint, no outline.
+                    child: DecoratedBox(
+                      decoration: ShapeDecoration(
+                        color: AppColors.red.withValues(alpha: 0.14),
+                        shape: const StadiumBorder(),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Row(
-                children: [
-                  for (var i = 0; i < _icons.length; i++)
-                    Expanded(
-                      child: Semantics(
-                        button: true,
-                        selected: i == selected,
-                        label: labels[i],
-                        child: GestureDetector(
-                          onTap: () => onSelect(i),
-                          behavior: HitTestBehavior.opaque,
-                          child: Center(
-                            child: AnimatedScale(
-                              duration: const Duration(milliseconds: 200),
-                              scale: i == selected ? 1.08 : 1,
-                              child: Icon(
-                                _icons[i],
-                                size: 30,
-                                color: i == selected
-                                    ? AppColors.red
-                                    : context.zc.text,
+                Row(
+                  children: [
+                    for (var i = 0; i < _icons.length; i++)
+                      Expanded(
+                        child: Semantics(
+                          button: true,
+                          selected: i == selected,
+                          label: labels[i],
+                          child: GestureDetector(
+                            onTap: () => onSelect(i),
+                            behavior: HitTestBehavior.opaque,
+                            child: Center(
+                              child: AnimatedScale(
+                                duration: const Duration(milliseconds: 200),
+                                scale: i == selected ? 1.08 : 1,
+                                child: Icon(
+                                  _icons[i],
+                                  size: 30,
+                                  color: i == selected
+                                      ? AppColors.red
+                                      : context.zc.text,
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

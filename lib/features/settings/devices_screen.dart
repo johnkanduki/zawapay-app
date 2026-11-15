@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/widgets/bar_spinner.dart';
+import '../../core/widgets/glass_header_page.dart';
 import '../../core/account/account_error.dart';
 import '../../core/account/zawapay_account.dart';
 import '../../core/theme/app_colors.dart';
@@ -80,25 +83,25 @@ class _DevicesScreenState extends State<DevicesScreen> {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final devices = _devices;
 
+    final header = Row(
+      children: [
+        RoundIconButton(
+          icon: Icons.arrow_back_rounded,
+          onTap: () => Navigator.of(context).pop(),
+        ),
+        const SizedBox(width: 14),
+        Text(
+          l10n.devicesTitle,
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: context.zc.text,
+          ),
+        ),
+      ],
+    );
+
     final children = <Widget>[
-      Row(
-        children: [
-          RoundIconButton(
-            icon: Icons.arrow_back_rounded,
-            onTap: () => Navigator.of(context).pop(),
-          ),
-          const SizedBox(width: 14),
-          Text(
-            l10n.devicesTitle,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: context.zc.text,
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 14),
       Text(
         l10n.devicesIntro,
         style: TextStyle(fontSize: 15, height: 1.4, color: context.zc.soft),
@@ -213,13 +216,18 @@ class _DevicesScreenState extends State<DevicesScreen> {
       child: Scaffold(
         backgroundColor: context.zc.page,
         body: SafeArea(
-          child: RefreshIndicator(
-            color: AppColors.red,
-            onRefresh: _load,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-              children: children,
+          child: GlassHeaderPage(
+            header: header,
+            body: (top) => BarPullRefresh(
+              top: top,
+              onRefresh: _load,
+              child: ListView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                padding: EdgeInsets.fromLTRB(16, top, 16, 32),
+                children: children,
+              ),
             ),
           ),
         ),

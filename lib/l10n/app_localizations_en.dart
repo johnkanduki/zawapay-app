@@ -1390,6 +1390,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commissionsReturned => 'Withdrawal failed: money returned';
 
   @override
+  String get commissionsPaidSend => 'Transfer paid with the balance';
+
+  @override
+  String commissionsPaidSendTo(String to, String received) {
+    return 'To $to · received $received';
+  }
+
+  @override
   String get commissionsWdDone => 'Paid';
 
   @override
@@ -1739,6 +1747,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutDeleteAccount => 'Delete account';
+
+  @override
+  String get deleteAccountTitle => 'Delete your account?';
+
+  @override
+  String get deleteAccountBody =>
+      'Your name, e-mail, numbers, photo and PIN code will be erased for good. Your referrals will move under your sponsor. Withdraw your commissions first: anything below the withdrawal minimum is lost. Your past transfers stay, without your name, as the law requires.';
+
+  @override
+  String get deleteAccountConfirm => 'Delete my account';
+
+  @override
+  String get deleteAccountDone => 'Your Zawapay App account has been deleted.';
 
   @override
   String get aboutVersion => 'Version';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/widgets/glass.dart';
 import '../../core/theme/zawapay_colors.dart';
 
 /// Fixed dark colours, kept only for pages that stay dark in both modes
@@ -29,19 +30,16 @@ class RoundIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Frosted glass, like the headers: the page shows through, blurred.
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: size,
-        height: size,
-        // White with a thin line in light mode: visible on the grey page
-        // and inside white cards alike.
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: context.zc.isDark ? context.zc.field : context.zc.raised,
-          border: context.zc.isDark ? null : Border.all(color: context.zc.line),
+      child: GlassSurface(
+        shape: const CircleBorder(),
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Icon(icon, color: context.zc.text),
         ),
-        child: Icon(icon, color: context.zc.text),
       ),
     );
   }

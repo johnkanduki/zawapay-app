@@ -137,7 +137,7 @@ void _text(
     text: TextSpan(
       text: text,
       style: TextStyle(
-        fontFamily: 'Inter',
+        fontFamily: 'PlusJakartaSans',
         fontSize: size,
         fontWeight: weight,
         color: color,
